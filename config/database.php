@@ -17,7 +17,7 @@ ini_set('session.cookie_samesite', 'Strict');
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "mgmp_ppkn_db";
+$db   = "mgmp_otomotif_db";
 
 $conn = mysqli_connect($host, $user, $pass, $db);
 
