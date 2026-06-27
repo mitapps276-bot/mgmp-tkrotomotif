@@ -297,24 +297,48 @@ if(isset($_POST['submit_request'])){
 
     if($cek_materi && mysqli_num_rows($cek_materi) > 0) {
         while($m = mysqli_fetch_assoc($cek_materi)) {
+            $stopwords = ['dan','atau','yang','untuk','dari','dalam','ke','di','pada','tentang','dengan','ini','itu','sebagai','materi','bahasa','kelas','bab','semester','kurikulum','merdeka','revisi'];
+
             // Pecah judul materi menjadi array kata
             $words = explode(" ", strtolower($m['title']));
-            $keywords = [];
+            $title_keywords = [];
             foreach($words as $w) {
                 $w = trim(preg_replace('/[^a-z0-9]/', '', $w));
-                if(strlen($w) > 2) { $keywords[] = $w; } // Minimal 3 huruf (RPP, UTS, Bab)
+                if(strlen($w) > 2 && !in_array($w, $stopwords)) { $title_keywords[] = $w; } // Minimal 3 huruf & bukan stopword
+            }
+            
+            // Pecah deskripsi request menjadi array kata
+            $req_words = explode(" ", $deskripsi_lower);
+            $req_keywords = [];
+            foreach($req_words as $w) {
+                $w = trim(preg_replace('/[^a-z0-9]/', '', $w));
+                if(strlen($w) > 2 && !in_array($w, $stopwords)) { $req_keywords[] = $w; } // Minimal 3 huruf & bukan stopword
             }
 
-            if(count($keywords) > 0) {
-                $matched_count = 0;
-                foreach($keywords as $kw) { 
+            if(count($title_keywords) > 0) {
+                $matched_count_title = 0;
+                foreach($title_keywords as $kw) { 
                     if(strpos($deskripsi_lower, $kw) !== false) { 
-                        $matched_count++; 
+                        $matched_count_title++; 
                     } 
                 }
+                $pct_title = ($matched_count_title / count($title_keywords)) * 100;
                 
-                // Jika minimal 60% kata dari judul materi ada di dalam deskripsi request, anggap cocok
-                if(($matched_count / count($keywords)) * 100 >= 60) {
+                $pct_req = 0;
+                if(count($req_keywords) > 0) {
+                    $matched_count_req = 0;
+                    $title_lower = strtolower($m['title']);
+                    foreach($req_keywords as $kw) { 
+                        if(strpos($title_lower, $kw) !== false) { 
+                            $matched_count_req++; 
+                        } 
+                    }
+                    $pct_req = ($matched_count_req / count($req_keywords)) * 100;
+                }
+
+                // Jika minimal 60% kata dari judul materi ada di deskripsi request, 
+                // ATAU minimal 60% kata dari request ada di judul materi, anggap cocok
+                if($pct_title >= 60 || $pct_req >= 60) {
                     $materi_ditemukan = $m;
                     break;
                 }
@@ -520,7 +544,8 @@ $materi_diperlukan_query = mysqli_query($conn, "
     SELECT 
         req.jenis_request,
         req.deskripsi,
-        COUNT(req.id) AS jumlah_request
+        COUNT(req.id) AS jumlah_request,
+        GROUP_CONCAT(CONCAT(u.full_name, ' (', u.school_name, ')') SEPARATOR ', ') AS requesters
     FROM material_requests req
     JOIN users u ON req.user_id = u.id
     WHERE u.school_name = '$user_school_name' AND req.status != 'selesai'
@@ -536,8 +561,10 @@ if (!$materi_diperlukan_query || mysqli_num_rows($materi_diperlukan_query) == 0)
         SELECT 
             req.jenis_request,
             req.deskripsi,
-            COUNT(req.id) AS jumlah_request
+            COUNT(req.id) AS jumlah_request,
+            GROUP_CONCAT(CONCAT(u.full_name, ' (', u.school_name, ')') SEPARATOR ', ') AS requesters
         FROM material_requests req
+        JOIN users u ON req.user_id = u.id
         WHERE req.status != 'selesai'
         GROUP BY req.jenis_request, req.deskripsi
         ORDER BY jumlah_request DESC, MAX(req.created_at) ASC
@@ -557,7 +584,8 @@ if ($materi_diperlukan_query && mysqli_num_rows($materi_diperlukan_query) > 0) {
         $materi_diperlukan_list[] = [
             'jenis' => $row['jenis_request'],
             'detail' => $detail,
-            'jumlah' => $row['jumlah_request']
+            'jumlah' => $row['jumlah_request'],
+            'requesters' => $row['requesters']
         ];
     }
 }
@@ -1788,7 +1816,10 @@ if($total_upload_guru == 0){
                                 </p>
                             </div>
                             <div style="margin-top: auto; padding-top: 10px;">
-                                <span style="display:inline-block; background:#eafaf1; color:#27ae60; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">Diminta oleh <?= $item['jumlah']; ?> guru</span>
+                                <span style="display:inline-block; background:#eafaf1; color:#27ae60; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; border:1px solid #2ecc71; margin-bottom: 8px;">Diminta oleh <?= $item['jumlah']; ?> guru</span>
+                                <div style="font-size:11px; color:#7f8c8d; line-height:1.4;">
+                                    <strong>Pemohon:</strong> <?= htmlspecialchars($item['requesters']); ?>
+                                </div>
                             </div>
                         </div>
                     <?php } ?>

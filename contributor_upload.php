@@ -195,8 +195,10 @@ $materi_diperlukan_query = mysqli_query($conn, "
         GROUP_CONCAT(req.id) AS request_ids,
         req.jenis_request,
         req.deskripsi,
-        COUNT(req.id) AS jumlah_request
+        COUNT(req.id) AS jumlah_request,
+        GROUP_CONCAT(CONCAT(u.full_name, ' (', u.school_name, ')') SEPARATOR ', ') AS requesters
     FROM material_requests req
+    JOIN users u ON req.user_id = u.id
     WHERE req.status != 'selesai'
     GROUP BY req.jenis_request, req.deskripsi
     ORDER BY jumlah_request DESC, MAX(req.created_at) ASC
@@ -219,7 +221,8 @@ if ($materi_diperlukan_query && mysqli_num_rows($materi_diperlukan_query) > 0) {
             'kelas' => $kelas,
             'judul_saja' => $judul_saja,
             'detail' => $detail,
-            'jumlah' => $row['jumlah_request']
+            'jumlah' => $row['jumlah_request'],
+            'requesters' => $row['requesters']
         ];
     }
 }
@@ -1273,6 +1276,9 @@ if(isset($_POST['upload'])){
                     </div>
                     <div style="margin-top: auto; padding-top: 10px; display:flex; flex-direction:column; gap:8px;">
                         <span style="display:inline-block; background:#eafaf1; color:#27ae60; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; border:1px solid #2ecc71; text-align:center;">Dibutuhkan oleh <?= $item['jumlah']; ?> guru</span>
+                        <div style="font-size:11px; color:#7f8c8d; line-height:1.4;">
+                            <strong>Pemohon:</strong> <?= htmlspecialchars($item['requesters']); ?>
+                        </div>
                         <a href="javascript:void(0)" onclick="bantuUpload('<?= htmlspecialchars(addslashes($item['judul_saja'])); ?>', '<?= htmlspecialchars(addslashes($item['jenis'])); ?>', '<?= htmlspecialchars(addslashes($item['kelas'])); ?>', '<?= htmlspecialchars(addslashes($item['ids'])); ?>')" style="display:inline-block; text-align:center; background:#3498db; color:white; padding:8px 12px; border-radius:8px; font-size:12px; text-decoration:none; font-weight:bold; transition: 0.3s;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">Bantu Upload</a>
                     </div>
                 </div>

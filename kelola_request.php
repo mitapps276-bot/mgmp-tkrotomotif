@@ -63,8 +63,22 @@ if(isset($_GET['hapus'])){
     }
     
     $id = (int)$_GET['hapus'];
-    mysqli_query($conn, "DELETE FROM material_requests WHERE id = '$id'");
-    $_SESSION['success'] = 'Request berhasil dihapus!';
+    if(isset($_GET['alasan'])){
+        $alasan = trim($_GET['alasan']);
+        if($alasan !== ''){
+            $admin_note = mysqli_real_escape_string($conn, "Sistem: Ditolak - " . $alasan);
+            
+            // Cek dan buat kolom admin_note jika belum ada
+            $cek_col = mysqli_query($conn, "SHOW COLUMNS FROM material_requests LIKE 'admin_note'");
+            if(mysqli_num_rows($cek_col) == 0){
+                mysqli_query($conn, "ALTER TABLE material_requests ADD admin_note TEXT NULL");
+            }
+            
+            // Soft delete untuk mempertahankan notifikasi lonceng tanpa mengubah skema
+            mysqli_query($conn, "UPDATE material_requests SET status = 'selesai', admin_note = '$admin_note' WHERE id = '$id'");
+            $_SESSION['success'] = 'Request berhasil dihapus dan notifikasi telah dikirim!';
+        }
+    }
     header("Location: kelola_request.php");
     exit;
 }
@@ -93,10 +107,11 @@ $query = mysqli_query($conn, "
     SELECT r.*, u.full_name, u.school_name 
     FROM material_requests r
     JOIN users u ON r.user_id = u.id
-    WHERE u.full_name LIKE '%$search%'
+    WHERE (u.full_name LIKE '%$search%'
        OR u.school_name LIKE '%$search%'
        OR r.jenis_request LIKE '%$search%'
-       OR r.deskripsi LIKE '%$search%'
+       OR r.deskripsi LIKE '%$search%')
+       AND (r.admin_note IS NULL OR r.admin_note NOT LIKE 'Sistem: Ditolak - %')
     ORDER BY r.created_at DESC
 ");
 
@@ -206,6 +221,19 @@ $query = mysqli_query($conn, "
         .popup-btn:hover {
             background: #2980b9;
         }
+        
+        .delete-btn-cancel {
+            background: #95a5a6;
+        }
+        .delete-btn-cancel:hover {
+            background: #7f8c8d;
+        }
+        .delete-btn-confirm {
+            background: #e74c3c;
+        }
+        .delete-btn-confirm:hover {
+            background: #c0392b;
+        }
     </style>
 </head>
 <body>
@@ -228,6 +256,22 @@ $query = mysqli_query($conn, "
     }
 </script>
 <?php } ?>
+
+<!-- POPUP DELETE REASON -->
+<div class="popup-overlay" id="deletePopup">
+    <div class="popup-box">
+        <div class="popup-icon" style="background:#e74c3c;">!</div>
+        <div class="popup-message">Alasan Hapus Request</div>
+        <p style="font-size:12px; color:#7f8c8d; margin-bottom:15px; text-align:left;">Silakan berikan alasan mengapa request ini dihapus. Alasan akan dikirim ke guru.</p>
+        <input type="hidden" id="delete_id">
+        <textarea id="delete_reason" rows="3" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; margin-bottom:10px; font-family:inherit; resize:none; box-sizing:border-box;" placeholder="Masukkan alasan penghapusan..."></textarea>
+        <div id="delete_error" style="color:#e74c3c; font-size:12px; margin-bottom:10px; display:none; text-align:left;">Alasan tidak boleh kosong!</div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="popup-btn delete-btn-cancel" onclick="tutupPopupHapus()">Batal</button>
+            <button class="popup-btn delete-btn-confirm" onclick="submitHapus()">Hapus Request</button>
+        </div>
+    </div>
+</div>
 
 <div class="wrapper">
     <div class="sidebar">
@@ -302,7 +346,7 @@ $query = mysqli_query($conn, "
                         <a href="#" class="btn btn-green" onclick="selesaikanRequest(<?= $row['id']; ?>);">Selesai Manual</a>
                     <?php } ?>
                     
-                    <a href="?hapus=<?= $row['id']; ?>&csrf_token=<?= $csrf_token; ?>" class="btn btn-red" onclick="return confirm('Yakin ingin menghapus request ini?');">Hapus</a>
+                    <a href="#" class="btn btn-red" onclick="bukaPopupHapus(<?= $row['id']; ?>); return false;">Hapus</a>
                 </td>
             </tr>
             <?php } } else { ?>
@@ -321,6 +365,28 @@ function selesaikanRequest(id) {
     if (catatan !== null) {
         window.location.href = "?status=selesai&id=" + id + "&catatan=" + encodeURIComponent(catatan) + "&csrf_token=<?= $csrf_token; ?>";
     }
+}
+
+function bukaPopupHapus(id) {
+    document.getElementById('delete_id').value = id;
+    document.getElementById('delete_reason').value = '';
+    document.getElementById('delete_error').style.display = 'none';
+    document.getElementById('deletePopup').classList.add('show');
+}
+
+function tutupPopupHapus() {
+    document.getElementById('deletePopup').classList.remove('show');
+}
+
+function submitHapus() {
+    let reason = document.getElementById('delete_reason').value.trim();
+    if (reason === '') {
+        document.getElementById('delete_error').style.display = 'block';
+        return;
+    }
+    let id = document.getElementById('delete_id').value;
+    let csrf = '<?= $csrf_token; ?>';
+    window.location.href = "?hapus=" + id + "&alasan=" + encodeURIComponent(reason) + "&csrf_token=" + csrf;
 }
 </script>
 </body>
