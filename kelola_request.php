@@ -147,10 +147,33 @@ $query = mysqli_query($conn, "
         .btn-green { background:#27ae60; } .btn-green:hover { background:#219150; }
         .btn-red { background:#e74c3c; } .btn-red:hover { background:#c0392b; }
         
-        @media(max-width:768px){
-            .wrapper{ flex-direction:column; }
-            .sidebar{ width:100%; height:auto; position:static; }
-            .main-content{ padding:15px; }
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media(max-width:992px){ 
+            .wrapper{ flex-direction:column; } 
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display: none; } 
+            .sidebar.active { display: block; }
+            .sidebar .logo { display: none; }
+            .main-content{ padding:15px; } 
             table{ font-size:13px; }
             table th, table td{ padding:10px; }
             form { flex-direction: column; }
@@ -274,7 +297,13 @@ $query = mysqli_query($conn, "
 </div>
 
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform Admin</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">ADMIN PANEL</div>
         <div class="menu">
             <a href="dashboard_admin.php">Dashboard</a>
@@ -387,6 +416,16 @@ function submitHapus() {
     let id = document.getElementById('delete_id').value;
     let csrf = '<?= $csrf_token; ?>';
     window.location.href = "?hapus=" + id + "&alasan=" + encodeURIComponent(reason) + "&csrf_token=" + csrf;
+}
+</script>
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
 }
 </script>
 </body>

@@ -33,8 +33,11 @@ if(!$data || empty($data['file_path'])){
 }
 
 $file = $data['file_path'];
+$real_file = realpath($file);
+$allowed_dir = realpath('assets/uploads');
 
-if(file_exists($file)){
+if($real_file && strpos($real_file, $allowed_dir) === 0 && file_exists($real_file)){
+    $file = $real_file;
     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
     $mime_type = 'application/octet-stream';
     switch($ext) {

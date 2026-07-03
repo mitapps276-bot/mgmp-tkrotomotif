@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /guru/
+Disallow: /superadmin/
+Disallow: /config/
+Disallow: /process_login.php
+Disallow: /telemetry_sync.php
+Disallow: /api_*.php
+
+Sitemap: https://mgmpmulokdps.com/sitemap.xml

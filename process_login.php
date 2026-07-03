@@ -1,5 +1,17 @@
 <?php
 
+// =====================================
+// SESSION SECURE CONFIG
+// Pastikan session cookie aman & tidak hilang saat redirect HTTP→HTTPS
+// =====================================
+$is_localhost = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '192.168.') === 0);
+if (!$is_localhost) {
+    ini_set('session.cookie_secure', 1);       // Cookie hanya dikirim via HTTPS
+}
+ini_set('session.cookie_httponly', 1);     // Cookie tidak bisa diakses via JavaScript
+ini_set('session.cookie_samesite', 'Lax'); // Izinkan cross-page navigation normal
+ini_set('session.use_strict_mode', 1);     // Tolak session ID yang tidak valid
+
 session_start();
 
 date_default_timezone_set('Asia/Makassar');
@@ -25,6 +37,13 @@ if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_toke
 }
 
 // =====================================
+// AMBIL INPUT
+// =====================================
+
+$username = trim($_POST['username']);
+$password = trim($_POST['password']);
+
+// =====================================
 // PROTEKSI BRUTE FORCE (RATE LIMITING)
 // =====================================
 $max_attempts = 3; // Maksimal percobaan gagal
@@ -37,6 +56,10 @@ $cek_tabel = mysqli_query($conn, "SHOW TABLES LIKE 'login_attempts'");
 if(mysqli_num_rows($cek_tabel) == 0){
     mysqli_query($conn, "CREATE TABLE login_attempts (ip_address VARCHAR(45) PRIMARY KEY, attempts INT DEFAULT 1, last_attempt DATETIME)");
 }
+$cek_tabel_user = mysqli_query($conn, "SHOW TABLES LIKE 'login_attempts_user'");
+if(mysqli_num_rows($cek_tabel_user) == 0){
+    mysqli_query($conn, "CREATE TABLE login_attempts_user (username VARCHAR(100) PRIMARY KEY, attempts INT DEFAULT 1, last_attempt DATETIME)");
+}
 
 $stmt_check_ip = mysqli_prepare($conn, "SELECT attempts, UNIX_TIMESTAMP(last_attempt) as last_attempt_ts FROM login_attempts WHERE ip_address = ?");
 mysqli_stmt_bind_param($stmt_check_ip, "s", $ip_address);
@@ -45,8 +68,19 @@ $result_ip = mysqli_stmt_get_result($stmt_check_ip);
 $ip_data = mysqli_fetch_assoc($result_ip);
 mysqli_stmt_close($stmt_check_ip);
 
-if($ip_data && $ip_data['attempts'] >= $max_attempts) {
-    $time_passed = time() - $ip_data['last_attempt_ts'];
+$stmt_check_user = mysqli_prepare($conn, "SELECT attempts, UNIX_TIMESTAMP(last_attempt) as last_attempt_ts FROM login_attempts_user WHERE username = ?");
+mysqli_stmt_bind_param($stmt_check_user, "s", $username);
+mysqli_stmt_execute($stmt_check_user);
+$result_user = mysqli_stmt_get_result($stmt_check_user);
+$user_data = mysqli_fetch_assoc($result_user);
+mysqli_stmt_close($stmt_check_user);
+
+if(($ip_data && $ip_data['attempts'] >= $max_attempts) || ($user_data && $user_data['attempts'] >= $max_attempts)) {
+    $ip_time_passed = $ip_data ? (time() - $ip_data['last_attempt_ts']) : 999999;
+    $user_time_passed = $user_data ? (time() - $user_data['last_attempt_ts']) : 999999;
+    
+    $time_passed = min($ip_time_passed, $user_time_passed);
+    
     if($time_passed < $lockout_time) {
         $wait_time = ceil(($lockout_time - $time_passed) / 60);
         $_SESSION['login_error'] = "Terlalu banyak percobaan gagal. Akses dikunci sementara selama $wait_time menit.";
@@ -54,17 +88,16 @@ if($ip_data && $ip_data['attempts'] >= $max_attempts) {
         exit;
     } else {
         // Jika waktu kunci sudah lewat, reset percobaan
-        mysqli_query($conn, "DELETE FROM login_attempts WHERE ip_address = '$ip_address'");
+        $stmt_del_ip = mysqli_prepare($conn, "DELETE FROM login_attempts WHERE ip_address = ?");
+        mysqli_stmt_bind_param($stmt_del_ip, "s", $ip_address);
+        mysqli_stmt_execute($stmt_del_ip);
+        mysqli_stmt_close($stmt_del_ip);
+        $stmt_del = mysqli_prepare($conn, "DELETE FROM login_attempts_user WHERE username = ?");
+        mysqli_stmt_bind_param($stmt_del, "s", $username);
+        mysqli_stmt_execute($stmt_del);
+        mysqli_stmt_close($stmt_del);
     }
 }
-
-// =====================================
-// AMBIL INPUT
-// =====================================
-
-$username = trim($_POST['username']);
-
-$password = trim($_POST['password']);
 
 // =====================================
 // CEK USER
@@ -201,28 +234,21 @@ if($data){
 
         // =====================================
         // LOGIN ACTIVITY
-        // HANYA UNTUK GURU
+        // UNTUK SEMUA ROLE (ADMIN, GURU, EXTERNAL)
         // =====================================
 
-        if($role_id == 2){
+        if($role_id == 1 || $role_id == 2 || $role_id == 4){
 
             // =====================================
             // CEK LOGIN HARI INI
             // =====================================
 
-            $cek_login = mysqli_query($conn, "
-
-            SELECT id
-
-            FROM login_activity
-
-            WHERE user_id = '$user_id'
-
-            AND login_date = '$tanggal_hari_ini'
-
-            LIMIT 1
-
-            ");
+            $stmt_cek_login = mysqli_prepare($conn, "SELECT id FROM login_activity WHERE user_id = ? AND login_date = ? LIMIT 1");
+            mysqli_stmt_bind_param($stmt_cek_login, "is", $user_id, $tanggal_hari_ini);
+            mysqli_stmt_execute($stmt_cek_login);
+            mysqli_stmt_store_result($stmt_cek_login);
+            $num_rows_login = mysqli_stmt_num_rows($stmt_cek_login);
+            mysqli_stmt_close($stmt_cek_login);
 
             // =====================================
             // JIKA BELUM LOGIN HARI INI
@@ -230,7 +256,7 @@ if($data){
 
             if(
 
-                mysqli_num_rows($cek_login) == 0
+                $num_rows_login == 0
 
             ){
 
@@ -238,23 +264,10 @@ if($data){
                 // INSERT LOGIN BARU
                 // =====================================
 
-                $insert_login = mysqli_query($conn, "
-
-                INSERT INTO login_activity(
-
-                    user_id,
-                    login_date,
-                    login_time
-
-                )VALUES(
-
-                    '$user_id',
-                    '$tanggal_hari_ini',
-                    '$waktu_login'
-
-                )
-
-                ");
+                $stmt_insert_login = mysqli_prepare($conn, "INSERT INTO login_activity (user_id, login_date, login_time) VALUES (?, ?, ?)");
+                mysqli_stmt_bind_param($stmt_insert_login, "iss", $user_id, $tanggal_hari_ini, $waktu_login);
+                $insert_login = mysqli_stmt_execute($stmt_insert_login);
+                mysqli_stmt_close($stmt_insert_login);
 
                 // =====================================
                 // DEBUG ERROR
@@ -278,17 +291,10 @@ if($data){
 
             else{
 
-                mysqli_query($conn, "
-
-                UPDATE login_activity
-
-                SET login_time = '$waktu_login'
-
-                WHERE user_id = '$user_id'
-
-                AND login_date = '$tanggal_hari_ini'
-
-                ");
+                $stmt_update_login = mysqli_prepare($conn, "UPDATE login_activity SET login_time = ? WHERE user_id = ? AND login_date = ?");
+                mysqli_stmt_bind_param($stmt_update_login, "sis", $waktu_login, $user_id, $tanggal_hari_ini);
+                mysqli_stmt_execute($stmt_update_login);
+                mysqli_stmt_close($stmt_update_login);
 
             }
 
@@ -321,8 +327,6 @@ if($data){
             exit;
 
         }
-
-
 
         // =====================================
         // EXTERNAL CONTRIBUTOR
@@ -363,6 +367,11 @@ if($data){
         mysqli_stmt_execute($stmt_fail);
         mysqli_stmt_close($stmt_fail);
 
+        $stmt_fail_user = mysqli_prepare($conn, "INSERT INTO login_attempts_user (username, attempts, last_attempt) VALUES (?, 1, NOW()) ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = NOW()");
+        mysqli_stmt_bind_param($stmt_fail_user, "s", $username);
+        mysqli_stmt_execute($stmt_fail_user);
+        mysqli_stmt_close($stmt_fail_user);
+
         $_SESSION['login_error'] = "Username atau Password yang Anda masukkan salah!";
         header("Location: index.php#login");
         exit;
@@ -380,6 +389,11 @@ else{
     mysqli_stmt_bind_param($stmt_fail, "s", $ip_address);
     mysqli_stmt_execute($stmt_fail);
     mysqli_stmt_close($stmt_fail);
+
+    $stmt_fail_user = mysqli_prepare($conn, "INSERT INTO login_attempts_user (username, attempts, last_attempt) VALUES (?, 1, NOW()) ON DUPLICATE KEY UPDATE attempts = attempts + 1, last_attempt = NOW()");
+    mysqli_stmt_bind_param($stmt_fail_user, "s", $username);
+    mysqli_stmt_execute($stmt_fail_user);
+    mysqli_stmt_close($stmt_fail_user);
 
     $_SESSION['login_error'] = "Username atau Password yang Anda masukkan salah!";
     header("Location: index.php#login");

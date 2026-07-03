@@ -82,6 +82,7 @@ $query = mysqli_stmt_get_result($stmt);
 <head>
 
 <title>Kelola User</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 
@@ -331,11 +332,34 @@ AKSI BUTTON
 RESPONSIVE
 ======================= */
 
-@media(max-width:768px){
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
 
-    .main-content{ padding:15px; }
+@media(max-width:992px){
+
     .wrapper{ flex-direction:column; }
-    .sidebar{ width:100%; height:auto; position:static; }
+    .mobile-nav { display: flex; }
+    .sidebar{ width:100%; height:auto; position:static; display: none; }
+    .sidebar.active { display: block; }
+    .sidebar .logo { display: none; }
+    .main-content{ padding:15px; }
 
     table{
 
@@ -343,29 +367,32 @@ RESPONSIVE
 
     }
 
+    table{
+        font-size:13px;
+    }
+
     table th,
     table td{
-
         padding:10px;
-
     }
 
     .aksi{
-
-        flex-direction:column;
-
-        align-items:stretch;
-
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
     }
 
     .btn{
-
-        width:100%;
-
+        width: auto;
+        flex: 1 1 100%;
+        box-sizing: border-box;
+        text-align: center;
+        padding: 8px;
     }
 
     .search { display:flex; flex-direction:column; gap:10px; }
-    .search input { width: 100%; }
+    .search input { width: 100%; box-sizing: border-box; }
     .top { flex-direction:column; align-items:flex-start; gap:15px; }
 
 }
@@ -448,58 +475,68 @@ POPUP MODAL SUCCESS
     <div class="popup-box">
         <div class="popup-icon">✓</div>
         <div class="popup-message"><?= htmlspecialchars($success_message); ?></div>
-        <button class="popup-btn" onclick="closePopup('successPopup')">Tutup</button>
+        <button class="popup-btn" onclick="closePopup()">Tutup</button>
     </div>
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('successPopup').classList.add('show');
     });
+    function closePopup() {
+        document.getElementById('successPopup').classList.remove('show');
+    }
 </script>
 <?php } ?>
 
+<!-- POPUP ERROR -->
 <?php if(!empty($error_message)){ ?>
 <div class="popup-overlay" id="errorPopup">
     <div class="popup-box">
-        <div class="popup-icon" style="background: #e74c3c;">✕</div>
+        <div class="popup-icon" style="background:#e74c3c;">✖</div>
         <div class="popup-message"><?= htmlspecialchars($error_message); ?></div>
-        <button class="popup-btn" style="background: #e74c3c;" onclick="closePopup('errorPopup')">Tutup</button>
+        <button class="popup-btn" style="background:#e74c3c;" onclick="closeErrorPopup()">Tutup</button>
     </div>
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('errorPopup').classList.add('show');
     });
+    function closeErrorPopup() {
+        document.getElementById('errorPopup').classList.remove('show');
+    }
 </script>
 <?php } ?>
 
-<script>
-    function closePopup(id) {
-        document.getElementById(id).classList.remove('show');
-    }
-
-    function confirmDelete(url) {
-        document.getElementById('confirmPopup').classList.add('show');
-        document.getElementById('confirmBtn').onclick = function() {
-            window.location.href = url;
-        };
-    }
-</script>
-
-<!-- POPUP CONFIRM -->
-<div class="popup-overlay" id="confirmPopup">
+<!-- POPUP DELETE -->
+<div class="popup-overlay" id="deletePopup">
     <div class="popup-box">
-        <div class="popup-icon" style="background: #f39c12;">?</div>
+        <div class="popup-icon" style="background: #e74c3c; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:40px;">!</div>
         <div class="popup-message">Yakin ingin menghapus user ini?</div>
         <div style="display:flex; justify-content:center; gap:10px;">
-            <button class="popup-btn" style="background: #95a5a6;" onclick="closePopup('confirmPopup')">Batal</button>
-            <button class="popup-btn" style="background: #e74c3c;" id="confirmBtn">Hapus</button>
+            <button class="popup-btn" style="background:#bdc3c7; color:#333;" onclick="closeDeletePopup()">Batal</button>
+            <a id="confirmDeleteBtn" href="#" class="popup-btn" style="background:#e74c3c; text-decoration:none; display:flex; align-items:center;">Hapus</a>
         </div>
     </div>
 </div>
+<script>
+    function showDeletePopup(event, url) {
+        event.preventDefault();
+        document.getElementById('confirmDeleteBtn').href = url;
+        document.getElementById('deletePopup').classList.add('show');
+    }
+    function closeDeletePopup() {
+        document.getElementById('deletePopup').classList.remove('show');
+    }
+</script>
 
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform Admin</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">
             ADMIN PANEL
         </div>
@@ -664,8 +701,8 @@ while($row = mysqli_fetch_assoc($query)){
 
             <a
                 class="btn btn-hapus"
-                href="javascript:void(0);"
-                onclick="confirmDelete('hapus_user.php?id=<?= $row['id']; ?>&csrf_token=<?= $csrf_token; ?>')"
+                href="#"
+                onclick="showDeletePopup(event, 'hapus_user.php?id=<?= $row['id']; ?>&csrf_token=<?= $csrf_token; ?>')"
             >
 
                 Hapus
@@ -685,5 +722,15 @@ while($row = mysqli_fetch_assoc($query)){
 
 </div>
 </div>
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+</script>
 </body>
 </html>

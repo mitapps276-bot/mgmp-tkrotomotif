@@ -156,17 +156,14 @@ if(isset($_POST['upload'])){
     }
 
     // =======================
-    // EXTENSION FILE
+    // EXTENSION FILE & MIME TYPE (REAL)
     // =======================
 
-    $file_extension = strtolower(
+    $file_extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
-        pathinfo(
-            $file_name,
-            PATHINFO_EXTENSION
-        )
-
-    );
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = finfo_file($finfo, $tmp_name);
+    finfo_close($finfo);
 
     // =======================
     // VALIDASI BERDASARKAN CATEGORY
@@ -174,36 +171,38 @@ if(isset($_POST['upload'])){
 
     if($category == 'Perangkat Pembelajaran'){
 
-        $allowed_extension = [
-
-            'zip',
-            'rar'
-
+        $allowed_extension = ['zip', 'rar'];
+        $allowed_mime = [
+            'application/zip', 
+            'application/x-zip-compressed', 
+            'multipart/x-zip',
+            'application/x-rar-compressed', 
+            'application/vnd.rar', 
+            'application/x-rar',
+            'application/octet-stream'
         ];
 
-        if(!in_array($file_extension, $allowed_extension)){
-            $_SESSION['upload_error'] = 'Perangkat Pembelajaran hanya boleh file ZIP atau RAR!';
+        if(!in_array($file_extension, $allowed_extension) || !in_array($mime_type, $allowed_mime)){
+            $_SESSION['upload_error'] = 'Perangkat Pembelajaran hanya boleh file ZIP atau RAR yang valid!';
             header("Location: upload_materi.php" . (isset($_POST['request_id']) ? "?request_id=".$_POST['request_id'] : ""));
             exit;
-
         }
 
     }else{
 
-        $allowed_extension = [
-
-            'pdf',
-            'docx',
-            'pptx',
-            'xlsx'
-
+        $allowed_extension = ['pdf', 'docx', 'pptx', 'xlsx'];
+        $allowed_mime = [
+            'application/pdf', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/octet-stream' // Terkadang office file dibaca sebagai octet-stream
         ];
 
-        if(!in_array($file_extension, $allowed_extension)){
-            $_SESSION['upload_error'] = 'Format file tidak diizinkan! (Hanya PDF, DOCX, PPTX, XLSX)';
+        if(!in_array($file_extension, $allowed_extension) || !in_array($mime_type, $allowed_mime)){
+            $_SESSION['upload_error'] = 'Format file tidak diizinkan! (Hanya PDF, DOCX, PPTX, XLSX yang valid)';
             header("Location: upload_materi.php" . (isset($_POST['request_id']) ? "?request_id=".$_POST['request_id'] : ""));
             exit;
-
         }
 
     }
@@ -286,19 +285,11 @@ if(isset($_POST['upload'])){
     // =======================
 
     $folder_id = 0;
-
-    if($category == 'Materi Pembelajaran'){
-
-        $folder_id = 4;
-
-    }elseif($category == 'Soal Latihan'){
-
-        $folder_id = 5;
-
-    }elseif($category == 'Perangkat Pembelajaran'){
-
-        $folder_id = 6;
-
+    $cat_safe = mysqli_real_escape_string($conn, $category);
+    $get_folder = mysqli_query($conn, "SELECT id FROM folders WHERE folder_name LIKE '%$cat_safe%' LIMIT 1");
+    if ($get_folder && mysqli_num_rows($get_folder) > 0) {
+        $f_row = mysqli_fetch_assoc($get_folder);
+        $folder_id = $f_row['id'];
     }
 
     // =======================
@@ -408,6 +399,8 @@ unset($_SESSION['redirect_url']);
 <head>
 
     <title>Upload Materi</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
 
@@ -429,11 +422,13 @@ unset($_SESSION['redirect_url']);
         .box{
 
             width:550px;
+            max-width: 90%;
             background:white;
             padding:25px;
-            margin:40px auto;
+            margin:20px auto; /* Kurangi margin atas bawah di HP */
             border-radius:10px;
             box-shadow:0px 0px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box; /* Agar padding tidak menambah lebar */
 
         }
 
@@ -562,26 +557,42 @@ unset($_SESSION['redirect_url']);
             font-size: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%;
         }
 
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
         @media(max-width:768px){
 
             .box{
-
                 width:95%;
-
             }
 
             .button-group{
-
                 flex-direction:column;
-
             }
 
             .wrapper{ flex-direction:column; }
-            .sidebar{ width:100%; height:auto; position:static; }
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display: none; }
+            .sidebar.active { display: block; }
         }
 
     </style>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -612,7 +623,13 @@ unset($_SESSION['redirect_url']);
 
 <div class="wrapper">
 
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
@@ -678,6 +695,7 @@ unset($_SESSION['redirect_url']);
                 <option value="Materi Pembelajaran">Materi Pembelajaran</option>
                 <option value="Soal Latihan">Soal Latihan</option>
                 <option value="Perangkat Pembelajaran">Perangkat Pembelajaran</option>
+                <option value="Refleksi">Refleksi</option>
             </select>
 
         <!-- GRADE LEVEL -->
@@ -710,7 +728,7 @@ unset($_SESSION['redirect_url']);
 
         <textarea
             name="description"
-            placeholder="Masukkan deskripsi materi. (Sertakan Link YouTube / Google Drive di sini jika Anda ingin berbagi video)"
+            placeholder="Masukkan deskripsi materi."
             rows="5"
             required></textarea>
 
@@ -754,7 +772,7 @@ unset($_SESSION['redirect_url']);
 
         <div class="info">
 
-            <b>Materi Pembelajaran & Soal Latihan:</b>
+            <b>Materi Pembelajaran, Soal Latihan, & Refleksi:</b>
 
             <br>
 
@@ -769,10 +787,7 @@ unset($_SESSION['redirect_url']);
             Hanya ZIP / RAR
 
             <br>
-            <b>Video Pembelajaran:</b>
-            <br>
-            Unggah ke YouTube/Drive, lalu tempelkan (paste) link-nya di kolom Deskripsi.
-            <br>
+
 
             <b>Ukuran maksimal:</b>
 
@@ -793,20 +808,70 @@ document
 .addEventListener('change', function(){
 
     if(this.files.length > 0){
+        let file = this.files[0];
+        
+        // Cek ukuran file (Maksimal 2 MB)
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File Terlalu Besar!',
+                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+            });
+            this.value = ''; // Hapus file yang dipilih
+            document.getElementById('file-name').innerHTML = 'Tidak ada file yang dipilih (Maks 2MB)';
+            return;
+        }
 
         document.getElementById('file-name').innerHTML =
 
             "File dipilih : "
             +
-            this.files[0].name;
+            file.name;
 
     }
 
 });
 
+// Proteksi tambahan: Blokir tombol submit jika file terlalu besar
+document.querySelector('form').addEventListener('submit', function(e) {
+    let fileInput = document.getElementById('file');
+    if (fileInput.files.length > 0) {
+        let file = fileInput.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+            e.preventDefault(); // Hentikan proses upload ke server
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Upload!',
+                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+            });
+            return false;
+        }
+    } else {
+        // Jika required di-bypass (misal karena hidden)
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'File Belum Dipilih',
+            text: 'Silakan pilih file materi terlebih dahulu!'
+        });
+        return false;
+    }
+});
+
 </script>
 
 </div>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+    const sidebar = document.getElementById('sidebar-menu');
+    
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+});
+</script>
 </body>
 </html>

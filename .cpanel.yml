@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/mgmpmulo/public_html/
+    - /bin/cp -R /home/mgmpmulo/public_html/mgmp/* $DEPLOYPATH

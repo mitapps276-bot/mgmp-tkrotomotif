@@ -345,6 +345,10 @@ $folder_query = mysqli_query($conn, "
             font-size:17px;
             font-weight:bold;
             color:#2c3e50;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
 
         }
 
@@ -353,6 +357,10 @@ $folder_query = mysqli_query($conn, "
             color:#555;
             margin-top:8px;
             line-height:1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
 
         }
 
@@ -454,31 +462,55 @@ $folder_query = mysqli_query($conn, "
         .btn-cancel:hover { background: #7f8c8d; }
         .btn-confirm:hover { background: #c0392b; }
 
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
         @media(max-width:900px){
 
             body{
-                padding:15px;
+                padding:0; /* Hapus padding body agar nav full width */
+            }
+
+            .main-content {
+                padding: 15px; /* Pindahkan padding ke konten utama saja */
             }
 
             table{
                 font-size:13px;
+                min-width: 800px; /* Paksa tabel tetap lebar agar tidak penyok dan bisa di-scroll horisontal */
             }
 
             .accordion-header{
-                font-size:18px;
+                font-size:16px;
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
 
             .top-bar{
-
                 flex-direction:column;
                 gap:15px;
                 align-items:flex-start;
-
             }
 
             .wrapper{ flex-direction:column; }
-            .sidebar{ width:100%; height:auto; position:static; }
-            .main-content{ padding:15px; }
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display:none; }
+            .sidebar.active { display:block; }
         }
 
     </style>
@@ -516,7 +548,13 @@ $folder_query = mysqli_query($conn, "
 
 <div class="wrapper">
 
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">
             <?= ($is_admin) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
         </div>
@@ -651,7 +689,27 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
                     <div class="deskripsi">
 
-                        <?= htmlspecialchars($row['description']); ?>
+                        <?php
+                            $desc = isset($row['description']) ? $row['description'] : '';
+                            $grade = isset($row['grade_level']) ? $row['grade_level'] : '';
+                            $extra = "* Materi ini berlaku untuk semua kelas";
+                            $has_extra = false;
+
+                            if (stripos($desc, $extra) !== false) {
+                                $desc = str_ireplace($extra, "", $desc);
+                                $has_extra = true;
+                            }
+                            
+                            if (stripos($grade, 'Umum') !== false) {
+                                $has_extra = true;
+                            }
+                            
+                            echo nl2br(htmlspecialchars(trim($desc)));
+                            
+                            if ($has_extra) {
+                                echo '<br><br><span style="color:#e67e22; font-style:italic;">' . $extra . '</span>';
+                            }
+                        ?>
 
                     </div>
 
@@ -663,6 +721,11 @@ while($folder = mysqli_fetch_assoc($folder_query)){
                     </div>
 
                     <div style="margin-top:10px;">
+                        <?php if(!empty($row['category'])): ?>
+                        <span style="background:#9b59b6; color:white; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold; margin-right:5px;">
+                            <?= htmlspecialchars($row['category']); ?>
+                        </span>
+                        <?php endif; ?>
                         <span style="background:#3498db; color:white; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:bold;">
                             <?= htmlspecialchars($row['grade_level']); ?>
                         </span>
@@ -702,6 +765,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
                             <a
                                 href="download.php?id=<?= $row['id']; ?>"
+                                target="_blank"
                                 class="download"
                             >
 
@@ -739,6 +803,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
                                 <a
                                     href="download.php?id=<?= $row['id']; ?>"
+                                    target="_blank"
                                     class="download"
                                 >
 
@@ -770,6 +835,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
                                 <a
                                     href="download.php?id=<?= $row['id']; ?>"
+                                    target="_blank"
                                     class="download"
                                 >
 
@@ -793,6 +859,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
                             <a
                                 href="download.php?id=<?= $row['id']; ?>"
+                                target="_blank"
                                 class="download"
                             >
 
@@ -927,7 +994,27 @@ $external_query = mysqli_query($conn, "
 
                     <div class="deskripsi">
 
-                        <?= htmlspecialchars($external['description']); ?>
+                        <?php
+                            $desc = isset($external['description']) ? $external['description'] : '';
+                            $grade = isset($external['grade_level']) ? $external['grade_level'] : '';
+                            $extra = "* Materi ini berlaku untuk semua kelas";
+                            $has_extra = false;
+
+                            if (stripos($desc, $extra) !== false) {
+                                $desc = str_ireplace($extra, "", $desc);
+                                $has_extra = true;
+                            }
+                            
+                            if (stripos($grade, 'Umum') !== false) {
+                                $has_extra = true;
+                            }
+                            
+                            echo nl2br(htmlspecialchars(trim($desc)));
+                            
+                            if ($has_extra) {
+                                echo '<br><br><span style="color:#e67e22; font-style:italic;">' . $extra . '</span>';
+                            }
+                        ?>
 
                     </div>
 
@@ -939,7 +1026,11 @@ $external_query = mysqli_query($conn, "
                     </div>
 
                     <div style="margin-top:12px;">
-                        <span class="badge-external" style="margin-top:0;">External Contributor</span>
+                        <?php if(!empty($external['category'])): ?>
+                        <span style="background:#9b59b6; color:white; padding:6px 12px; border-radius:20px; font-size:12px; margin-left: 5px; font-weight:bold;">
+                            <?= htmlspecialchars($external['category']); ?>
+                        </span>
+                        <?php endif; ?>
                         <span style="background:#3498db; color:white; padding:6px 12px; border-radius:20px; font-size:12px; margin-left: 5px; font-weight:bold;">
                             <?= htmlspecialchars($external['grade_level']); ?>
                         </span>
@@ -971,6 +1062,7 @@ $external_query = mysqli_query($conn, "
 
                         <a
                             href="download.php?id=<?= $external['id']; ?>"
+                            target="_blank"
                             class="download"
                         >
 
@@ -1151,6 +1243,17 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 </script>
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+    const sidebar = document.getElementById('sidebar-menu');
+    
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+});
+</script>
 </body>
 </html>

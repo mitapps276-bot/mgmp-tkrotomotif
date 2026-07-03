@@ -127,6 +127,8 @@ if(mysqli_num_rows($cek_table_galeri) == 0){
 if(isset($_POST['update_landing'])){
     if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) die("Error: Token keamanan (CSRF) tidak valid!");
 
+    $hero_title = mysqli_real_escape_string($conn, trim($_POST['hero_title']));
+    $hero_subtitle = mysqli_real_escape_string($conn, trim($_POST['hero_subtitle']));
     $about_title = mysqli_real_escape_string($conn, trim($_POST['about_title']));
     $about_desc1 = mysqli_real_escape_string($conn, trim($_POST['about_desc1']));
     $about_desc2 = mysqli_real_escape_string($conn, trim($_POST['about_desc2']));
@@ -134,8 +136,10 @@ if(isset($_POST['update_landing'])){
     $analytic_subtitle = mysqli_real_escape_string($conn, trim($_POST['analytic_subtitle']));
     $login_title = mysqli_real_escape_string($conn, trim($_POST['login_title'] ?? ''));
     $login_desc = mysqli_real_escape_string($conn, trim($_POST['login_desc'] ?? ''));
+    $hero_image_x = mysqli_real_escape_string($conn, trim($_POST['hero_image_x'] ?? '50'));
+    $hero_image_y = mysqli_real_escape_string($conn, trim($_POST['hero_image_y'] ?? '50'));
 
-
+    $topbar_text = mysqli_real_escape_string($conn, trim($_POST['topbar_text'] ?? 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'));
     $navbar_logo_text = mysqli_real_escape_string($conn, trim($_POST['navbar_logo_text'] ?? 'SI-LIAK MGMP'));
     $about_list1 = mysqli_real_escape_string($conn, trim($_POST['about_list1'] ?? 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'));
     $about_list2 = mysqli_real_escape_string($conn, trim($_POST['about_list2'] ?? 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'));
@@ -171,6 +175,8 @@ if(isset($_POST['update_landing'])){
     $feature9_desc = mysqli_real_escape_string($conn, trim($_POST['feature9_desc'] ?? 'Sistem analitik yang mengagregasi skor partisipasi individual dari setiap tenaga pendidik menjadi sebuah Indeks Kinerja Institusional (SPI) terukur, merepresentasikan kontribusi kolektif dan reputasi akademik sekolah dalam ekosistem.'));
     $footer_title = mysqli_real_escape_string($conn, trim($_POST['footer_title'] ?? 'SI-LIAK MGMP KOTA DENPASAR'));
     $footer_desc = mysqli_real_escape_string($conn, trim($_POST['footer_desc'] ?? 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'));
+    $footer_copyright = mysqli_real_escape_string($conn, trim($_POST['footer_copyright'] ?? 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'));
+    $footer_contact_title = mysqli_real_escape_string($conn, trim($_POST['footer_contact_title'] ?? 'Layanan Kontak'));
 
     $footer_contact_1_text = mysqli_real_escape_string($conn, trim($_POST['footer_contact_1_text'] ?? 'Bantuan Administrasi'));
     $url1_raw = trim($_POST['footer_contact_1_url'] ?? '#');
@@ -231,10 +237,11 @@ if(isset($_POST['update_landing'])){
         return null;
     }
 
-    $about_image_sql = "";
+    $hero_image_sql = ""; $about_image_sql = "";
+    $new_hero = uploadGambar('hero_image', 'Gambar Latar'); if($new_hero) $hero_image_sql = "hero_image = '$new_hero',";
     $new_about = uploadGambar('about_image', 'Gambar Profil'); if($new_about) $about_image_sql = "about_image = '$new_about',";
 
-    $q_update = "UPDATE landing_settings SET $about_image_sql about_title = '$about_title', about_desc1 = '$about_desc1', about_desc2 = '$about_desc2', analytic_title = '$analytic_title', analytic_subtitle = '$analytic_subtitle', login_title = '$login_title', login_desc = '$login_desc', navbar_logo_text = '$navbar_logo_text', about_list1 = '$about_list1', about_list2 = '$about_list2', about_list3 = '$about_list3', gallery_title = '$gallery_title', gallery_desc = '$gallery_desc', feature1_icon = '$feature1_icon', feature1_title = '$feature1_title', feature1_desc = '$feature1_desc', feature2_icon = '$feature2_icon', feature2_title = '$feature2_title', feature2_desc = '$feature2_desc', feature3_icon = '$feature3_icon', feature3_title = '$feature3_title', feature3_desc = '$feature3_desc', feature4_icon = '$feature4_icon', feature4_title = '$feature4_title', feature4_desc = '$feature4_desc', feature5_icon = '$feature5_icon', feature5_title = '$feature5_title', feature5_desc = '$feature5_desc', feature6_icon = '$feature6_icon', feature6_title = '$feature6_title', feature6_desc = '$feature6_desc', feature7_icon = '$feature7_icon', feature7_title = '$feature7_title', feature7_desc = '$feature7_desc', feature8_icon = '$feature8_icon', feature8_title = '$feature8_title', feature8_desc = '$feature8_desc', feature9_icon = '$feature9_icon', feature9_title = '$feature9_title', feature9_desc = '$feature9_desc', footer_title = '$footer_title', footer_desc = '$footer_desc', footer_contact_title = '$footer_contact_title', footer_contact_1_text = '$footer_contact_1_text', footer_contact_1_url = '$footer_contact_1_url', footer_contact_2_text = '$footer_contact_2_text', footer_contact_2_url = '$footer_contact_2_url', footer_contact_3_text = '$footer_contact_3_text', footer_contact_3_url = '$footer_contact_3_url' WHERE id = 1";
+    $q_update = "UPDATE landing_settings SET $hero_image_sql $about_image_sql hero_title = '$hero_title', hero_subtitle = '$hero_subtitle', hero_image_x = '$hero_image_x', hero_image_y = '$hero_image_y', about_title = '$about_title', about_desc1 = '$about_desc1', about_desc2 = '$about_desc2', analytic_title = '$analytic_title', analytic_subtitle = '$analytic_subtitle', login_title = '$login_title', login_desc = '$login_desc', topbar_text = '$topbar_text', navbar_logo_text = '$navbar_logo_text', about_list1 = '$about_list1', about_list2 = '$about_list2', about_list3 = '$about_list3', gallery_title = '$gallery_title', gallery_desc = '$gallery_desc', feature1_icon = '$feature1_icon', feature1_title = '$feature1_title', feature1_desc = '$feature1_desc', feature2_icon = '$feature2_icon', feature2_title = '$feature2_title', feature2_desc = '$feature2_desc', feature3_icon = '$feature3_icon', feature3_title = '$feature3_title', feature3_desc = '$feature3_desc', feature4_icon = '$feature4_icon', feature4_title = '$feature4_title', feature4_desc = '$feature4_desc', feature5_icon = '$feature5_icon', feature5_title = '$feature5_title', feature5_desc = '$feature5_desc', feature6_icon = '$feature6_icon', feature6_title = '$feature6_title', feature6_desc = '$feature6_desc', feature7_icon = '$feature7_icon', feature7_title = '$feature7_title', feature7_desc = '$feature7_desc', feature8_icon = '$feature8_icon', feature8_title = '$feature8_title', feature8_desc = '$feature8_desc', feature9_icon = '$feature9_icon', feature9_title = '$feature9_title', feature9_desc = '$feature9_desc', footer_title = '$footer_title', footer_desc = '$footer_desc', footer_copyright = '$footer_copyright', footer_contact_title = '$footer_contact_title', footer_contact_1_text = '$footer_contact_1_text', footer_contact_1_url = '$footer_contact_1_url', footer_contact_2_text = '$footer_contact_2_text', footer_contact_2_url = '$footer_contact_2_url', footer_contact_3_text = '$footer_contact_3_text', footer_contact_3_url = '$footer_contact_3_url' WHERE id = 1";
     
     if(mysqli_query($conn, $q_update)){
         if(!isset($_SESSION['error'])){
@@ -381,6 +388,7 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
 <html>
 <head>
     <title>Kelola Informasi Umum</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body{ font-family:Arial; background:#f4f6f9; margin:0; }
         .wrapper{ display:flex; min-height:100vh; }
@@ -432,9 +440,32 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
         .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #7f8c8d; }
         .close-btn:hover { color: #e74c3c; }
 
-        @media(max-width:768px){
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media(max-width:992px){
             .wrapper{ flex-direction:column; }
-            .sidebar{ width:100%; height:auto; position:static; }
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display: none; }
+            .sidebar.active { display: block; }
+            .sidebar .logo { display: none; }
             .main-content{ padding:15px; }
             .tab-container { flex-direction: column; }
             .card { padding: 15px; }
@@ -443,7 +474,13 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
 </head>
 <body>
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform Admin</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+    
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">ADMIN PANEL</div>
         <div class="menu">
             <a href="dashboard_admin.php">Dashboard</a>
@@ -482,13 +519,42 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
                 <div class="card">
                     <h3>0. Pengaturan Header & Navbar</h3>
-
+                    <div class="input-group">
+                        <label>Teks Topbar</label>
+                        <input type="text" name="topbar_text" required value="<?= htmlspecialchars($ls['topbar_text'] ?? 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'); ?>">
+                    </div>
                     <div class="input-group">
                         <label>Teks Logo Navbar</label>
                         <input type="text" name="navbar_logo_text" required value="<?= htmlspecialchars($ls['navbar_logo_text'] ?? 'SI-LIAK MGMP'); ?>">
                     </div>
                 </div>
-
+                <div class="card">
+                    <h3>1. Bagian Beranda Utama (Hero Section)</h3>
+                    <div class="input-group">
+                        <label>Judul Utama (Mendukung tag HTML seperti &lt;br&gt; dan &lt;span&gt;)</label>
+                        <input type="text" name="hero_title" required value="<?= htmlspecialchars($ls['hero_title']); ?>">
+                    </div>
+                    <div class="input-group">
+                        <label>Sub-Judul (Deskripsi bawah judul)</label>
+                        <textarea name="hero_subtitle" rows="3" required><?= htmlspecialchars($ls['hero_subtitle']); ?></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Gambar Latar Belakang</label>
+                        <?php if(!empty($ls['hero_image'])): ?><img src="<?= htmlspecialchars($ls['hero_image']); ?>" class="image-preview" id="preview_hero"><?php endif; ?>
+                        <label for="hero_image" class="custom-file-btn">📸 Pilih Gambar</label>
+                        <input type="file" name="hero_image" id="hero_image" class="custom-file-input" accept="image/*" onchange="document.getElementById('name_hero').innerText = this.files.length > 0 ? 'File terpilih: ' + this.files[0].name : '';">
+                        <span id="name_hero" class="file-name"></span>
+                        <span class="info-text">* Biarkan kosong jika tidak mengubah gambar latar. (Saran ukuran: 1920x1080, Maksimal 2MB)</span>
+                    </div>
+                    <div class="input-group">
+                        <label>Posisi Latar Belakang (X - Kiri/Kanan): <span id="val_x"><?= htmlspecialchars($ls['hero_image_x'] ?? '50'); ?></span>%</label>
+                        <input type="range" name="hero_image_x" id="hero_x" min="-100" max="200" value="<?= htmlspecialchars($ls['hero_image_x'] ?? '50'); ?>" oninput="document.getElementById('val_x').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
+                    </div>
+                    <div class="input-group">
+                        <label>Posisi Latar Belakang (Y - Atas/Bawah): <span id="val_y"><?= htmlspecialchars($ls['hero_image_y'] ?? '50'); ?></span>%</label>
+                        <input type="range" name="hero_image_y" id="hero_y" min="-100" max="200" value="<?= htmlspecialchars($ls['hero_image_y'] ?? '50'); ?>" oninput="document.getElementById('val_y').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
+                    </div>
+                </div>
                 <div class="card">
                     <h3>2. Bagian Profil (Tentang Sistem)</h3>
                     <div class="input-group">
@@ -627,7 +693,11 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                         <label>Deskripsi Footer</label>
                         <textarea name="footer_desc" rows="3"><?= htmlspecialchars($ls['footer_desc'] ?? 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'); ?></textarea>
                     </div>
-
+                    <div class="input-group">
+                        <label>Teks Hak Cipta (Copyright)</label>
+                        <input type="text" name="footer_copyright" value="<?= htmlspecialchars($ls['footer_copyright'] ?? 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'); ?>">
+                        <span class="info-text">* Tahun akan ditambahkan secara otomatis di depan teks (Contoh: © <?= date('Y'); ?> ... )</span>
+                    </div>
                     <div class="input-group" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
                         <label>Judul Layanan Kontak</label>
                         <input type="text" name="footer_contact_title" value="<?= htmlspecialchars($ls['footer_contact_title'] ?? 'Layanan Kontak'); ?>">
@@ -699,14 +769,16 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                         <td><strong><?= htmlspecialchars($row['title']); ?></strong><br><small><?= date('d M Y', strtotime($row['created_at'])); ?></small></td>
                         <td style="font-size: 14px; color: #555;"><?= nl2br(htmlspecialchars($row['description'])); ?></td>
                         <td>
-                            <button type="button" class="btn-edit" 
-                                data-id="<?= $row['id']; ?>" 
-                                data-title="<?= htmlspecialchars($row['title'], ENT_QUOTES, 'UTF-8'); ?>" 
-                                data-desc="<?= htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8'); ?>" 
-                                data-img="<?= htmlspecialchars($row['image_path'], ENT_QUOTES, 'UTF-8'); ?>" 
-                                onclick="openEditGaleriModal(this)">Edit
-                            </button>
-                            <a href="?hapus_galeri=<?= $row['id']; ?>&csrf_token=<?= $csrf_token; ?>" class="btn-hapus" onclick="return confirm('Yakin menghapus foto ini?');">Hapus</a>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn-edit" style="margin-right:0;"
+                                    data-id="<?= $row['id']; ?>" 
+                                    data-title="<?= htmlspecialchars($row['title'], ENT_QUOTES, 'UTF-8'); ?>" 
+                                    data-desc="<?= htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8'); ?>" 
+                                    data-img="<?= htmlspecialchars($row['image_path'], ENT_QUOTES, 'UTF-8'); ?>" 
+                                    onclick="openEditGaleriModal(this)">Edit
+                                </button>
+                                <a href="?hapus_galeri=<?= $row['id']; ?>&csrf_token=<?= $csrf_token; ?>" class="btn-hapus" onclick="return confirm('Yakin menghapus foto ini?');">Hapus</a>
+                            </div>
                         </td>
                     </tr>
                     <?php } } else { ?>
@@ -790,6 +862,16 @@ window.addEventListener('click', function(e) {
     let m = document.getElementById('editGaleriModal');
     if (e.target == m) { m.style.display = "none"; }
 });
+</script>
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
 </script>
 </body>
 </html>

@@ -14,10 +14,24 @@ ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "mgmp_otomotif_db";
+// =====================================
+// DETEKSI OTOMATIS LOCALHOST VS HOSTING
+// =====================================
+$is_localhost = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '192.168.') === 0);
+
+if ($is_localhost) {
+    // Kredensial Database Lokal (XAMPP)
+    $host = "localhost";
+    $user = "root";
+    $pass = "";
+    $db   = "mgmp_ppkn_db";
+} else {
+    // Kredensial Database Hosting (Ubah Sesuai Server Anda!)
+    $host = "localhost";
+    $user = "username_hosting_anda";
+    $pass = "password_hosting_anda";
+    $db   = "database_hosting_anda";
+}
 
 $conn = mysqli_connect($host, $user, $pass, $db);
 
@@ -57,7 +71,11 @@ if (!function_exists('jalankanSmartMatching')) {
             $category_safe = mysqli_real_escape_string($conn, $category);
 
             // Ambil hanya request yang pending/diproses dengan kategori & kelas yang sama
-            $cek_req = mysqli_query($conn, "SELECT id, deskripsi FROM material_requests WHERE status != 'selesai' AND jenis_request = '$category_safe' AND deskripsi LIKE '%$grade_safe%'");
+            $like_grade = '%' . $grade_level . '%';
+            $stmt_req = mysqli_prepare($conn, "SELECT id, deskripsi FROM material_requests WHERE status != 'selesai' AND jenis_request = ? AND deskripsi LIKE ?");
+            mysqli_stmt_bind_param($stmt_req, "ss", $category, $like_grade);
+            mysqli_stmt_execute($stmt_req);
+            $cek_req = mysqli_stmt_get_result($stmt_req);
 
             if($cek_req && mysqli_num_rows($cek_req) > 0) {
                 while($r = mysqli_fetch_assoc($cek_req)) {
@@ -68,7 +86,10 @@ if (!function_exists('jalankanSmartMatching')) {
                     
                     // Jika kecocokan >= 60%, tandai sebagai selesai
                     if(($matched_count / count($keywords)) * 100 >= 60) {
-                        mysqli_query($conn, "UPDATE material_requests SET status = 'selesai', admin_note = '$admin_note' WHERE id = '$auto_req_id'");
+                        $stmt_upd = mysqli_prepare($conn, "UPDATE material_requests SET status = 'selesai', admin_note = ? WHERE id = ?");
+                        mysqli_stmt_bind_param($stmt_upd, "si", $admin_note, $auto_req_id);
+                        mysqli_stmt_execute($stmt_upd);
+                        mysqli_stmt_close($stmt_upd);
                     }
                 }
             }

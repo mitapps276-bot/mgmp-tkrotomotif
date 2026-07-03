@@ -610,6 +610,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             padding:30px;
             border-radius:18px;
             margin-bottom:24px;
+            position:relative;
         }
 
         .hero h1{
@@ -621,6 +622,29 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             margin:0;
             color:#eef8f6;
             line-height:1.7;
+        }
+
+        .btn-print {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-print:hover {
+            background: white;
+            color: #2c3e50;
         }
 
         .summary-grid{
@@ -1000,9 +1024,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             overflow-x:auto;
             gap:20px;
             padding-bottom:15px;
-            scroll-snap-type:x mandatory;
             -webkit-overflow-scrolling:touch;
-            scroll-behavior: smooth;
         }
         .ai-school-list::-webkit-scrollbar {
             height: 8px;
@@ -1025,7 +1047,6 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             padding:20px;
             background:#fbfcfd;
             flex:0 0 100%;
-            scroll-snap-align:start;
             box-sizing:border-box;
             transition:transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -1142,7 +1163,28 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             }
         }
 
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
         @media(max-width:768px){
+            .wrapper{ flex-direction:column; }
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display:none; }
+            .sidebar.active { display:block; }
+
             .content{
                 padding:18px;
             }
@@ -1151,8 +1193,25 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
                 grid-template-columns:1fr;
             }
 
+            .ai-school {
+                flex: 0 0 85%; /* Menampilkan sedikit kartu selanjutnya agar swipe lebih intuitif */
+            }
+
+            .accordion-header {
+                flex-direction: row-reverse;
+                justify-content: flex-end;
+                gap: 15px;
+            }
+
             .hero h1{
                 font-size:28px;
+            }
+
+            .btn-print {
+                position: static;
+                margin-top: 15px;
+                display: inline-flex;
+                width: max-content;
             }
 
             .ranking-top{
@@ -1240,7 +1299,13 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
 
 <div class="wrapper">
 
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
@@ -1267,13 +1332,13 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
     </div>
 
 <main class="content">
-        <section class="hero" style="position: relative;">
+        <section class="hero">
             <h1>Analytics MGMP</h1>
             <p>
             Proses Sistematis Untuk Menganalisa Kolaborasi Guru MGMP
                 <strong></strong>
             </p>
-            <button onclick="const oldTitle = document.title; document.title = 'Laporan Analytics'; window.print(); document.title = oldTitle;" class="btn-print" style="position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; font-size: 14px;" onmouseover="this.style.background='white'; this.style.color='#2c3e50'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.color='white'">
+            <button onclick="const oldTitle = document.title; document.title = 'Laporan Analytics'; window.print(); document.title = oldTitle;" class="btn-print">
                 📥 Download Laporan Analytics.PDF
             </button>
         </section>
@@ -1900,6 +1965,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 </div>
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+    const sidebar = document.getElementById('sidebar-menu');
+    
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+});
+</script>
 </body>
 </html>

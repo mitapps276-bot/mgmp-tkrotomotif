@@ -192,6 +192,7 @@ unset($_SESSION['popup_type']);
 <head>
 
     <title>Review Materials</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
 
@@ -207,8 +208,35 @@ unset($_SESSION['popup_type']);
         .sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
         .sidebar .menu a:hover{ background:#34495e; }
         .main-content{ flex:1; min-width:0; padding:30px; }
+        
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
 
-        @media(max-width:768px){ .wrapper{ flex-direction:column; } .sidebar{ width:100%; height:auto; position:static; } .main-content{ padding:15px; } }
+        @media(max-width:992px){ 
+            .wrapper{ flex-direction:column; } 
+            .mobile-nav { display: flex; }
+            .sidebar{ width:100%; height:auto; position:static; display: none; } 
+            .sidebar.active { display: block; }
+            .sidebar .logo { display: none; }
+            .main-content{ padding:15px; } 
+        }
 
         h2{
             margin-bottom: 20px;
@@ -226,6 +254,12 @@ unset($_SESSION['popup_type']);
             border: 1px solid #ddd;
             text-align: left;
         }
+
+        /* Membatasi lebar kolom agar tidak memanjang merusak tabel */
+        table td:nth-child(2) { max-width: 250px; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; } /* Judul */
+        table td:nth-child(4) { max-width: 180px; word-wrap: break-word; overflow-wrap: break-word; } /* Email */
+        table td:nth-child(5) { max-width: 200px; word-wrap: break-word; overflow-wrap: break-word; } /* Instansi */
+        table td:nth-child(6) { max-width: 200px; word-wrap: break-word; overflow-wrap: break-word; } /* File */
 
         table th{
             background: #007bff;
@@ -334,7 +368,13 @@ unset($_SESSION['popup_type']);
 <body>
 
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform Admin</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">
             ADMIN PANEL
         </div>
@@ -353,8 +393,12 @@ unset($_SESSION['popup_type']);
     </div>
 
 <div class="main-content">
-<h2>Review External Contributor Materials</h2>
-
+    <div class="page-header" style="margin-bottom: 25px;">
+        <h1 style="margin: 0; font-size: 26px; color: #2c3e50;">Review Kontributor Eksternal</h1>
+        <div style="color: #7f8c8d; font-size: 14px; margin-top: 5px;">
+            Verifikasi dan evaluasi materi yang dikirimkan oleh kontributor eksternal sebelum diterbitkan.
+        </div>
+    </div>
 <div style="overflow-x:auto;">
 <table>
 
@@ -527,6 +571,16 @@ function submitReject() {
     if (currentRejectId !== null) {
         window.location.href = '?reject=' + currentRejectId + '&reason=' + encodeURIComponent(reason) + '&csrf_token=' + csrfToken;
     }
+}
+</script>
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
 }
 </script>
 </body>

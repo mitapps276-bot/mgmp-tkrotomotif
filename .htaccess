@@ -1,0 +1,117 @@
+# ============================================================
+#  MGMP MUATAN LOKAL KOTA DENPASAR — Security Configuration
+#  .htaccess | LiteSpeed / Apache Compatible
+# ============================================================
+
+# --------------------------------------------------------------
+# 1. FORCE HTTPS (HTTP → HTTPS Redirect)
+#    Khusus proses_login.php: jangan redirect agar session tidak hilang
+# --------------------------------------------------------------
+RewriteEngine On
+
+# Jangan redirect jika sudah HTTPS
+RewriteCond %{HTTPS} off
+# Jangan redirect jika di localhost (XAMPP)
+RewriteCond %{HTTP_HOST} !localhost [NC]
+RewriteCond %{HTTP_HOST} !127\.0\.0\.1 [NC]
+# Izinkan process_login.php tetap berjalan tanpa redirect paksa
+RewriteCond %{REQUEST_URI} !^/process_login\.php$
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --------------------------------------------------------------
+# 2. HSTS — HTTP Strict Transport Security
+#    Memberitahu browser: "Selalu pakai HTTPS, jangan pernah HTTP"
+#    max-age = 1 tahun (31536000 detik)
+# --------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+</IfModule>
+
+# --------------------------------------------------------------
+# 3. SECURITY HEADERS TAMBAHAN
+#    (Melengkapi header yang sudah ada di PHP)
+# --------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Mencegah browser menebak tipe file (MIME sniffing)
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Mencegah website dibuka dalam iframe dari domain lain (Clickjacking)
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Perlindungan XSS di browser lama
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Kontrol informasi referrer saat pindah halaman
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Blokir akses ke fitur sensitif browser (kamera, mikrofon, geolokasi, pembayaran)
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
+
+    # Isolasi tab browser — mencegah serangan lintas-tab (Spectre, tab-napping)
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+
+    # Sembunyikan versi PHP dari header respons
+    Header always unset X-Powered-By
+    Header always unset Server
+</IfModule>
+
+# --------------------------------------------------------------
+# 4. PROTEKSI FILE SENSITIF
+#    Mencegah akses langsung ke file berbahaya
+# --------------------------------------------------------------
+<FilesMatch "\.(sql|log|env|git|gitignore|md|json|lock|bak|swp|tmp)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blokir akses ke folder config
+<IfModule mod_rewrite.c>
+    RewriteRule ^config/ - [F,L]
+</IfModule>
+
+# --------------------------------------------------------------
+# 5. DIRECTORY LISTING — Matikan Tampilan Isi Folder
+# --------------------------------------------------------------
+Options -Indexes
+
+# --------------------------------------------------------------
+# 6. PROTEKSI UPLOADS
+#    Cegah eksekusi script PHP di folder uploads
+# --------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteRule ^uploads/.*\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$ - [F,L]
+</IfModule>
+
+# --------------------------------------------------------------
+# 7. CACHE CONTROL UNTUK ASET STATIS
+#    Mempercepat loading website
+# --------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 3 months"
+    ExpiresByType image/jpeg "access plus 3 months"
+    ExpiresByType image/gif "access plus 3 months"
+    ExpiresByType image/webp "access plus 3 months"
+    ExpiresByType image/svg+xml "access plus 3 months"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+
+# --------------------------------------------------------------
+# 8. KOMPRES RESPONS (GZIP)
+#    Memperkecil ukuran file yang dikirim ke browser
+# --------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ============================================================
+#  END OF SECURITY CONFIGURATION
+# ============================================================

@@ -1,4 +1,16 @@
 <?php
+// =====================================
+// SESSION SECURE CONFIG
+// Pastikan session cookie aman & tidak hilang saat redirect HTTP→HTTPS
+// =====================================
+$is_localhost = ($_SERVER['HTTP_HOST'] == 'localhost' || $_SERVER['HTTP_HOST'] == '127.0.0.1' || strpos($_SERVER['HTTP_HOST'], '192.168.') === 0);
+if (!$is_localhost) {
+    ini_set('session.cookie_secure', 1);       // Cookie hanya dikirim via HTTPS
+}
+ini_set('session.cookie_httponly', 1);     // Cookie tidak bisa diakses via JavaScript
+ini_set('session.cookie_samesite', 'Lax'); // Izinkan cross-page navigation normal
+ini_set('session.use_strict_mode', 1);     // Tolak session ID yang tidak valid
+
 session_start();
 
 // =================================================================
@@ -110,9 +122,49 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <!-- Google Analytics (Global Site Tag) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EMKJ3QH6F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1EMKJ3QH6F');
+    </script>
+    <!-- End Google Analytics -->
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Publik - MGMP Platform</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>SI-LIAK - MGMP PPKN Kota Denpasar</title>
+    <meta name="description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi Musyawarah Guru Mata Pelajaran (MGMP) PPKN Kota Denpasar untuk ekosistem pembelajaran inovatif.">
+    <meta name="keywords" content="SI-LIAK, MGMP, PPKN, Denpasar, Pendidikan, Guru, e-Learning, Platform Kolaborasi Guru, Repositori Materi">
+    <meta name="author" content="MGMP PPKN Kota Denpasar">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mgmpmulokdps.com/" />
+    
+    <!-- Favicon / Logo Web -->
+    <link rel="icon" href="assets/images/logo.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="assets/images/logo.png">
+    
+    <!-- Schema.org Markup untuk Google Knowledge Graph -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "MGMP PPKN Kota Denpasar: SI-LIAK",
+      "url": "https://mgmpmulokdps.com",
+      "logo": "https://mgmpmulokdps.com/assets/images/logo.png"
+    }
+    </script>
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="SI-LIAK - MGMP PPKN Kota Denpasar">
+    <meta property="og:description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi MGMP PPKN Kota Denpasar.">
+    <meta property="og:url" content="https://mgmpmulokdps.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SI-LIAK MGMP PPKN Denpasar">
     
     <!-- Academic Fonts: Merriweather for headings, Open Sans for body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -197,13 +249,27 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         #beranda {
             min-height: 100vh; 
             display: flex; align-items: center; justify-content: center; padding: 0 5%; text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        @keyframes bgWave {
-            0%   { background-position: 0% 50%; }
-            50%  { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .beranda-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            animation: waveBg 8s ease-in-out infinite alternate;
         }
-        .hero-content { max-width: 900px; color: white; margin-top: -50px; }
+        .beranda-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 33, 71, 0.8), rgba(0, 33, 71, 0.9));
+            z-index: 2;
+        }
+        @keyframes waveBg {
+            0%   { transform: scale(1.1) translate(0%, 0%); }
+            25%  { transform: scale(1.1) translate(2%, 2%); }
+            50%  { transform: scale(1.1) translate(4%, 0%); }
+            75%  { transform: scale(1.1) translate(2%, -2%); }
+            100% { transform: scale(1.1) translate(0%, 0%); }
+        }
+        .hero-content { max-width: 900px; color: white; margin-top: -50px; position: relative; z-index: 3; }
         .hero-badge { 
             display: inline-block; padding: 6px 20px; background: rgba(212, 175, 55, 0.2); 
             color: var(--secondary); font-weight: 700; border-left: 3px solid var(--secondary); 
@@ -241,7 +307,7 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         .about-list li { margin-bottom: 10px; font-size: 16px; font-weight: 600; color: var(--primary); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
         .about-list li::before { content: '✓'; color: var(--secondary); font-weight: bold; font-size: 18px; line-height: 1.3; }
         .about-image { flex: 1; position: relative; }
-        .about-image img { width: 100%; height: calc(100vh - 180px); min-height: 450px; max-height: 750px; object-fit: cover; border-radius: 8px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative; z-index: 2; display: block; animation: floatImg 6s ease-in-out infinite; }
+        .about-image img { width: 100%; height: calc(100vh - 180px); min-height: 450px; max-height: 750px; object-fit: fill; background-color: transparent; border-radius: 8px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative; z-index: 2; display: block; animation: floatImg 6s ease-in-out infinite; }
         .about-image::after { content: ''; position: absolute; top: 15px; right: -15px; width: 100%; height: 100%; border: 4px solid var(--secondary); border-radius: 8px; z-index: 1; }
 
         @keyframes floatImg {
@@ -263,9 +329,9 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         /* ========================
            GALLERY CARD & EFEK MENGAMBANG
            ======================== */
-        .gallery-card { background: white; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: box-shadow 0.3s; padding: 0; overflow: hidden; animation: floatImg 6s ease-in-out infinite; }
-        .gallery-card:nth-child(2n) { animation-delay: 1.5s; }
-        .gallery-card:nth-child(3n) { animation-delay: 3s; }
+        .gallery-card { background: white; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: box-shadow 0.3s; padding: 0; overflow: hidden; animation: floatImg 4s ease-in-out infinite; }
+        .gallery-card:nth-child(2n) { animation-delay: 1s; }
+        .gallery-card:nth-child(3n) { animation-delay: 2s; }
         .gallery-card:hover {
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             animation-play-state: paused;
@@ -342,8 +408,8 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
             .about-image img { height: 300px; }
         }
         @media (max-width: 768px) {
-        .navbar { flex-direction: column; gap: 15px; padding: 20px; align-items: flex-start; }
-        .nav-links { flex-wrap: wrap; justify-content: flex-start; gap: 15px; }
+        .navbar { flex-direction: column; gap: 15px; padding: 20px; align-items: center; text-align: center; }
+        .nav-links { flex-wrap: wrap; justify-content: center; gap: 15px; }
             .btn-outline { margin-left: 0; margin-top: 15px; display: block; text-align: center; }
             .btn-primary { display: block; text-align: center; }
             .section-container { padding: 60px 5%; }
@@ -390,7 +456,13 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
 </nav>
 
 <!-- HERO SECTION -->
-<section id="beranda" style="background: linear-gradient(rgba(0, 33, 71, 0.8), rgba(0, 33, 71, 0.9)), url('<?= htmlspecialchars($ls['hero_image']); ?>'); background-size: 120% 120%; animation: bgWave 8s ease-in-out infinite alternate;">
+<?php
+$bg_pos_x = isset($ls['hero_image_x']) ? htmlspecialchars($ls['hero_image_x']) . '%' : '50%';
+$bg_pos_y = isset($ls['hero_image_y']) ? htmlspecialchars($ls['hero_image_y']) . '%' : '50%';
+?>
+<section id="beranda">
+    <div class="beranda-bg" style="background: url('<?= htmlspecialchars($ls['hero_image']); ?>') <?= $bg_pos_x; ?> <?= $bg_pos_y; ?>/100% 100% no-repeat; background-color: #002147;"></div>
+    <div class="beranda-overlay"></div>
     <div class="hero-content">
         <h1><?= strip_tags($ls['hero_title'], '<br><span>'); ?></h1>
         <p><?= htmlspecialchars($ls['hero_subtitle']); ?></p>
@@ -410,7 +482,7 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         <?php if(count($gallery_items) > 0): ?>
             <?php foreach($gallery_items as $item): ?>
                 <div class="gallery-card">
-                    <img src="<?= htmlspecialchars($item['image_path']); ?>" alt="<?= htmlspecialchars($item['title']); ?>" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+                    <img src="<?= htmlspecialchars($item['image_path']); ?>" alt="<?= htmlspecialchars($item['title']); ?>" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
                     <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                         <h3 style="font-size: 18px; margin-bottom: 8px;"><?= htmlspecialchars($item['title']); ?></h3>
                         <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;"><?= nl2br(htmlspecialchars($item['description'])); ?></p>
@@ -419,42 +491,42 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
             <?php endforeach; ?>
         <?php else: ?>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 1" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 1" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Lokakarya Kurikulum</h3>
-                <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Pembahasan dan penyelarasan modul ajar muatan lokal.</p>
+                <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Pembahasan dan penyelarasan modul ajar PPKN.</p>
             </div>
         </div>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 2" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 2" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Pelatihan Digital</h3>
                 <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Integrasi dan adopsi teknologi dalam metode pembelajaran.</p>
             </div>
         </div>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 3" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 3" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Evaluasi Semester</h3>
                 <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Rapat koordinasi evaluasi pelaksanaan program kerja MGMP.</p>
             </div>
         </div>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 4" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 4" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Diskusi Panel</h3>
                 <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Membahas strategi pembelajaran yang efektif dan interaktif.</p>
             </div>
         </div>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1427504494785-319ce5156695?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 5" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1427504494785-319ce5156695?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 5" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Pengembangan Modul</h3>
                 <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Kerja tim dalam menyusun modul pembelajaran berstandar.</p>
             </div>
         </div>
         <div class="gallery-card">
-            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 6" style="width: 100%; height: 250px; object-fit: cover; display: block;">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 6" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Seminar Pendidikan</h3>
                 <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Peningkatan kapasitas guru melalui seminar nasional.</p>

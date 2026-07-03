@@ -59,7 +59,7 @@ if($id <= 0){
 
 if(isset($_SESSION['user_id']) && $id == (int) $_SESSION['user_id']){
 
-    $_SESSION['error'] = "Akun yang sedang login tidak bisa dihapus";
+    $_SESSION['error'] = 'Akun yang sedang login tidak bisa dihapus';
     header("Location:kelola_user.php");
     exit;
 
@@ -69,17 +69,16 @@ if(isset($_SESSION['user_id']) && $id == (int) $_SESSION['user_id']){
 // CEK USER
 // =======================
 
-$cek_user = mysqli_query($conn, "
+$stmt_cek = mysqli_prepare($conn, "SELECT id FROM users WHERE id = ?");
+mysqli_stmt_bind_param($stmt_cek, "i", $id);
+mysqli_stmt_execute($stmt_cek);
+mysqli_stmt_store_result($stmt_cek);
+$num_rows = mysqli_stmt_num_rows($stmt_cek);
+mysqli_stmt_close($stmt_cek);
 
-SELECT id
-FROM users
-WHERE id = '$id'
+if($num_rows == 0){
 
-");
-
-if(mysqli_num_rows($cek_user) == 0){
-
-    $_SESSION['error'] = "User tidak ditemukan";
+    $_SESSION['error'] = 'User tidak ditemukan';
     header("Location:kelola_user.php");
     exit;
 
@@ -89,47 +88,33 @@ if(mysqli_num_rows($cek_user) == 0){
 // HAPUS USER
 // =======================
 
-mysqli_query($conn, "
+$stmt_la = mysqli_prepare($conn, "DELETE FROM login_activity WHERE user_id = ?");
+mysqli_stmt_bind_param($stmt_la, "i", $id);
+mysqli_stmt_execute($stmt_la);
+mysqli_stmt_close($stmt_la);
 
-DELETE FROM login_activity
-WHERE user_id = '$id'
+$stmt_dl = mysqli_prepare($conn, "DELETE FROM downloads WHERE user_id = ?");
+mysqli_stmt_bind_param($stmt_dl, "i", $id);
+mysqli_stmt_execute($stmt_dl);
+mysqli_stmt_close($stmt_dl);
 
-");
+$stmt_mat = mysqli_prepare($conn, "UPDATE materials SET user_id = NULL WHERE user_id = ?");
+mysqli_stmt_bind_param($stmt_mat, "i", $id);
+mysqli_stmt_execute($stmt_mat);
+mysqli_stmt_close($stmt_mat);
 
-mysqli_query($conn, "
-
-DELETE FROM downloads
-WHERE user_id = '$id'
-
-");
-
-mysqli_query($conn, "
-
-UPDATE materials
-SET user_id = NULL
-WHERE user_id = '$id'
-
-");
-
-$hapus = mysqli_query($conn, "
-
-DELETE FROM users
-WHERE id = '$id'
-
-");
+$stmt_hapus = mysqli_prepare($conn, "DELETE FROM users WHERE id = ?");
+mysqli_stmt_bind_param($stmt_hapus, "i", $id);
+$hapus = mysqli_stmt_execute($stmt_hapus);
+mysqli_stmt_close($stmt_hapus);
 
 if($hapus){
-
-    $_SESSION['success'] = "User berhasil dihapus!";
+    $_SESSION['success'] = 'User berhasil dihapus';
     header("Location:kelola_user.php");
     exit;
-
 }else{
-
-    $_SESSION['error'] = "Gagal menghapus user";
+    $_SESSION['error'] = 'Gagal menghapus user';
     header("Location:kelola_user.php");
     exit;
-
 }
-
 ?>

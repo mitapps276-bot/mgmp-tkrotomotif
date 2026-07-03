@@ -973,7 +973,7 @@ if(isset($_POST['upload'])){
         }
 
         .profile-panel{
-            width:160px;
+            width:200px;
             background:rgba(255,255,255,0.14);
             border:1px solid rgba(255,255,255,0.25);
             border-radius:16px;
@@ -984,7 +984,7 @@ if(isset($_POST['upload'])){
         .profile-photo,
         .profile-initial{
             width:100%;
-            height:160px;
+            height:200px;
             border-radius:12px;
             margin:0 auto 10px;
             border:none;
@@ -994,13 +994,14 @@ if(isset($_POST['upload'])){
         .profile-initial{ display:flex; align-items:center; justify-content:center; background:#2c3e50; color:white; font-size:48px; font-weight:bold; }
 
         .photo-button{
+            display:block;
             width:100%;
             border:none;
             border-radius:8px;
             padding:8px;
             font-size:12px;
-            background:#2c3e50;
-            color:white;
+            background:white;
+            color:#2c3e50;
             font-weight:bold;
             cursor:pointer;
         }
@@ -1032,27 +1033,24 @@ if(isset($_POST['upload'])){
         .request-scroll-container {
             display: flex;
             overflow-x: auto;
-            gap: 20px;
-            padding-bottom: 15px;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
-            scrollbar-width: none;
-            flex: 1;
+            gap: 20px;
+            padding-bottom: 10px;
+            scroll-snap-type: x mandatory;
         }
-        .request-scroll-container::-webkit-scrollbar { display: none; }
+        .request-scroll-container::-webkit-scrollbar { height: 8px; }
+        .request-scroll-container::-webkit-scrollbar-thumb { background: #bdc3c7; border-radius: 4px; }
         .request-card {
             flex: 0 0 calc(50% - 10px);
-            scroll-snap-align: start;
-            background: #f8f9fa;
-            border: 1px solid #dce4ec;
-            border-radius: 15px;
-            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 250px;
         }
         .request-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
         .carousel-wrapper { display: flex; align-items: center; position: relative; width: 100%; }
@@ -1089,42 +1087,70 @@ if(isset($_POST['upload'])){
         .form-accordion-header.active .icon { transform: rotate(-180deg); }
         .form-accordion-body { padding: 25px 35px; display: none; }
 
-        @media(max-width:700px){
-
-            .wrapper{ flex-direction:column; }
-            .sidebar{ width:100%; height:auto; position:static; }
-            .main-content{ padding:20px; }
-
-            .container{
-
-                width:92%;
-
-            }
-
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
         }
-
-        @media(max-width:1100px){
-            .request-card { flex: 0 0 calc(33.333% - 14px); }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
         }
 
         @media(max-width:992px){
-            .hero-top{ flex-direction:column; }
-            .profile-panel{ width:100%; }
+            .wrapper{ flex-direction:column; }
+            .mobile-nav { display: flex; }
+            .sidebar{ position:static; width:100%; height:auto; display: none; }
+            .sidebar.active { display: block; }
+            .main-content{ padding:20px; }
+            .container{ width:92%; }
+            .hero-top{ flex-direction:column; align-items:center; }
+            .hero-text { margin-bottom: 20px; text-align: center; }
+            .hero-text .badge { margin: 10px auto 0; }
+            .profile-panel{ width:200px; }
+            .sidebar .logo { display: none; }
             .request-card { flex: 0 0 calc(50% - 10px); }
         }
+
+        @media(max-width:1100px){
+            .request-card { flex: 0 0 calc(50% - 10px); }
+        }
+
+
         @media(max-width: 768px) {
             .request-card { flex: 0 0 100%; }
             .carousel-btn { display: none; }
             .form-grid { grid-template-columns: 1fr; }
+            .hero { padding: 20px; }
+            .hero-text h1 { font-size: 24px; }
+            .hero-text p { font-size: 14px; text-align: justify; }
         }
 
     </style>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <div class="logo">
             External Contributor
         </div>
@@ -1139,54 +1165,54 @@ if(isset($_POST['upload'])){
 
 <div class="main-content">
 
-    <div class="hero">
-        <div class="hero-top">
+    <!-- HERO -->
+    <style>
+    .hero-bg {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1;
+        background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+        animation: waveBg 8s ease-in-out infinite alternate;
+    }
+    .hero-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+        z-index: 2;
+    }
+    @keyframes waveBg {
+        0%   { transform: scale(1.1) translate(0%, 0%); }
+        25%  { transform: scale(1.1) translate(2%, 2%); }
+        50%  { transform: scale(1.1) translate(4%, 0%); }
+        75%  { transform: scale(1.1) translate(2%, -2%); }
+        100% { transform: scale(1.1) translate(0%, 0%); }
+    }
+    </style>
+    <div class="hero" style="position: relative; overflow: hidden; color: white;">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-top" style="position: relative; z-index: 3;">
             <div class="hero-text">
-                <h1>
-                    OM SWASTYASTU 🙏
-                </h1>
-                <p>
-                    Selamat datang
-                    <strong>
-                        <?= htmlspecialchars($nama_user); ?>
-                    </strong>
-                </p>
-                <p>
-                    Terima kasih telah bergabung sebagai Kontributor Eksternal.
-                    Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.
-                </p>
-                <div style="display: flex; align-items: center; gap: 15px; margin-top: 5px;">
-                    <div class="badge" style="margin-top: 0;">
-                        External Contributor
-                    </div>
-                </div>
-            </div>
+            <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
+                <p>Selamat datang, <strong><?= htmlspecialchars($nama_user); ?></strong></p>
+                <p>Terima kasih telah bergabung sebagai Kontributor Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
             
+            <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
+                <div class="badge" style="margin-top: 0;">External Contributor</div>
+            </div>
+            </div>
             <div class="profile-panel">
                 <?php if(!empty($profile_photo_path)){ ?>
                     <img src="<?= htmlspecialchars($profile_photo_path); ?>" class="profile-photo" alt="Foto profil">
                 <?php }else{ ?>
-                    <div class="profile-initial">
-                        <?= htmlspecialchars($profile_initial); ?>
-                    </div>
+                    <div class="profile-initial"><?= htmlspecialchars($profile_initial); ?></div>
                 <?php } ?>
-
                 <form method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="upload_profile_photo" value="1">
                     <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
-                    <label class="photo-button" style="display:block; cursor:pointer; background:white; color:#2c3e50; font-size:12px; padding:8px;">
-                        Ganti Foto
-                        <input 
-                            type="file" 
-                            name="profile_photo" 
-                            accept="image/jpeg,image/png,image/webp" 
-                            required 
-                            style="display:none;" 
-                            onchange="this.form.submit()"
-                        >
+                    <input type="hidden" name="upload_profile_photo" value="1">
+                    <label class="photo-button">
+                        📸 Ganti Foto
+                        <input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp" required style="display:none;" onchange="this.form.submit()">
                     </label>
                 </form>
-                
                 <?php if(!empty($upload_message)){ ?>
                     <div class="upload-alert <?= htmlspecialchars($upload_status); ?>">
                         <?= htmlspecialchars($upload_message); ?>
@@ -1217,9 +1243,7 @@ if(isset($_POST['upload'])){
     <?php if($has_approved){ ?>
     <div class="approved-message">
         <button onclick="this.parentElement.style.display='none'" class="close-btn-msg" style="color:#155724;" title="Tutup Sementara">&times;</button>
-        <strong>Pemberitahuan (<?= $counts['approved']; ?> Materi Disetujui):</strong> Materi Anda Sudah Disetujui Oleh 
-        I Gusti Ayu Ngurah Artini, S.Pd Selaku Administrator 
-        Silakan Lihat Data Materi,Kontributor External.
+        <strong>Pemberitahuan (<?= $counts['approved']; ?> Materi Disetujui):</strong> Materi Anda Sudah Disetujui Oleh Administrator Silakan Dilihat Pada Data Materi (SI-LIAK).
         
         <form method="POST" style="margin-top: 12px; margin-bottom: 0;">
             <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
@@ -1231,8 +1255,10 @@ if(isset($_POST['upload'])){
     <?php if($has_rejected){ ?>
     <div class="rejected-message">
         <button onclick="this.parentElement.style.display='none'" class="close-btn-msg" style="color:#721c24;" title="Tutup Pemberitahuan">&times;</button>
-        <strong>Pemberitahuan (<?= $counts['rejected']; ?> Materi Ditolak):</strong> Materi Anda Ditolak Oleh 
-        I Gusti Ayu Ngurah Artini, S.Pd Selaku Administrator.<br>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <strong>Pemberitahuan (<?= $counts['rejected']; ?> Materi Ditolak):</strong><br>
+            Materi Anda Ditolak Oleh Administrator.
+        </div>
         <ul style="margin: 10px 0; padding-left: 20px;">
         <?php while($rej = mysqli_fetch_assoc($rejected_details)){ ?>
             <li style="margin-bottom: 5px;">
@@ -1249,8 +1275,7 @@ if(isset($_POST['upload'])){
     <?php if($has_pending){ ?>
     <div class="pending-message">
         <button onclick="this.parentElement.style.display='none'" class="close-btn-msg" style="color:#856404;" title="Tutup Pemberitahuan">&times;</button>
-        <strong>Pemberitahuan (<?= $counts['pending']; ?> Materi Pending):</strong> Materi Anda Sedang Menunggu Persetujuan. 
-        Silakan tunggu I Gusti Ayu Ngurah Artini, S.Pd Selaku Administrator untuk meninjau materi Anda.
+        <strong>Pemberitahuan (<?= $counts['pending']; ?> Materi Pending):</strong> Data Materi Yang Anda Upload Sedang Menunggu Administrator Untuk Ditinjau Dan Disetujui Diupload Pada Data Materi (SI-LIAK)
     </div>
     <?php } ?>
 
@@ -1352,6 +1377,7 @@ if(isset($_POST['upload'])){
                     <option value="Materi Pembelajaran">Materi Pembelajaran</option>
                     <option value="Soal Latihan">Soal Latihan</option>
                     <option value="Perangkat Pembelajaran">Perangkat Pembelajaran</option>
+                    <option value="Refleksi">Refleksi</option>
                 </select>
             </div>
             <div id="kelas_container">
@@ -1374,7 +1400,7 @@ if(isset($_POST['upload'])){
 
         <textarea
             name="description"
-            placeholder="Tambahkan penjelasan, atau cantumkan Link YouTube / Google Drive jika Anda ingin membagikan materi video..."
+            placeholder="Tambahkan penjelasan materi..."
         ></textarea>
 
         <label>Pilih File Materi</label>
@@ -1429,18 +1455,52 @@ if(isset($_POST['upload'])){
 document
 .getElementById('file')
 .addEventListener('change', function(){
+    let fileName = 'Pilih File Materi';
 
-    let fileName =
-    this.files[0]
-    ?
-    this.files[0].name
-    :
-    'Pilih File Materi';
+    if (this.files[0]) {
+        // Cek ukuran file (Maksimal 2 MB)
+        if (this.files[0].size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File Terlalu Besar!',
+                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (this.files[0].size / (1024 * 1024)).toFixed(2) + ' MB.'
+            });
+            this.value = ''; // Hapus file yang dipilih
+        } else {
+            fileName = this.files[0].name;
+        }
+    }
 
     document
     .getElementById('file-label')
     .innerHTML = fileName;
 
+});
+
+// Proteksi tambahan: Blokir tombol submit jika file terlalu besar
+document.querySelector('form').addEventListener('submit', function(e) {
+    let fileInput = document.getElementById('file');
+    if (fileInput.files.length > 0) {
+        let file = fileInput.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+            e.preventDefault(); // Hentikan proses upload ke server
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Upload!',
+                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+            });
+            return false;
+        }
+    } else {
+        // Jika required di-bypass (misal karena hidden)
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'File Belum Dipilih',
+            text: 'Silakan pilih file materi terlebih dahulu!'
+        });
+        return false;
+    }
 });
 
 function scrollTopikDiperlukan(direction) {
@@ -1541,6 +1601,15 @@ window.addEventListener('click', function(e) {
     let m = document.getElementById('deleteRejectedModal');
     if (e.target == m) { closeDeleteRejectedModal(); }
 });
+
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
 
 </script>
 

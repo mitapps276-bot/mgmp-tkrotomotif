@@ -16,7 +16,7 @@ $is_external = ($sidebar_role == 4);
             <a href="data_materi.php">Data Materi</a>
             <a href="upload_materi.php">Upload Materi</a>
             <a href="review_materials.php">Review Contributor</a>
-            <a href="kelola_request.php">Request Materi</a>
+            <a href="kelola_request.php">Request Materi Guru</a>
             <a href="analytics.php">Analytics</a>
             <a href="kelola_informasi.php">Kelola Informasi Umum</a>
             <a href="kelola_user.php">Kelola Akun</a>

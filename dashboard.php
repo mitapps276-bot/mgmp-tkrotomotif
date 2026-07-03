@@ -288,7 +288,7 @@ if(isset($_POST['submit_request'])){
     $admin_note = NULL;
     $alert_msg = "Request data untuk kategori \"$jenis\" berhasil disimpan dan sedang menunggu tindak lanjut admin/guru lain!";
 
-    // Ambil data materi dengan kategori dan kelas yang sama terlebih dahulu
+    // Ambil data materi dengan kategori dan kelas yang sama (termasuk milik sendiri, kalau ada langsung dikasi)
     $check_sql = "SELECT id, title, folder_id, created_at, user_id FROM materials WHERE category = '$jenis' AND grade_level = '$kelas' AND status = 'approved' ORDER BY created_at DESC";
     $cek_materi = mysqli_query($conn, $check_sql);
     
@@ -304,7 +304,7 @@ if(isset($_POST['submit_request'])){
             $title_keywords = [];
             foreach($words as $w) {
                 $w = trim(preg_replace('/[^a-z0-9]/', '', $w));
-                if(strlen($w) > 2 && !in_array($w, $stopwords)) { $title_keywords[] = $w; } // Minimal 3 huruf & bukan stopword
+                if(strlen($w) > 1 && !in_array($w, $stopwords)) { $title_keywords[] = $w; } // Minimal 2 huruf & bukan stopword
             }
             
             // Pecah deskripsi request menjadi array kata
@@ -312,7 +312,7 @@ if(isset($_POST['submit_request'])){
             $req_keywords = [];
             foreach($req_words as $w) {
                 $w = trim(preg_replace('/[^a-z0-9]/', '', $w));
-                if(strlen($w) > 2 && !in_array($w, $stopwords)) { $req_keywords[] = $w; } // Minimal 3 huruf & bukan stopword
+                if(strlen($w) > 1 && !in_array($w, $stopwords)) { $req_keywords[] = $w; } // Minimal 2 huruf & bukan stopword
             }
 
             if(count($title_keywords) > 0) {
@@ -336,9 +336,9 @@ if(isset($_POST['submit_request'])){
                     $pct_req = ($matched_count_req / count($req_keywords)) * 100;
                 }
 
-                // Jika minimal 60% kata dari judul materi ada di deskripsi request, 
-                // ATAU minimal 60% kata dari request ada di judul materi, anggap cocok
-                if($pct_title >= 60 || $pct_req >= 60) {
+                // Jika minimal 50% kata dari judul materi ada di deskripsi request, 
+                // ATAU minimal 50% kata dari request ada di judul materi, anggap cocok
+                if($pct_title >= 50 || $pct_req >= 50) {
                     $materi_ditemukan = $m;
                     break;
                 }
@@ -351,17 +351,13 @@ if(isset($_POST['submit_request'])){
             $mat_created = $materi_ditemukan['created_at'];
             $mat_user = $materi_ditemukan['user_id'];
             
-            // Hitung nomor urut secara dinamis sesuai urutan (ORDER BY created_at DESC) di menu Data Materi
+            // Ambil nama folder
             if($mat_user !== NULL){
-                $posisi_query = mysqli_query($conn, "SELECT COUNT(*) AS posisi FROM materials WHERE folder_id = '$mat_folder' AND status = 'approved' AND user_id IS NOT NULL AND created_at >= '$mat_created'");
-                $posisi = mysqli_fetch_assoc($posisi_query)['posisi'];
                 $folder_query = mysqli_query($conn, "SELECT folder_name FROM folders WHERE id = '$mat_folder'");
                 $nama_folder = ($folder_query && mysqli_num_rows($folder_query) > 0) ? mysqli_fetch_assoc($folder_query)['folder_name'] : 'Materi';
-                $lokasi_teks = "berada pada urutan No. $posisi di dalam folder \"$nama_folder\"";
+                $lokasi_teks = "berada di dalam folder \"$nama_folder\"";
             } else {
-                $posisi_query = mysqli_query($conn, "SELECT COUNT(*) AS posisi FROM materials WHERE status = 'approved' AND user_id IS NULL AND created_at >= '$mat_created'");
-                $posisi = mysqli_fetch_assoc($posisi_query)['posisi'];
-                $lokasi_teks = "berada pada urutan No. $posisi di dalam folder \"Kontributor External\"";
+                $lokasi_teks = "berada di dalam folder \"Kontributor External\"";
             }
             
             $status_request = 'selesai';
@@ -370,7 +366,11 @@ if(isset($_POST['submit_request'])){
             // Set sesi popup untuk status Selesai
             $_SESSION['req_popup_type'] = 'selesai';
             $_SESSION['req_popup_title'] = 'Materi Ditemukan!';
-            $_SESSION['req_popup_msg'] = 'Materi yang Anda request <b>sudah tersedia</b> di Data Materi.<br><br>Judul: <i style="color:#2980b9;">"' . htmlspecialchars($materi_ditemukan['title']) . '"</i><br>Lokasi: <b>' . $lokasi_teks . '</b><br><br>Sistem otomatis menandai request Anda sebagai <b>Selesai</b>.';
+            
+            // Tambahkan tombol download langsung agar user tidak perlu mencari manual
+            $download_btn = '<br><br><a href="download.php?id=' . $materi_ditemukan['id'] . '" target="_blank" style="display:inline-block; background:#2ecc71; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px; transition:0.3s;" onmouseover="this.style.background=\'#27ae60\'" onmouseout="this.style.background=\'#2ecc71\'">📥 Download Materi Langsung</a>';
+            
+            $_SESSION['req_popup_msg'] = 'Materi yang Anda request <b>sudah tersedia</b> di Data Materi.<br><br>Judul: <i style="color:#2980b9;">"' . htmlspecialchars($materi_ditemukan['title']) . '"</i><br>Lokasi: <b>' . $lokasi_teks . '</b>' . $download_btn . '<br><br>Sistem otomatis menandai request Anda sebagai <b>Selesai</b>.';
         }
     
     // Set sesi popup untuk status Pending
@@ -726,10 +726,10 @@ ORDER BY r.created_at DESC
 // =======================
 
 $recent_logins_query = mysqli_query($conn, "
-    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo 
+    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo, u.role_id 
     FROM login_activity l
     JOIN users u ON l.user_id = u.id
-    WHERE u.role_id = 2 AND l.login_date = CURDATE()
+    WHERE u.role_id IN (1, 2, 4) AND l.login_date = CURDATE()
     ORDER BY l.login_time DESC
 ");
 
@@ -806,6 +806,8 @@ if($total_upload_guru == 0){
 <html>
 <head>
 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MGMP</title>
 
     <style>
@@ -959,7 +961,7 @@ if($total_upload_guru == 0){
 
         .profile-panel{
 
-            width:180px;
+            width:240px;
 
             background:rgba(255,255,255,0.14);
 
@@ -967,7 +969,7 @@ if($total_upload_guru == 0){
 
             border-radius:18px;
 
-            padding:15px;
+            padding:20px;
 
             text-align:center;
 
@@ -978,11 +980,11 @@ if($total_upload_guru == 0){
 
             width:100%;
 
-            height:160px;
+            height:220px;
 
             border-radius:12px;
 
-            margin:0 auto 10px;
+            margin:0 auto 15px;
 
             border:none;
 
@@ -1231,7 +1233,7 @@ if($total_upload_guru == 0){
             display: none; /* Safari and Chrome */
         }
         .request-card {
-            flex: 0 0 calc(33.333% - 14px); /* Menampilkan maksimal 3 card */
+            flex: 0 0 calc(50% - 10px); /* Menampilkan maksimal 2 card */
             scroll-snap-align: start;
             background: #f8f9fa;
             border: 1px solid #dce4ec;
@@ -1271,11 +1273,39 @@ if($total_upload_guru == 0){
         .carousel-btn.next { margin-left: 15px; }
 
         /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .mobile-swipe-hint {
+            display: none;
+        }
+        .mobile-break {
+            display: none;
+        }
+
+        /* ======================
            RESPONSIVE
         ====================== */
         @media(max-width:992px){
             .wrapper{ flex-direction:column; }
-            .sidebar{ position:static; width:100%; height:auto; }
+            .mobile-nav { display: flex; }
+            .sidebar{ position:static; width:100%; height:auto; display: none; }
+            .sidebar.active { display: flex; }
             .grid{ grid-template-columns:1fr; }
             .hero-top{ flex-direction:column; }
             .profile-panel{ width:100%; }
@@ -1287,9 +1317,28 @@ if($total_upload_guru == 0){
             }
         }
         @media(max-width: 768px) {
+            .hero { padding: 20px; }
+            .hero h1 { font-size: 26px; margin-bottom: 10px; }
+            .hero p { font-size: 14px; line-height: 1.5; text-align: justify; }
+            .card { padding: 15px; } /* Kurangi padding card agar konten lega */
             .request-card {
-                flex: 0 0 100%; /* 1 card di layar hp */
+                flex: 0 0 85%; /* Menampilkan 85% card agar card berikutnya terlihat sedikit (ngintip) */
             }
+            .active-teacher-card {
+                flex: 0 0 85%; /* Sama seperti request card, tampil 85% di mobile */
+                width: auto;
+            }
+            .active-teacher-carousel-wrapper {
+                margin-top: -30px; /* Mengurangi jarak berlebih di mobile */
+                margin-bottom: -30px;
+            }
+            .active-teacher-list {
+                padding: 35px 5px; /* Mengurangi padding vertikal berlebih di mobile */
+            }
+            .ai-subtitle { text-align: left; } /* Dikembalikan ke left agar tidak renggang */
+            .ai-recommendation { text-align: left; } /* Dikembalikan ke left agar tidak renggang */
+            .mobile-swipe-hint { display: block; }
+            .mobile-break { display: block; width: 100%; height: 0; }
             .carousel-btn { display: none; } /* Tombol disembunyikan di HP */
         }
     </style>
@@ -1326,12 +1375,15 @@ if($total_upload_guru == 0){
         .active-teacher-carousel-wrapper {
             position: relative;
             width: 100%;
+            margin-top: -60px;
+            margin-bottom: -60px;
+            z-index: 5;
         }
         .active-teacher-list {
             display: flex;
             overflow-x: auto;
             gap: 15px;
-            padding: 5px;
+            padding: 65px 5px;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
@@ -1354,6 +1406,18 @@ if($total_upload_guru == 0){
         }
         .active-teacher-card:hover {
             transform: translateY(-2px);
+            z-index: 10;
+            position: relative;
+        }
+        .active-user-photo {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .active-teacher-card:hover .active-user-photo {
+            transform: scale(5);
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
     </style>
 
@@ -1619,14 +1683,19 @@ if($total_upload_guru == 0){
 
 
 </head>
-
 <body>
 
 <div class="wrapper">
 
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
     <!-- SIDEBAR -->
 
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar-menu">
 
         <div class="menu">
 
@@ -1673,13 +1742,34 @@ if($total_upload_guru == 0){
     <div class="content">
 
         <!-- HERO -->
-
-        <div class="hero">
-            <div class="hero-top">
+        <style>
+        .hero-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+            animation: waveBg 8s ease-in-out infinite alternate;
+        }
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+            z-index: 2;
+        }
+        @keyframes waveBg {
+            0%   { transform: scale(1.1) translate(0%, 0%); }
+            25%  { transform: scale(1.1) translate(2%, 2%); }
+            50%  { transform: scale(1.1) translate(4%, 0%); }
+            75%  { transform: scale(1.1) translate(2%, -2%); }
+            100% { transform: scale(1.1) translate(0%, 0%); }
+        }
+        </style>
+        <div class="hero" style="position: relative; overflow: hidden; color: white;">
+            <div class="hero-bg"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-top" style="position: relative; z-index: 3;">
                 <div class="hero-text">
-                <h1 style="margin:0; margin-bottom:15px;">OM SWASTYASTU 🙏</h1>
+                <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
                     <p>Selamat datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
-                    <p>Platform Kolaboratif MGMP — Sistem Berbasis Learning Analytics Untuk Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
+                    <p>Platform Kolaboratif MGMP - Sistem Informasi Learning Integration & Analitik Kinerja <span class="mobile-break"></span>(SI-LIAK) <span class="mobile-break"></span>Untuk Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
                 
                 <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
                     <div class="badge" style="margin-top: 0;">GURU</div>
@@ -1773,6 +1863,7 @@ if($total_upload_guru == 0){
                         <option value="Materi Pembelajaran">1. Materi Pembelajaran</option>
                         <option value="Soal Latihan">2. Soal Latihan</option>
                         <option value="Perangkat Pembelajaran">3. Perangkat Pembelajaran</option>
+                        <option value="Refleksi">4. Refleksi</option>
                     </select>
                     <select name="kelas_request" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; outline: none; font-size: 13px;" required>
                         <option value="">-- Pilih Kelas --</option>
@@ -1961,15 +2052,22 @@ if($total_upload_guru == 0){
                         ?>
                         <div class="active-teacher-card">
                             <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
-                                <img src="<?= htmlspecialchars($photo_login); ?>" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                                <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
                             <?php }else{ ?>
-                                <div style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
+                                <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
                                     <?= htmlspecialchars($initial_login); ?>
                                 </div>
                             <?php } ?>
                             <div style="flex:1; min-width:0;">
-                                <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?= htmlspecialchars($login['full_name']); ?> <?= $is_me ? '<span style="color:#27ae60; font-size:11px;">(Anda)</span>' : ''; ?></strong>
-                                <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?= htmlspecialchars($login['school_name'] ?? '-'); ?></span>
+                                <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    <?= htmlspecialchars($login['full_name']); ?> 
+                                    <?= $is_me ? '<span style="color:#27ae60; font-size:11px;">(Anda)</span>' : ''; ?>
+                                </strong>
+                                <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    <?= htmlspecialchars($login['school_name'] ?? '-'); ?>
+                                </span>
+                                <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
+                                <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
                             </div>
                             <div style="text-align:right; flex-shrink:0;">
                                 <span style="background:#eafaf1; color:#27ae60; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">
@@ -1980,6 +2078,7 @@ if($total_upload_guru == 0){
                         <?php } ?>
                     </div>
                 </div>
+                <p class="mobile-swipe-hint" style="text-align:center; font-size:12px; color:#95a5a6; margin-top:-10px; margin-bottom:0;">&larr; Geser untuk melihat yang lain &rarr;</p>
                 <?php } else { ?>
                 <div style="width:100%; padding:20px; text-align:center; color:#7f8c8d; background:#f8f9fa; border-radius:12px; border:1px dashed #ccc;">Belum ada guru yang login hari ini.</div>
                 <?php } ?>
@@ -2186,7 +2285,18 @@ function scrollActiveTeacher(direction) {
 }
 </style>
 <?php } ?>
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburger-toggle');
+    const sidebar = document.getElementById('sidebar-menu');
+    
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+});
+</script>
 </body>
 </html>
 

@@ -85,7 +85,7 @@ if(isset($_POST['submit_pengumuman'])){
         $allowed = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar', 'xls', 'xlsx', 'ppt', 'pptx'];
         $size = $_FILES['file_pengumuman']['size']; // Ukuran dalam bytes
         
-        if(in_array($ext, $allowed) && $size <= 2 * 1024 * 1024){ // Batas 2MB
+        if(in_array($ext, $allowed) && $size <= 5 * 1024 * 1024){ // Batas 5MB
             $upload_dir = "assets/uploads/announcements";
             $target_dir = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $upload_dir);
             if(!is_dir($target_dir)){
@@ -98,13 +98,11 @@ if(isset($_POST['submit_pengumuman'])){
             if(move_uploaded_file($tmp_name, $target_file)){
                 $file_path = $db_path;
             } else {
-                $_SESSION['error'] = "Gagal: File lampiran tidak dapat dipindahkan.";
-                header("Location: dashboard_admin.php");
+                echo "<script>alert('Gagal: File lampiran tidak dapat dipindahkan.'); location.replace('dashboard_admin.php');</script>";
                 exit;
             }
         } else {
-            $_SESSION['error'] = "Gagal: Format tidak diizinkan atau ukuran file melebihi 2MB.";
-            header("Location: dashboard_admin.php");
+            echo "<script>alert('Gagal: Format tidak diizinkan atau ukuran file melebihi 5MB.'); location.replace('dashboard_admin.php');</script>";
             exit;
         }
     }
@@ -162,7 +160,7 @@ if(isset($_POST['update_pengumuman'])){
         $allowed = ['pdf', 'docx'];
         $size = $_FILES['edit_file_pengumuman']['size'];
 
-        if(in_array($ext, $allowed) && $size <= 2 * 1024 * 1024){ // Batas 2MB
+        if(in_array($ext, $allowed) && $size <= 5 * 1024 * 1024){ // Batas 5MB
             $upload_dir = "assets/uploads/announcements";
             $new_name = time() . "_edit_" . preg_replace('/[^a-zA-Z0-9.-]/', '_', $name);
             $target_file = $upload_dir . "/" . $new_name;
@@ -173,7 +171,7 @@ if(isset($_POST['update_pengumuman'])){
                 $file_sql = ", file_path = '$target_file'";
             }
         } else {
-            echo "<script>alert('Gagal: Format file harus PDF/DOCX dan ukuran maksimal 2MB.'); location.replace('dashboard_admin.php');</script>";
+            echo "<script>alert('Gagal: Format file harus PDF/DOCX dan ukuran maksimal 5MB.'); location.replace('dashboard_admin.php');</script>";
             exit;
         }
     } 
@@ -380,10 +378,10 @@ if($cek_photo_column && mysqli_num_rows($cek_photo_column) == 0){
 }
 
 $recent_logins_query = mysqli_query($conn, "
-    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo 
+    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo, u.role_id 
     FROM login_activity l
     JOIN users u ON l.user_id = u.id
-    WHERE u.role_id = 2 AND l.login_date = CURDATE()
+    WHERE u.role_id IN (1, 2, 4) AND l.login_date = CURDATE()
     ORDER BY l.login_time DESC
 ");
 
@@ -396,6 +394,9 @@ $recent_logins_query = mysqli_query($conn, "
     <title>Dashboard Admin</title>
 
     <meta charset="UTF-8">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <meta
         name="viewport"
@@ -484,21 +485,10 @@ $recent_logins_query = mysqli_query($conn, "
         }
 
         .hero{
-
-            background:linear-gradient(
-                135deg,
-                #3498db,
-                #2980b9
-            );
-
             color:white;
-
             padding:40px;
-
             border-radius:20px;
-
             margin-bottom:30px;
-
         }
 
         .hero h1{
@@ -653,12 +643,15 @@ $recent_logins_query = mysqli_query($conn, "
         .active-teacher-carousel-wrapper {
             position: relative;
             width: 100%;
+            margin-top: -60px;
+            margin-bottom: -60px;
+            z-index: 5;
         }
         .active-teacher-list {
             display: flex;
             overflow-x: auto;
             gap: 15px;
-            padding: 5px;
+            padding: 65px 5px;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
@@ -681,6 +674,18 @@ $recent_logins_query = mysqli_query($conn, "
         }
         .active-teacher-card:hover {
             transform: translateY(-2px);
+            z-index: 10;
+            position: relative;
+        }
+        .active-user-photo {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .active-teacher-card:hover .active-user-photo {
+            transform: scale(5);
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .carousel-btn {
             background: #2c3e50;
@@ -706,32 +711,51 @@ $recent_logins_query = mysqli_query($conn, "
 
         }
 
-        @media(max-width:768px){
+        /* ======================
+           MOBILE NAVIGATION (HAMBURGER)
+        ====================== */
+        .mobile-nav {
+            display: none;
+            background: #2c3e50;
+            padding: 15px 25px;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+        .hamburger-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
 
+        @media(max-width:992px){
             .wrapper{
                 flex-direction:column;
             }
-
-            .grid{
-
-                grid-template-columns:1fr;
-
+            .mobile-nav {
+                display: flex;
             }
-
+            .grid{
+                grid-template-columns:1fr;
+            }
             .sidebar{
-
                 position:static;
                 width:100%;
                 height:auto;
-
+                display: none;
             }
-
+            .sidebar.active {
+                display: block;
+            }
+            .sidebar .logo {
+                display: none;
+            }
             .content{
-
                 padding:20px;
-
             }
-
         }
 
     </style>
@@ -774,10 +798,14 @@ $recent_logins_query = mysqli_query($conn, "
 <?php } ?>
 
 <div class="wrapper">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform Admin</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
 
-<div class="sidebar">
-
-    <div class="logo">
+    <div class="sidebar" id="sidebar-menu">
+        <div class="logo">
 
         ADMIN PANEL
 
@@ -811,7 +839,7 @@ $recent_logins_query = mysqli_query($conn, "
         </a>
 
         <a href="kelola_request.php">
-            Request Materi
+            Request Materi Guru
         </a>
 
         <a href="analytics.php">
@@ -834,58 +862,44 @@ $recent_logins_query = mysqli_query($conn, "
 
     </div>
 
-    <div style="padding: 20px; margin-top: auto;">
-        <div onclick="openGuruModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center; margin-bottom: 15px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total Guru MGMP</h4>
-            <h2 style="margin: 0 0 5px 0; color: #1abc9c; font-size: 28px;"><?= $total_guru; ?></h2>
-            <p style="margin: 0; font-size: 11px; color: #7f8c8d;">Klik untuk melihat detail</p>
-        </div>
-        
-        <div onclick="openExternalModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total External Contributor</h4>
-            <h2 style="margin: 0 0 5px 0; color: #f39c12; font-size: 28px;"><?= $total_contributor; ?></h2>
-            <p style="margin: 0; font-size: 11px; color: #7f8c8d;">Klik untuk melihat detail</p>
-        </div>
-    </div>
-
 </div>
 
 <div class="content">
 
-    <div class="hero">
+    <style>
+    .hero-bg {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1;
+        background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+        animation: waveBg 8s ease-in-out infinite alternate;
+    }
+    .hero-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+        z-index: 2;
+    }
+    @keyframes waveBg {
+        0%   { transform: scale(1.1) translate(0%, 0%); }
+        25%  { transform: scale(1.1) translate(2%, 2%); }
+        50%  { transform: scale(1.1) translate(4%, 0%); }
+        75%  { transform: scale(1.1) translate(2%, -2%); }
+        100% { transform: scale(1.1) translate(0%, 0%); }
+    }
+    </style>
+    <div class="hero" style="position: relative; overflow: hidden; color: white;">
+        <div class="hero-bg"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-top" style="position: relative; z-index: 3;">
+            <p>
+                <strong>
+                    <?= htmlspecialchars($nama_admin); ?>
+                </strong>
+            </p>
+            <p>
+                Hak Akses Tertinggi Dalam Platform (SI-LIAK)
+            </p>
 
-        <h1>
-
-            Selamat Datang Admin
-
-        </h1>
-
-        <p>
-
-            Halo
-            <strong>
-
-                <?= htmlspecialchars($nama_admin); ?>
-
-            </strong>
-
-        </p>
-
-        <p>
-
-            Dashboard monitoring MGMP untuk
-            pengelolaan guru,
-            contributor external,
-            upload materi,
-            aktivitas download,
-            dan monitoring review materi.
-
-        </p>
-
-            <div style="margin-top: 20px;">
-                <a href="reset_testing.php" onclick="return confirm('PERINGATAN: Yakin ingin menghapus seluruh data materi, request, dan log aktivitas? Data master user akan tetap aman.')" style="background: #e74c3c; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">⚠️ Reset Data Sistem (Blackbox Testing)</a>
-            </div>
-
+        </div>
     </div>
 
     <div class="grid">
@@ -948,7 +962,7 @@ $recent_logins_query = mysqli_query($conn, "
 
             <div class="card clickable-card" onclick="openRequestModal()">
 
-                <h3>Pending Review Request Materi Guru</h3>
+                <h3>Pending Request Materi Guru</h3>
 
                 <h1>
 
@@ -960,13 +974,27 @@ $recent_logins_query = mysqli_query($conn, "
 
             </div>
 
+            <div class="card clickable-card" onclick="openExternalModal()">
+
+                <h3>Total External Contributor</h3>
+
+                <h1>
+
+                    <?= $total_contributor; ?>
+
+                </h1>
+
+                <p style="color:#3498db; font-size:12px; margin-top:10px; margin-bottom:0; font-weight:bold;">Klik untuk melihat detail</p>
+
+            </div>
+
     </div>
 
     <!-- PENGUMUMAN ADMIN -->
     <div class="card" style="margin-bottom: 25px;">
         <h2 style="margin-top: 0; color: #2c3e50;">Kelola Pengumuman Dashboard</h2>
         <p style="color: #666; margin-top: -10px; margin-bottom: 15px;">Tulis pengumuman baru untuk ditampilkan pada dashboard pengguna.</p>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="buatPengumumanForm" onsubmit="return validatePengumumanSize('buatPengumumanForm', 'file_pengumuman');">
             <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
             <?php
             $latest_ann_q = mysqli_query($conn, "SELECT * FROM announcements ORDER BY id DESC LIMIT 1");
@@ -986,12 +1014,12 @@ $recent_logins_query = mysqli_query($conn, "
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #2c3e50; font-weight: bold;">Lampirkan File (Max 2MB):</label>
+                <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #2c3e50; font-weight: bold;">Lampirkan File (Max 5MB):</label>
                 <?php if($latest_ann && !empty($latest_ann['file_path'])) { ?>
                     <div style="margin-bottom: 10px; font-size: 13px; color: #34495e;">File saat ini: <a href="<?= htmlspecialchars($latest_ann['file_path']); ?>" target="_blank"><?= basename($latest_ann['file_path']); ?></a></div>
                 <?php } ?>
                 <div>
-                    <input type="file" name="file_pengumuman" id="file_pengumuman" style="display: none;">
+                    <input type="file" name="file_pengumuman" id="file_pengumuman" style="display: none;" onchange="validatePengumumanSize('', this.id)">
                     <label for="file_pengumuman" id="file_pengumuman_label" style="display: block; width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed #3498db; font-size: 14px; background: #fbfcfd; box-sizing: border-box; cursor: pointer; color: #2980b9; text-align: center; transition: 0.3s; font-weight: bold;" onmouseover="this.style.background='#ebf5ff'" onmouseout="this.style.background='#fbfcfd'">📁 Klik untuk memilih file lampiran baru...</label>
                 </div>
             </div>
@@ -1032,15 +1060,21 @@ $recent_logins_query = mysqli_query($conn, "
                     ?>
                     <div class="active-teacher-card">
                         <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
-                            <img src="<?= htmlspecialchars($photo_login); ?>" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                            <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
                         <?php }else{ ?>
-                            <div style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
+                            <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
                                 <?= htmlspecialchars($initial_login); ?>
                             </div>
                         <?php } ?>
                         <div style="flex:1; min-width:0;">
-                            <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?= htmlspecialchars($login['full_name']); ?></strong>
-                            <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?= htmlspecialchars($login['school_name'] ?? '-'); ?></span>
+                            <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <?= htmlspecialchars($login['full_name']); ?>
+                            </strong>
+                            <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <?= htmlspecialchars($login['school_name'] ?? '-'); ?>
+                            </span>
+                            <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
+                            <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
                         </div>
                         <div style="text-align:right; flex-shrink:0;">
                             <span style="background:#eafaf1; color:#27ae60; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">
@@ -1293,7 +1327,7 @@ $recent_logins_query = mysqli_query($conn, "
             <button class="close-btn" onclick="closeEditModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <form method="POST" enctype="multipart/form-data" id="editPengumumanForm">
+            <form method="POST" enctype="multipart/form-data" id="editPengumumanForm" onsubmit="return validatePengumumanSize('editPengumumanForm', 'edit_file_pengumuman');">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
                 <input type="hidden" name="edit_id" id="edit_id">
                 
@@ -1313,10 +1347,10 @@ $recent_logins_query = mysqli_query($conn, "
                     <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #34495e;">Lampiran</label>
                     <div id="current_file_info" style="font-size: 13px; margin-bottom: 10px;"></div>
                     
-                    <input type="file" name="edit_file_pengumuman" id="edit_file_pengumuman" style="display: none;" accept=".pdf,.docx">
+                    <input type="file" name="edit_file_pengumuman" id="edit_file_pengumuman" style="display: none;" accept=".pdf,.docx" onchange="validatePengumumanSize('', this.id)">
                     <label for="edit_file_pengumuman" id="edit_file_label" style="display: block; width: 100%; padding: 10px; border-radius: 8px; border: 1px dashed #3498db; font-size: 14px; background: #fbfcfd; box-sizing: border-box; cursor: pointer; color: #2980b9; text-align: center; transition: 0.3s; font-weight: bold;">Pilih File Pengumuman</label>
 
-                    <span style="font-size: 12px; color: #7f8c8d; display: block; margin-top: 5px;">* Biarkan kosong jika tidak ingin mengubah lampiran. (PDF/DOCX, Max 2MB)</span>
+                    <span style="font-size: 12px; color: #7f8c8d; display: block; margin-top: 5px;">* Biarkan kosong jika tidak ingin mengubah lampiran. (PDF/DOCX, Max 5MB)</span>
                 </div>
 
                 <div style="text-align: right;">
@@ -1433,6 +1467,35 @@ function scrollActiveTeacher(direction) {
     const container = document.getElementById('activeTeacherCarousel');
     const scrollAmount = 335; // width of card (320) + gap (15)
     container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+</script>
+
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+function validatePengumumanSize(formId, inputId) {
+    const input = document.getElementById(inputId);
+    if (input && input.files && input.files.length > 0) {
+        const fileSize = input.files[0].size;
+        if (fileSize > 5 * 1024 * 1024) { // 5MB
+            Swal.fire({
+                icon: 'error',
+                title: 'Ukuran File Terlalu Besar',
+                text: 'Ukuran file melebihi batas 5MB. Silakan kompres file Anda atau pilih file lain.',
+                confirmButtonColor: '#e74c3c'
+            });
+            input.value = ''; // Reset input agar file raksasa batal dipilih
+            return false; // Mencegah form tersubmit
+        }
+    }
+    return true; // Lanjutkan submit
 }
 </script>
 

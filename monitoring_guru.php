@@ -406,6 +406,7 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 <head>
 
 <title>Monitoring Aktivitas Guru</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -900,31 +901,40 @@ CAROUSEL TABLE
 
 }
 
-@media(max-width:768px){
+/* ======================
+   MOBILE NAVIGATION (HAMBURGER)
+====================== */
+.mobile-nav {
+    display: none;
+    background: #2c3e50;
+    padding: 15px 25px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
 
-    .top-grid{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .analytics-chart-wrap{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .range-chart-wrap{
-
-        grid-template-columns:1fr;
-
-    }
-
+@media(max-width:992px){
+    .page-header { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+    .page-header .btn-print { width: 100%; justify-content: center; }
+    .top-grid{ grid-template-columns:1fr; }
+    .analytics-chart-wrap{ grid-template-columns:1fr; }
+    .range-chart-wrap{ grid-template-columns:1fr; }
     .wrapper{ flex-direction:column; }
-    .sidebar{ width:100%; height:auto; position:static; }
-
+    .mobile-nav { display: flex; }
+    .sidebar{ width:100%; height:auto; position:static; display: none; }
+    .sidebar.active { display: block; }
+    .sidebar .logo { display: none; }
     .carousel-btn { display: none; }
-
+    /* Memastikan tabel bisa digulir secara horizontal di mobile */
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
 /* ======================
@@ -937,6 +947,7 @@ CAROUSEL TABLE
         background: white !important;
     }
     .sidebar { display: none !important; }
+    .mobile-nav { display: none !important; }
     .main-content { width: 100% !important; padding: 0 !important; margin: 0 !important; }
     .wrapper { display: block !important; }
     .btn-print { display: none !important; }
@@ -946,7 +957,20 @@ CAROUSEL TABLE
     .table-carousel-item { display: block !important; margin-bottom: 20px !important; }
     .accordion-body { display: block !important; }
     .accordion-header::after { display: none !important; }
-    .card, .info-card, .formula-box, .top-card, .accordion-card { 
+    
+    /* Memastikan tabel tampil penuh di PDF */
+    .table-container { overflow: visible !important; width: 100% !important; }
+    table { width: 100% !important; page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    
+    /* Membuat Grid menjadi Block agar menyusun ke bawah di kertas A4 */
+    .top-grid, .analytics-chart-wrap, .range-chart-wrap {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .card, .info-card, .formula-box, .top-card, .accordion-card, .chart-card { 
+        width: 100% !important;
         box-shadow: none !important; 
         border: 1px solid #ccc !important; 
         page-break-inside: avoid; 
@@ -963,7 +987,13 @@ CAROUSEL TABLE
 <body>
 
 <div class="wrapper">
-    <div class="sidebar">
+    <!-- MOBILE NAVIGATION (HAMBURGER) -->
+    <div class="mobile-nav">
+        <strong>MGMP Platform</strong>
+        <button class="hamburger-btn" id="hamburger-toggle">☰</button>
+    </div>
+
+    <div class="sidebar" id="sidebar-menu">
         <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
@@ -991,12 +1021,14 @@ CAROUSEL TABLE
 <div class="main-content">
 <div class="container" style="position: relative;">
 
-    <h1>
-        Monitoring Aktivitas Semua Guru
-        <button onclick="window.print()" class="btn-print" style="position: absolute; top: 30px; right: 30px; background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h1 style="margin-bottom: 0;">
+            Monitoring Aktivitas Semua Guru
+        </h1>
+        <button onclick="handlePrintOrDownload()" class="btn-print" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
             🖨️ Cetak / Unduh PDF
         </button>
-    </h1>
+    </div>
 
     <div class="subtitle">
 
@@ -1672,5 +1704,79 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// Mobile Hamburger Toggle
+const hamburger = document.getElementById('hamburger-toggle');
+const sidebar = document.getElementById('sidebar-menu');
+if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+// Handler Cetak / Unduh PDF
+function handlePrintOrDownload() {
+    if (window.innerWidth <= 992) {
+        const btn = document.querySelector('.btn-print');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "⏳ Menyiapkan PDF...";
+        btn.disabled = true;
+        
+        const mobileNav = document.querySelector('.mobile-nav');
+        if(mobileNav) mobileNav.style.display = 'none';
+        btn.style.display = 'none';
+        
+        const element = document.querySelector('.main-content');
+        
+        var opt = {
+          margin:       5,
+          filename:     'Monitoring_Aktivitas_Guru.pdf',
+          image:        { type: 'jpeg', quality: 0.95 },
+          html2canvas:  { scale: 1.5, useCORS: true }, // Scale diturunkan sedikit untuk mencegah memori HP Vivo/Android penuh
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        // Timeout jika HP ngelag atau gagal
+        let fallbackTimer = setTimeout(() => {
+            if(mobileNav) mobileNav.style.display = 'flex';
+            btn.style.display = 'flex';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert("Maaf, browser HP Anda (Vivo/Oppo/Bawaan) memblokir unduhan otomatis atau memori tidak cukup. Kami akan menggunakan mode cetak bawaan.");
+            window.print();
+        }, 15000); // 15 detik timeout
+
+        try {
+            html2pdf().set(opt).from(element).save().then(() => {
+                clearTimeout(fallbackTimer);
+                if(mobileNav) mobileNav.style.display = 'flex';
+                btn.style.display = 'flex';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch((err) => {
+                clearTimeout(fallbackTimer);
+                console.error("PDF Error: ", err);
+                if(mobileNav) mobileNav.style.display = 'flex';
+                btn.style.display = 'flex';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert("Gagal membuat PDF. Mengalihkan ke mode cetak bawaan.");
+                window.print();
+            });
+        } catch(e) {
+            clearTimeout(fallbackTimer);
+            if(mobileNav) mobileNav.style.display = 'flex';
+            btn.style.display = 'flex';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            window.print();
+        }
+    } else {
+        window.print();
+    }
+}
+</script>
+
 </body>
 </html>
