@@ -3,6 +3,7 @@
 session_start();
 
 include 'config/database.php';
+require_once 'config/functions.php';
 
 // =====================================
 // CEK LOGIN
@@ -30,7 +31,7 @@ if($_SESSION['role_id'] != 1){
 // CSRF TOKEN
 // =====================================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -41,6 +42,50 @@ $success_message = "";
 if(isset($_SESSION['success'])){
     $success_message = $_SESSION['success'];
     unset($_SESSION['success']);
+}
+
+// =====================================
+// BUAT TABEL site_settings JIKA BELUM ADA
+// =====================================
+try {
+    @mysqli_query($conn, "CREATE TABLE IF NOT EXISTS site_settings (
+        setting_key VARCHAR(100) PRIMARY KEY,
+        setting_value TEXT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )");
+    @mysqli_query($conn, "INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES ('telegram_bot_token', '')");
+} catch (Exception $e) {
+    // Abaikan jika tidak ada akses CREATE TABLE
+}
+
+// =====================================
+// SIMPAN TOKEN TELEGRAM (dari form admin)
+// =====================================
+if(isset($_POST['save_telegram_token'])){
+    if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']){
+        die("Error: Token keamanan (CSRF) tidak valid!");
+    }
+    $tg_token = trim($_POST['telegram_bot_token']);
+    // Validasi format token bot (angka:huruf)
+    if(!empty($tg_token) && !preg_match('/^\d+:[A-Za-z0-9_\-]+$/', $tg_token)){
+        $_SESSION['success'] = "❌ Format Token tidak valid! Format harus: 1234567890:ABCdef...";
+    } else {
+        $tg_token_safe = mysqli_real_escape_string($conn, $tg_token);
+        mysqli_query($conn, "INSERT INTO site_settings (setting_key, setting_value) 
+            VALUES ('telegram_bot_token', '$tg_token_safe')
+            ON DUPLICATE KEY UPDATE setting_value = '$tg_token_safe', updated_at = NOW()");
+        $_SESSION['success'] = "✅ Token Bot Telegram berhasil disimpan!";
+    }
+    header("Location: dashboard_admin.php");
+    exit;
+}
+
+// Ambil token yang sudah tersimpan untuk ditampilkan di form
+$tg_token_saved = '';
+$tg_token_row = mysqli_query($conn, "SELECT setting_value FROM site_settings WHERE setting_key = 'telegram_bot_token'");
+if ($tg_token_row && mysqli_num_rows($tg_token_row) > 0) {
+    $tg_token_data = mysqli_fetch_assoc($tg_token_row);
+    $tg_token_saved = $tg_token_data['setting_value'];
 }
 
 // =====================================
@@ -119,6 +164,16 @@ if(isset($_POST['submit_pengumuman'])){
         }
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
+
+        // 📢 BROADCAST TELEGRAM ke semua guru
+        if (function_exists('broadcastTelegram')) {
+            $pesan_broadcast = "📢 <b>Pengumuman Resmi MGMP</b>\n\n";
+            $pesan_broadcast .= htmlspecialchars(substr(strip_tags($pesan), 0, 300));
+            if (strlen(strip_tags($pesan)) > 300) $pesan_broadcast .= "...";
+            $pesan_broadcast .= "\n\n— <i>Admin SI-LIAK</i>";
+            broadcastTelegram($conn, $pesan_broadcast);
+        }
+
         $_SESSION['success'] = "Pengumuman berhasil disimpan!";
         header("Location: dashboard_admin.php");
         exit;
@@ -990,6 +1045,62 @@ $recent_logins_query = mysqli_query($conn, "
 
     </div>
 
+    <!-- KONFIGURASI TELEGRAM BOT -->
+    <div class="card" style="margin-bottom: 25px; border-left: 4px solid #0088cc;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
+            <span style="font-size: 28px;">✈️</span>
+            <div>
+                <h2 style="margin: 0; color: #2c3e50;">Konfigurasi Telegram Bot</h2>
+                <p style="color: #666; margin: 3px 0 0 0; font-size: 13px;">Pasang Token Bot untuk mengaktifkan sistem notifikasi otomatis SI-LIAK ke Telegram guru.</p>
+            </div>
+        </div>
+
+        <?php
+        $tg_status = !empty($tg_token_saved);
+        ?>
+
+        <div style="margin: 15px 0; padding: 12px 15px; background: <?= $tg_status ? '#d4edda' : '#fff3cd' ?>; border-radius: 8px; border: 1px solid <?= $tg_status ? '#c3e6cb' : '#ffeeba' ?>;">
+            <strong><?= $tg_status ? '🟢 Token Aktif' : '🟡 Token Belum Diisi' ?></strong>
+            <?php if($tg_status){ ?>
+                <span style="font-family: monospace; color: #555; margin-left: 10px;">
+                    <?= substr($tg_token_saved, 0, 10) ?>:••••••••••••••••••
+                </span>
+            <?php } else { ?>
+                <span style="color: #856404; margin-left: 10px; font-size: 13px;">Notifikasi Telegram tidak akan berfungsi sampai token diisi.</span>
+            <?php } ?>
+        </div>
+
+        <form method="POST" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display: block; font-size: 13px; font-weight: bold; color: #555; margin-bottom: 5px;">
+                    Token Bot (dari @BotFather)
+                </label>
+                <input
+                    type="text"
+                    name="telegram_bot_token"
+                    placeholder="Contoh: 1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ"
+                    value="<?= htmlspecialchars($tg_token_saved); ?>"
+                    style="width: 100%; padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; font-family: monospace; font-size: 13px; box-sizing: border-box;"
+                    autocomplete="off"
+                >
+            </div>
+            <button
+                type="submit"
+                name="save_telegram_token"
+                style="padding: 10px 22px; background: #0088cc; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; white-space: nowrap;"
+                onmouseover="this.style.background='#006fa6'"
+                onmouseout="this.style.background='#0088cc'"
+            >
+                💾 Simpan Token
+            </button>
+        </form>
+
+        <p style="margin: 12px 0 0 0; font-size: 12px; color: #888;">
+            💡 Belum punya bot? Buka Telegram → cari <strong>@BotFather</strong> → ketik <code>/newbot</code> → ikuti instruksi → copy token yang diberikan.
+        </p>
+    </div>
+
     <!-- PENGUMUMAN ADMIN -->
     <div class="card" style="margin-bottom: 25px;">
         <h2 style="margin-top: 0; color: #2c3e50;">Kelola Pengumuman Dashboard</h2>
@@ -1056,7 +1167,7 @@ $recent_logins_query = mysqli_query($conn, "
                     while($login = mysqli_fetch_assoc($recent_logins_query)){
                         $login_time = date('H:i', strtotime($login['login_time']));
                         $initial_login = strtoupper(substr(trim($login['full_name']), 0, 1));
-                        $photo_login = $login['profile_photo'] ?? '';
+                        $photo_login = isset($login['profile_photo']) ? $login['profile_photo'] : '';
                     ?>
                     <div class="active-teacher-card">
                         <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
@@ -1071,7 +1182,7 @@ $recent_logins_query = mysqli_query($conn, "
                                 <?= htmlspecialchars($login['full_name']); ?>
                             </strong>
                             <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <?= htmlspecialchars($login['school_name'] ?? '-'); ?>
+                                <?= htmlspecialchars(isset($login['school_name']) ? $login['school_name'] : '-'); ?>
                             </span>
                             <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
                             <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
@@ -1116,7 +1227,7 @@ $recent_logins_query = mysqli_query($conn, "
                     ?>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px; color: #34495e;"><strong><?= htmlspecialchars($g['full_name']); ?></strong></td>
-                        <td style="padding: 12px; color: #7f8c8d; font-size: 13px;"><?= htmlspecialchars($g['school_name'] ?? '-'); ?></td>
+                        <td style="padding: 12px; color: #7f8c8d; font-size: 13px;"><?= htmlspecialchars(isset($g['school_name']) ? $g['school_name'] : '-'); ?></td>
                     </tr>
                     <?php } } else { ?>
                     <tr>
@@ -1154,7 +1265,7 @@ $recent_logins_query = mysqli_query($conn, "
                         <td style="padding: 12px; color: #7f8c8d; font-size: 13px;"><?= date('d M Y', strtotime($req['created_at'])); ?></td>
                         <td style="padding: 12px; color: #34495e;">
                             <strong><?= htmlspecialchars($req['full_name']); ?></strong><br>
-                            <span style="font-size:12px; color:#7f8c8d;"><?= htmlspecialchars($req['school_name'] ?? '-'); ?></span>
+                            <span style="font-size:12px; color:#7f8c8d;"><?= htmlspecialchars(isset($req['school_name']) ? $req['school_name'] : '-'); ?></span>
                         </td>
                         <td style="padding: 12px; color: #34495e; font-size: 13px;"><strong><?= htmlspecialchars($req['jenis_request']); ?></strong></td>
                         <td style="padding: 12px;">
@@ -1266,7 +1377,7 @@ $recent_logins_query = mysqli_query($conn, "
                     ?>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px; color: #34495e;"><strong><?= htmlspecialchars($e['contributor_name']); ?></strong></td>
-                        <td style="padding: 12px; color: #7f8c8d; font-size: 13px;"><?= htmlspecialchars($e['contributor_institution'] ?? '-'); ?></td>
+                        <td style="padding: 12px; color: #7f8c8d; font-size: 13px;"><?= htmlspecialchars(isset($e['contributor_institution']) ? $e['contributor_institution'] : '-'); ?></td>
                     </tr>
                     <?php } } else { ?>
                     <tr>

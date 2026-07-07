@@ -1,5 +1,5 @@
 <?php
-$sidebar_role = $_SESSION['role_id'] ?? 0;
+$sidebar_role = isset($_SESSION['role_id']) ? $_SESSION['role_id'] : 0;
 $is_admin    = ($sidebar_role == 1);
 $is_guru     = ($sidebar_role == 2);
 $is_visitor  = ($sidebar_role == 3);

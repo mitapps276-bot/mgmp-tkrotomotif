@@ -17,7 +17,7 @@ if(!isset($_SESSION['login']) || $_SESSION['role_id'] != 1){
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -351,7 +351,7 @@ $query = mysqli_query($conn, "
                 <td><?= $no++; ?></td>
                 <td>
                     <strong><?= htmlspecialchars($row['full_name']); ?></strong><br>
-                    <span style="color:#777; font-size:12px;"><?= htmlspecialchars($row['school_name'] ?? '-'); ?></span><br>
+                    <span style="color:#777; font-size:12px;"><?= htmlspecialchars(isset($row['school_name']) ? $row['school_name'] : '-'); ?></span><br>
                     <span style="color:#aaa; font-size:11px;"><?= date('d M Y H:i', strtotime($row['created_at'])); ?></span>
                 </td>
                 <td><strong><?= htmlspecialchars($row['jenis_request']); ?></strong></td>

@@ -994,7 +994,7 @@ CAROUSEL TABLE
     </div>
 
     <div class="sidebar" id="sidebar-menu">
-        <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
+        <?php $sidebar_role = isset($_SESSION['role_id']) ? $_SESSION['role_id'] : 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
         </div>

@@ -19,7 +19,7 @@ if(!isset($_SESSION['login'])){
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -31,8 +31,8 @@ $user_id = $_SESSION['user_id'];
 
 $nama_guru = $_SESSION['name'];
 
-$upload_message = $_SESSION['upload_message'] ?? "";
-$upload_status = $_SESSION['upload_status'] ?? "";
+$upload_message = isset($_SESSION['upload_message']) ? $_SESSION['upload_message'] : "";
+$upload_status = isset($_SESSION['upload_status']) ? $_SESSION['upload_status'] : "";
 
 unset($_SESSION['upload_message']);
 unset($_SESSION['upload_status']);
@@ -40,9 +40,9 @@ unset($_SESSION['upload_status']);
 // =======================
 // POPUP REQUEST NOTIFIKASI
 // =======================
-$req_popup_type = $_SESSION['req_popup_type'] ?? '';
-$req_popup_title = $_SESSION['req_popup_title'] ?? '';
-$req_popup_msg = $_SESSION['req_popup_msg'] ?? '';
+$req_popup_type = isset($_SESSION['req_popup_type']) ? $_SESSION['req_popup_type'] : '';
+$req_popup_title = isset($_SESSION['req_popup_title']) ? $_SESSION['req_popup_title'] : '';
+$req_popup_msg = isset($_SESSION['req_popup_msg']) ? $_SESSION['req_popup_msg'] : '';
 unset($_SESSION['req_popup_type']);
 unset($_SESSION['req_popup_title']);
 unset($_SESSION['req_popup_msg']);
@@ -115,7 +115,7 @@ if($user_data && !empty($user_data['full_name'])){
 
 }
 
-$profile_photo = $user_data['profile_photo'] ?? "";
+$profile_photo = isset($user_data['profile_photo']) ? $user_data['profile_photo'] : "";
 $profile_photo_path = "";
 
 if(!empty($profile_photo) && file_exists(__DIR__ . "/" . $profile_photo)){
@@ -162,7 +162,7 @@ if(isset($_POST['upload_profile_photo'])){
         $tmp_name = $_FILES['profile_photo']['tmp_name'];
         $extension = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
         $image_info = getimagesize($tmp_name);
-        $mime_type = $image_info['mime'] ?? "";
+        $mime_type = isset($image_info['mime']) ? $image_info['mime'] : "";
 
         if(
             !in_array($extension, $allowed_extensions)
@@ -361,13 +361,14 @@ if(isset($_POST['submit_request'])){
             }
             
             $status_request = 'selesai';
-            $admin_note = "Pencarian Otomatis: Ditemukan materi yang relevan dengan request Anda yaitu \"" . $materi_ditemukan['title'] . "\". Silakan cek di menu Data Materi, materi $lokasi_teks.";
+            $search_keyword = urlencode($deskripsi_input);
+            $admin_note = "Pencarian Otomatis: Ditemukan materi yang relevan dengan request Anda. Silakan cari dengan kata kunci: \"" . htmlspecialchars($deskripsi_input) . "\" di menu Data Materi.";
             
             // Set sesi popup untuk status Selesai
             $_SESSION['req_popup_type'] = 'selesai';
             $_SESSION['req_popup_title'] = 'Materi Ditemukan!';
             
-            $search_keyword = urlencode($deskripsi_input);
+            // Ganti tombol direct download menjadi search redirect
             $search_btn = '<br><br><a href="data_materi.php?search=' . $search_keyword . '" style="display:inline-block; background:#2ecc71; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px; transition:0.3s;" onmouseover="this.style.background=\'#27ae60\'" onmouseout="this.style.background=\'#2ecc71\'">🔍 Lihat Semua Materi Relevan</a>';
             
             $_SESSION['req_popup_msg'] = '<strong>Sistem SI-LIAK</strong> mendeteksi ada materi yang relevan dengan request Anda <b>sudah tersedia</b> di Data Materi.<br><br>Kata Kunci Pencarian: <i style="color:#2980b9;">"' . htmlspecialchars($deskripsi_input) . '"</i>' . $search_btn;
@@ -454,7 +455,8 @@ $total_external_query = mysqli_query($conn, "
     FROM users
     WHERE role_id = 4
 ");
-$total_external = mysqli_fetch_assoc($total_external_query)['total_contributor'] ?? 0;
+$total_external_data = mysqli_fetch_assoc($total_external_query);
+$total_external = isset($total_external_data['total_contributor']) ? $total_external_data['total_contributor'] : 0;
 
 // =======================
 // DATA UNTUK MODAL EXTERNAL CONTRIBUTOR
@@ -1742,39 +1744,34 @@ if($total_upload_guru == 0){
     <div class="content">
 
         <!-- HERO -->
-        <?php
-        $q_ls = mysqli_query($conn, "SELECT hero_image FROM landing_settings WHERE id = 1");
-        $ls_dash = mysqli_fetch_assoc($q_ls);
-        $hero_img = $ls_dash ? $ls_dash['hero_image'] : 'assets/images/placeholder.jpg';
-        ?>
         <style>
         .hero-bg {
-            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1;
-            background: url('<?= htmlspecialchars($hero_img); ?>') center center / 100% 135% no-repeat !important;
-            filter: url('#flag-wave');
+            background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+            animation: waveBg 8s ease-in-out infinite alternate;
         }
         .hero-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.7), rgba(41, 128, 185, 0.85));
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
             z-index: 2;
         }
+        @keyframes waveBg {
+            0%   { transform: scale(1.1) translate(0%, 0%); }
+            25%  { transform: scale(1.1) translate(2%, 2%); }
+            50%  { transform: scale(1.1) translate(4%, 0%); }
+            75%  { transform: scale(1.1) translate(2%, -2%); }
+            100% { transform: scale(1.1) translate(0%, 0%); }
+        }
         </style>
-        <svg width="0" height="0" style="position:absolute;z-index:-1;">
-            <filter id="flag-wave">
-                <feTurbulence x="0" y="0" baseFrequency="0.01 0.02" numOctaves="3" seed="2">
-                    <animate attributeName="baseFrequency" dur="8s" values="0.01 0.02;0.015 0.04;0.01 0.02" repeatCount="indefinite" />
-                </feTurbulence>
-                <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="25" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-        </svg>
         <div class="hero" style="position: relative; overflow: hidden; color: white;">
             <div class="hero-bg"></div>
             <div class="hero-overlay"></div>
             <div class="hero-top" style="position: relative; z-index: 3;">
                 <div class="hero-text">
-                    <p>Selamat Datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
-                    <p><strong>SI-LIAK</strong> (Sistem Informasi Learning Integration & Analitik Kinerja)<br>Wadah kolaborasi digital untuk berbagi materi dan perangkat pembelajaran.</p>
+                <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
+                    <p>Selamat datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
+                    <p>Platform Kolaboratif MGMP - Sistem Informasi Learning Integration & Analitik Kinerja <span class="mobile-break"></span>(SI-LIAK) <span class="mobile-break"></span>Untuk Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
                 
                 <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
                     <div class="badge" style="margin-top: 0;">GURU</div>
@@ -2007,7 +2004,7 @@ if($total_upload_guru == 0){
                  <div class="request-card">
                      <div>
                          <strong style="color:#2c3e50; font-size:15px;"><?= htmlspecialchars($open_req['full_name']); ?></strong><br>
-                         <span style="color:#7f8c8d; font-size:12px;"><?= htmlspecialchars($open_req['school_name'] ?? '-'); ?></span>
+                         <span style="color:#7f8c8d; font-size:12px;"><?= htmlspecialchars(isset($open_req['school_name']) ? $open_req['school_name'] : '-'); ?></span>
                          <div style="margin-top:12px; margin-bottom:12px;">
                              <span style="display:inline-block; background:#ecf0f1; color:#34495e; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:bold;"><?= htmlspecialchars($open_req['jenis_request']); ?></span>
                          </div>
@@ -2052,7 +2049,7 @@ if($total_upload_guru == 0){
                         while($login = mysqli_fetch_assoc($recent_logins_query)){
                             $login_time = date('H:i', strtotime($login['login_time']));
                             $initial_login = strtoupper(substr(trim($login['full_name']), 0, 1));
-                            $photo_login = $login['profile_photo'] ?? '';
+                            $photo_login = isset($login['profile_photo']) ? $login['profile_photo'] : '';
                             $is_me = ($login['id'] == $user_id);
                         ?>
                         <div class="active-teacher-card">
@@ -2069,7 +2066,7 @@ if($total_upload_guru == 0){
                                     <?= $is_me ? '<span style="color:#27ae60; font-size:11px;">(Anda)</span>' : ''; ?>
                                 </strong>
                                 <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                    <?= htmlspecialchars($login['school_name'] ?? '-'); ?>
+                                    <?= htmlspecialchars(isset($login['school_name']) ? $login['school_name'] : '-'); ?>
                                 </span>
                                 <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
                                 <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
@@ -2132,7 +2129,7 @@ if($total_upload_guru == 0){
                     ?>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px; color: #34495e; font-weight: bold;"><?= htmlspecialchars($g['full_name']); ?></td>
-                        <td style="padding: 15px; color: #7f8c8d;"><?= htmlspecialchars($g['school_name'] ?? '-'); ?></td>
+                        <td style="padding: 15px; color: #7f8c8d;"><?= htmlspecialchars(isset($g['school_name']) ? $g['school_name'] : '-'); ?></td>
                     </tr>
                     <?php } } else { ?>
                     <tr>
@@ -2166,7 +2163,7 @@ if($total_upload_guru == 0){
                     ?>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px; color: #34495e;"><strong><?= htmlspecialchars($e['contributor_name']); ?></strong></td>
-                        <td style="padding: 15px; color: #7f8c8d;"><?= htmlspecialchars($e['contributor_institution'] ?? '-'); ?></td>
+                        <td style="padding: 15px; color: #7f8c8d;"><?= htmlspecialchars(isset($e['contributor_institution']) ? $e['contributor_institution'] : '-'); ?></td>
                     </tr>
                     <?php } } else { ?>
                     <tr>

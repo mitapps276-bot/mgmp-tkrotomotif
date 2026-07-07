@@ -29,7 +29,7 @@ function single_value($conn, $sql, $key, $default = 0){
 
     $row = mysqli_fetch_assoc($query);
 
-    return $row[$key] ?? $default;
+    return isset($row[$key]) ? $row[$key] : $default;
 }
 
 function result_query($conn, $sql){
@@ -43,7 +43,7 @@ function result_query($conn, $sql){
 }
 
 function e($value){
-    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string)(isset($value) ? $value : ''), ENT_QUOTES, 'UTF-8');
 }
 
 function percent_value($value, $total){
@@ -1306,7 +1306,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
     </div>
 
     <div class="sidebar" id="sidebar-menu">
-        <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
+        <?php $sidebar_role = isset($_SESSION['role_id']) ? $_SESSION['role_id'] : 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
         </div>
@@ -1474,7 +1474,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
                                 <div class="person" style="align-items: center;">
                                     <div class="rank <?= $rank_class; ?>"><?= $rank; ?></div>
                                     <?php
-                                    $photo_leaderboard = $row['profile_photo'] ?? '';
+                                    $photo_leaderboard = isset($row['profile_photo']) ? $row['profile_photo'] : '';
                                     $initial_leaderboard = strtoupper(substr(trim($row['full_name']), 0, 1));
                                     if(empty($initial_leaderboard)) $initial_leaderboard = "G";
                                     ?>
@@ -1539,7 +1539,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
                                         <div class="person" style="align-items: center;">
                                             <div class="rank" style="background:#e74c3c;"><?= $no_pasif; ?></div>
                                             <?php
-                                            $photo_pasif = $pasif['profile_photo'] ?? '';
+                                            $photo_pasif = isset($pasif['profile_photo']) ? $pasif['profile_photo'] : '';
                                             $initial_pasif = strtoupper(substr(trim($pasif['full_name']), 0, 1));
                                             if(empty($initial_pasif)) $initial_pasif = "G";
                                             ?>
@@ -1766,7 +1766,7 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
                                 <strong style="color:#25313f; font-size:14px; display:block; margin-bottom:10px;">Peta Kolaborasi Lintas Sekolah</strong>
                                 <?php 
                                 $curr_school = $school['school_name'];
-                                $cs_data = $cross_school_data[$curr_school] ?? ['internal' => 0, 'ekspor' => 0, 'impor' => 0, 'ekspor_detail' => [], 'impor_detail' => []];
+                                $cs_data = isset($cross_school_data[$curr_school]) ? $cross_school_data[$curr_school] : ['internal' => 0, 'ekspor' => 0, 'impor' => 0, 'ekspor_detail' => array(), 'impor_detail' => array()];
                                 $total_cs = $cs_data['internal'] + $cs_data['ekspor'] + $cs_data['impor'];
                                 
                                 if($total_cs > 0) {

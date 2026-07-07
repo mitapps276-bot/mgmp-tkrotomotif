@@ -3,6 +3,7 @@
 session_start();
 
 include 'config/database.php';
+require_once 'config/functions.php';
 
 date_default_timezone_set('Asia/Makassar');
 
@@ -32,7 +33,7 @@ if($_SESSION['role_id'] != 1){
 // CSRF TOKEN
 // ======================================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -77,8 +78,17 @@ if(isset($_GET['approve'])){
 
     $_SESSION['popup_type'] = 'success';
     $_SESSION['popup_msg'] = 'Materi berhasil disetujui (Approved).';
-    header("Location: review_materials.php");
 
+    // ✅ NOTIFIKASI TELEGRAM ke kontributor
+    if (function_exists('notifKontributorTelegram')) {
+        $pesan_approve = "✅ <b>Materi Anda Disetujui!</b>\n\n";
+        $pesan_approve .= "Halo! Materi yang Anda kirimkan ke SI-LIAK telah <b>disetujui</b> oleh Admin.\n\n";
+        $pesan_approve .= "📚 <b>Judul:</b> " . htmlspecialchars($mat['title']) . "\n\n";
+        $pesan_approve .= "Materi Anda kini tersedia untuk diakses seluruh guru MGMP. Terima kasih atas kontribusinya! 🙏";
+        notifKontributorTelegram($conn, $id, $pesan_approve);
+    }
+
+    header("Location: review_materials.php");
     exit;
 }
 
@@ -111,8 +121,19 @@ if(isset($_GET['reject'])){
 
     $_SESSION['popup_type'] = 'reject';
     $_SESSION['popup_msg'] = 'Materi telah ditolak (Rejected) dan dikembalikan ke kontributor.';
-    header("Location: review_materials.php");
 
+    // ❌ NOTIFIKASI TELEGRAM ke kontributor
+    if (function_exists('notifKontributorTelegram')) {
+        $pesan_reject = "❌ <b>Materi Perlu Diperbaiki</b>\n\n";
+        $pesan_reject .= "Halo! Materi yang Anda kirimkan ke SI-LIAK belum dapat disetujui.\n\n";
+        if (!empty($reason)) {
+            $pesan_reject .= "📝 <b>Alasan Admin:</b>\n" . htmlspecialchars($reason) . "\n\n";
+        }
+        $pesan_reject .= "Silakan perbaiki dan upload kembali. Terima kasih atas pengertiannya.";
+        notifKontributorTelegram($conn, $id, $pesan_reject);
+    }
+
+    header("Location: review_materials.php");
     exit;
 }
 
@@ -180,8 +201,8 @@ $data = mysqli_query($conn, "
 
 ");
 
-$popup_msg = $_SESSION['popup_msg'] ?? '';
-$popup_type = $_SESSION['popup_type'] ?? '';
+$popup_msg = isset($_SESSION['popup_msg']) ? $_SESSION['popup_msg'] : '';
+$popup_type = isset($_SESSION['popup_type']) ? $_SESSION['popup_type'] : '';
 unset($_SESSION['popup_msg']);
 unset($_SESSION['popup_type']);
 

@@ -11,12 +11,12 @@ if(!isset($_SESSION['login']) || $_SESSION['role_id'] != 1){
 }
 
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
 // Simpan tab mana yang terakhir dibuka
-$active_tab = $_SESSION['active_tab'] ?? 'portal';
+$active_tab = isset($_SESSION['active_tab']) ? $_SESSION['active_tab'] : 'portal';
 unset($_SESSION['active_tab']);
 
 // =======================
@@ -134,66 +134,66 @@ if(isset($_POST['update_landing'])){
     $about_desc2 = mysqli_real_escape_string($conn, trim($_POST['about_desc2']));
     $analytic_title = mysqli_real_escape_string($conn, trim($_POST['analytic_title']));
     $analytic_subtitle = mysqli_real_escape_string($conn, trim($_POST['analytic_subtitle']));
-    $login_title = mysqli_real_escape_string($conn, trim($_POST['login_title'] ?? ''));
-    $login_desc = mysqli_real_escape_string($conn, trim($_POST['login_desc'] ?? ''));
-    $hero_image_x = mysqli_real_escape_string($conn, trim($_POST['hero_image_x'] ?? '50'));
-    $hero_image_y = mysqli_real_escape_string($conn, trim($_POST['hero_image_y'] ?? '50'));
+    $login_title = mysqli_real_escape_string($conn, trim(isset($_POST['login_title']) ? $_POST['login_title'] : ''));
+    $login_desc = mysqli_real_escape_string($conn, trim(isset($_POST['login_desc']) ? $_POST['login_desc'] : ''));
+    $hero_image_x = mysqli_real_escape_string($conn, trim(isset($_POST['hero_image_x']) ? $_POST['hero_image_x'] : '50'));
+    $hero_image_y = mysqli_real_escape_string($conn, trim(isset($_POST['hero_image_y']) ? $_POST['hero_image_y'] : '50'));
 
-    $topbar_text = mysqli_real_escape_string($conn, trim($_POST['topbar_text'] ?? 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'));
-    $navbar_logo_text = mysqli_real_escape_string($conn, trim($_POST['navbar_logo_text'] ?? 'SI-LIAK MGMP'));
-    $about_list1 = mysqli_real_escape_string($conn, trim($_POST['about_list1'] ?? 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'));
-    $about_list2 = mysqli_real_escape_string($conn, trim($_POST['about_list2'] ?? 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'));
-    $about_list3 = mysqli_real_escape_string($conn, trim($_POST['about_list3'] ?? 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi'));
-    $gallery_title = mysqli_real_escape_string($conn, trim($_POST['gallery_title'] ?? 'Kegiatan MGMP'));
-    $gallery_desc = mysqli_real_escape_string($conn, trim($_POST['gallery_desc'] ?? ''));
-    $feature1_icon = mysqli_real_escape_string($conn, trim($_POST['feature1_icon'] ?? '📚'));
-    $feature1_title = mysqli_real_escape_string($conn, trim($_POST['feature1_title'] ?? 'Repositori Digital Terintegrasi'));
-    $feature1_desc = mysqli_real_escape_string($conn, trim($_POST['feature1_desc'] ?? 'Fasilitas penyimpanan komprehensif yang dirancang khusus untuk mengarsipkan dan mendistribusikan dokumen pedagogis, modul ajar, serta instrumen evaluasi secara tersentralisasi guna menjamin aksesibilitas dan keamanan data berkelanjutan.'));
-    $feature2_icon = mysqli_real_escape_string($conn, trim($_POST['feature2_icon'] ?? '📊'));
-    $feature2_title = mysqli_real_escape_string($conn, trim($_POST['feature2_title'] ?? 'Sistem Meritokrasi Digital'));
-    $feature2_desc = mysqli_real_escape_string($conn, trim($_POST['feature2_desc'] ?? 'Mekanisme terotomatisasi yang mengukur dan memberikan atribusi poin prestasi secara kuantitatif berdasarkan tingkat partisipasi aktif tenaga pendidik dalam berbagi (upload) dan memanfaatkan (download) sumber daya pembelajaran.'));
-    $feature3_icon = mysqli_real_escape_string($conn, trim($_POST['feature3_icon'] ?? '🤝'));
-    $feature3_title = mysqli_real_escape_string($conn, trim($_POST['feature3_title'] ?? 'Jalur Kontribusi Akademisi Eksternal'));
-    $feature3_desc = mysqli_real_escape_string($conn, trim($_POST['feature3_desc'] ?? 'Menyediakan kanal khusus bagi para akademisi, dosen, dan praktisi pendidikan untuk menyumbangkan materi ajar terkurasi guna memperkaya dan meningkatkan mutu referensi pedagogis dalam ekosistem.'));
-    $feature4_icon = mysqli_real_escape_string($conn, trim($_POST['feature4_icon'] ?? '👥'));
-    $feature4_title = mysqli_real_escape_string($conn, trim($_POST['feature4_title'] ?? 'Jejaring Kolaborasi Referensi'));
-    $feature4_desc = mysqli_real_escape_string($conn, trim($_POST['feature4_desc'] ?? 'Infrastruktur interaktif yang memungkinkan tenaga pendidik untuk mengajukan permohonan spesifik terkait bahan ajar, memfasilitasi pertukaran materi secara responsif antar institusi.'));
-    $feature5_icon = mysqli_real_escape_string($conn, trim($_POST['feature5_icon'] ?? '📈'));
-    $feature5_title = mysqli_real_escape_string($conn, trim($_POST['feature5_title'] ?? 'Inovasi & Adaptasi Pedagogis'));
-    $feature5_desc = mysqli_real_escape_string($conn, trim($_POST['feature5_desc'] ?? 'Mendorong pengembangan kompetensi instruksional melalui metode observasi, adopsi, dan modifikasi terhadap instrumen pembelajaran unggulan lintas institusi guna memperkaya variasi pendekatan edukatif.'));
-    $feature6_icon = mysqli_real_escape_string($conn, trim($_POST['feature6_icon'] ?? '🔒'));
-    $feature6_title = mysqli_real_escape_string($conn, trim($_POST['feature6_title'] ?? 'Sistem Proteksi Integritas Data'));
-    $feature6_desc = mysqli_real_escape_string($conn, trim($_POST['feature6_desc'] ?? 'Infrastruktur penyimpanan berbasis komputasi cerdas (Hashing) yang secara otomatis memindai dan memfilter redundansi file, memastikan efisiensi kapasitas serta validitas repositori.'));
-    $feature7_icon = mysqli_real_escape_string($conn, trim($_POST['feature7_icon'] ?? '🏆'));
-    $feature7_title = mysqli_real_escape_string($conn, trim($_POST['feature7_title'] ?? 'Leaderboard Kinerja Akademik'));
-    $feature7_desc = mysqli_real_escape_string($conn, trim($_POST['feature7_desc'] ?? 'Sistem pemeringkatan transparan berbasis data analitik yang dirancang untuk menstimulasi motivasi intrinsik tenaga pendidik dalam mengoptimalkan kontribusi pedagogis di tingkat ekosistem kota.'));
-    $feature8_icon = mysqli_real_escape_string($conn, trim($_POST['feature8_icon'] ?? '📢'));
-    $feature8_title = mysqli_real_escape_string($conn, trim($_POST['feature8_title'] ?? 'Kanal Diseminasi Informasi'));
-    $feature8_desc = mysqli_real_escape_string($conn, trim($_POST['feature8_desc'] ?? 'Infrastruktur komunikasi satu arah yang menjamin penyampaian informasi, jadwal, dan edaran resmi dari administrator MGMP secara terstruktur dan terdokumentasi langsung ke dasbor pengguna.'));
-    $feature9_icon = mysqli_real_escape_string($conn, trim($_POST['feature9_icon'] ?? '🏫'));
-    $feature9_title = mysqli_real_escape_string($conn, trim($_POST['feature9_title'] ?? 'Indeks Kinerja Institusional'));
-    $feature9_desc = mysqli_real_escape_string($conn, trim($_POST['feature9_desc'] ?? 'Sistem analitik yang mengagregasi skor partisipasi individual dari setiap tenaga pendidik menjadi sebuah Indeks Kinerja Institusional (SPI) terukur, merepresentasikan kontribusi kolektif dan reputasi akademik sekolah dalam ekosistem.'));
-    $footer_title = mysqli_real_escape_string($conn, trim($_POST['footer_title'] ?? 'SI-LIAK MGMP KOTA DENPASAR'));
-    $footer_desc = mysqli_real_escape_string($conn, trim($_POST['footer_desc'] ?? 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'));
-    $footer_copyright = mysqli_real_escape_string($conn, trim($_POST['footer_copyright'] ?? 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'));
-    $footer_contact_title = mysqli_real_escape_string($conn, trim($_POST['footer_contact_title'] ?? 'Layanan Kontak'));
+    $topbar_text = mysqli_real_escape_string($conn, trim(isset($_POST['topbar_text']) ? $_POST['topbar_text'] : 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'));
+    $navbar_logo_text = mysqli_real_escape_string($conn, trim(isset($_POST['navbar_logo_text']) ? $_POST['navbar_logo_text'] : 'SI-LIAK MGMP'));
+    $about_list1 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list1']) ? $_POST['about_list1'] : 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'));
+    $about_list2 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list2']) ? $_POST['about_list2'] : 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'));
+    $about_list3 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list3']) ? $_POST['about_list3'] : 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi'));
+    $gallery_title = mysqli_real_escape_string($conn, trim(isset($_POST['gallery_title']) ? $_POST['gallery_title'] : 'Kegiatan MGMP'));
+    $gallery_desc = mysqli_real_escape_string($conn, trim(isset($_POST['gallery_desc']) ? $_POST['gallery_desc'] : ''));
+    $feature1_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature1_icon']) ? $_POST['feature1_icon'] : '📚'));
+    $feature1_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature1_title']) ? $_POST['feature1_title'] : 'Repositori Digital Terintegrasi'));
+    $feature1_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature1_desc']) ? $_POST['feature1_desc'] : 'Fasilitas penyimpanan komprehensif yang dirancang khusus untuk mengarsipkan dan mendistribusikan dokumen pedagogis, modul ajar, serta instrumen evaluasi secara tersentralisasi guna menjamin aksesibilitas dan keamanan data berkelanjutan.'));
+    $feature2_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature2_icon']) ? $_POST['feature2_icon'] : '📊'));
+    $feature2_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature2_title']) ? $_POST['feature2_title'] : 'Sistem Meritokrasi Digital'));
+    $feature2_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature2_desc']) ? $_POST['feature2_desc'] : 'Mekanisme terotomatisasi yang mengukur dan memberikan atribusi poin prestasi secara kuantitatif berdasarkan tingkat partisipasi aktif tenaga pendidik dalam berbagi (upload) dan memanfaatkan (download) sumber daya pembelajaran.'));
+    $feature3_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature3_icon']) ? $_POST['feature3_icon'] : '🤝'));
+    $feature3_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature3_title']) ? $_POST['feature3_title'] : 'Jalur Kontribusi Akademisi Eksternal'));
+    $feature3_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature3_desc']) ? $_POST['feature3_desc'] : 'Menyediakan kanal khusus bagi para akademisi, dosen, dan praktisi pendidikan untuk menyumbangkan materi ajar terkurasi guna memperkaya dan meningkatkan mutu referensi pedagogis dalam ekosistem.'));
+    $feature4_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature4_icon']) ? $_POST['feature4_icon'] : '👥'));
+    $feature4_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature4_title']) ? $_POST['feature4_title'] : 'Jejaring Kolaborasi Referensi'));
+    $feature4_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature4_desc']) ? $_POST['feature4_desc'] : 'Infrastruktur interaktif yang memungkinkan tenaga pendidik untuk mengajukan permohonan spesifik terkait bahan ajar, memfasilitasi pertukaran materi secara responsif antar institusi.'));
+    $feature5_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature5_icon']) ? $_POST['feature5_icon'] : '📈'));
+    $feature5_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature5_title']) ? $_POST['feature5_title'] : 'Inovasi & Adaptasi Pedagogis'));
+    $feature5_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature5_desc']) ? $_POST['feature5_desc'] : 'Mendorong pengembangan kompetensi instruksional melalui metode observasi, adopsi, dan modifikasi terhadap instrumen pembelajaran unggulan lintas institusi guna memperkaya variasi pendekatan edukatif.'));
+    $feature6_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature6_icon']) ? $_POST['feature6_icon'] : '🔒'));
+    $feature6_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature6_title']) ? $_POST['feature6_title'] : 'Sistem Proteksi Integritas Data'));
+    $feature6_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature6_desc']) ? $_POST['feature6_desc'] : 'Infrastruktur penyimpanan berbasis komputasi cerdas (Hashing) yang secara otomatis memindai dan memfilter redundansi file, memastikan efisiensi kapasitas serta validitas repositori.'));
+    $feature7_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature7_icon']) ? $_POST['feature7_icon'] : '🏆'));
+    $feature7_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature7_title']) ? $_POST['feature7_title'] : 'Leaderboard Kinerja Akademik'));
+    $feature7_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature7_desc']) ? $_POST['feature7_desc'] : 'Sistem pemeringkatan transparan berbasis data analitik yang dirancang untuk menstimulasi motivasi intrinsik tenaga pendidik dalam mengoptimalkan kontribusi pedagogis di tingkat ekosistem kota.'));
+    $feature8_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature8_icon']) ? $_POST['feature8_icon'] : '📢'));
+    $feature8_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature8_title']) ? $_POST['feature8_title'] : 'Kanal Diseminasi Informasi'));
+    $feature8_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature8_desc']) ? $_POST['feature8_desc'] : 'Infrastruktur komunikasi satu arah yang menjamin penyampaian informasi, jadwal, dan edaran resmi dari administrator MGMP secara terstruktur dan terdokumentasi langsung ke dasbor pengguna.'));
+    $feature9_icon = mysqli_real_escape_string($conn, trim(isset($_POST['feature9_icon']) ? $_POST['feature9_icon'] : '🏫'));
+    $feature9_title = mysqli_real_escape_string($conn, trim(isset($_POST['feature9_title']) ? $_POST['feature9_title'] : 'Indeks Kinerja Institusional'));
+    $feature9_desc = mysqli_real_escape_string($conn, trim(isset($_POST['feature9_desc']) ? $_POST['feature9_desc'] : 'Sistem analitik yang mengagregasi skor partisipasi individual dari setiap tenaga pendidik menjadi sebuah Indeks Kinerja Institusional (SPI) terukur, merepresentasikan kontribusi kolektif dan reputasi akademik sekolah dalam ekosistem.'));
+    $footer_title = mysqli_real_escape_string($conn, trim(isset($_POST['footer_title']) ? $_POST['footer_title'] : 'SI-LIAK MGMP KOTA DENPASAR'));
+    $footer_desc = mysqli_real_escape_string($conn, trim(isset($_POST['footer_desc']) ? $_POST['footer_desc'] : 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'));
+    $footer_copyright = mysqli_real_escape_string($conn, trim(isset($_POST['footer_copyright']) ? $_POST['footer_copyright'] : 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'));
+    $footer_contact_title = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_title']) ? $_POST['footer_contact_title'] : 'Layanan Kontak'));
 
-    $footer_contact_1_text = mysqli_real_escape_string($conn, trim($_POST['footer_contact_1_text'] ?? 'Bantuan Administrasi'));
-    $url1_raw = trim($_POST['footer_contact_1_url'] ?? '#');
+    $footer_contact_1_text = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_1_text']) ? $_POST['footer_contact_1_text'] : 'Bantuan Administrasi'));
+    $url1_raw = trim(isset($_POST['footer_contact_1_url']) ? $_POST['footer_contact_1_url'] : '#');
     if (!empty($url1_raw) && $url1_raw !== '#' && !preg_match('/^(https?|mailto|tel):/i', $url1_raw)) {
         $url1_raw = 'mailto:' . $url1_raw;
     }
     $footer_contact_1_url = mysqli_real_escape_string($conn, $url1_raw);
 
-    $footer_contact_2_text = mysqli_real_escape_string($conn, trim($_POST['footer_contact_2_text'] ?? 'Pendaftaran Kontributor'));
-    $url2_raw = trim($_POST['footer_contact_2_url'] ?? '#');
+    $footer_contact_2_text = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_2_text']) ? $_POST['footer_contact_2_text'] : 'Pendaftaran Kontributor'));
+    $url2_raw = trim(isset($_POST['footer_contact_2_url']) ? $_POST['footer_contact_2_url'] : '#');
     if (!empty($url2_raw) && $url2_raw !== '#' && !preg_match('/^(https?|mailto|tel):/i', $url2_raw)) {
         $url2_raw = 'mailto:' . $url2_raw;
     }
     $footer_contact_2_url = mysqli_real_escape_string($conn, $url2_raw);
 
-    $footer_contact_3_text = mysqli_real_escape_string($conn, trim($_POST['footer_contact_3_text'] ?? 'Kebijakan Privasi'));
-    $url3_raw = trim($_POST['footer_contact_3_url'] ?? '#');
+    $footer_contact_3_text = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_3_text']) ? $_POST['footer_contact_3_text'] : 'Kebijakan Privasi'));
+    $url3_raw = trim(isset($_POST['footer_contact_3_url']) ? $_POST['footer_contact_3_url'] : '#');
     if (!empty($url3_raw) && $url3_raw !== '#' && !preg_match('/^(https?|mailto|tel):/i', $url3_raw)) {
         $url3_raw = 'mailto:' . $url3_raw;
     }
@@ -521,11 +521,11 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                     <h3>0. Pengaturan Header & Navbar</h3>
                     <div class="input-group">
                         <label>Teks Topbar</label>
-                        <input type="text" name="topbar_text" required value="<?= htmlspecialchars($ls['topbar_text'] ?? 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'); ?>">
+                        <input type="text" name="topbar_text" required value="<?= htmlspecialchars(isset($ls['topbar_text']) ? $ls['topbar_text'] : 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'); ?>">
                     </div>
                     <div class="input-group">
                         <label>Teks Logo Navbar</label>
-                        <input type="text" name="navbar_logo_text" required value="<?= htmlspecialchars($ls['navbar_logo_text'] ?? 'SI-LIAK MGMP'); ?>">
+                        <input type="text" name="navbar_logo_text" required value="<?= htmlspecialchars(isset($ls['navbar_logo_text']) ? $ls['navbar_logo_text'] : 'SI-LIAK MGMP'); ?>">
                     </div>
                 </div>
                 <div class="card">
@@ -547,12 +547,12 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                         <span class="info-text">* Biarkan kosong jika tidak mengubah gambar latar. (Saran ukuran: 1920x1080, Maksimal 2MB)</span>
                     </div>
                     <div class="input-group">
-                        <label>Posisi Latar Belakang (X - Kiri/Kanan): <span id="val_x"><?= htmlspecialchars($ls['hero_image_x'] ?? '50'); ?></span>%</label>
-                        <input type="range" name="hero_image_x" id="hero_x" min="-100" max="200" value="<?= htmlspecialchars($ls['hero_image_x'] ?? '50'); ?>" oninput="document.getElementById('val_x').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
+                        <label>Posisi Latar Belakang (X - Kiri/Kanan): <span id="val_x"><?= htmlspecialchars(isset($ls['hero_image_x']) ? $ls['hero_image_x'] : '50'); ?></span>%</label>
+                        <input type="range" name="hero_image_x" id="hero_x" min="-100" max="200" value="<?= htmlspecialchars(isset($ls['hero_image_x']) ? $ls['hero_image_x'] : '50'); ?>" oninput="document.getElementById('val_x').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
                     </div>
                     <div class="input-group">
-                        <label>Posisi Latar Belakang (Y - Atas/Bawah): <span id="val_y"><?= htmlspecialchars($ls['hero_image_y'] ?? '50'); ?></span>%</label>
-                        <input type="range" name="hero_image_y" id="hero_y" min="-100" max="200" value="<?= htmlspecialchars($ls['hero_image_y'] ?? '50'); ?>" oninput="document.getElementById('val_y').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
+                        <label>Posisi Latar Belakang (Y - Atas/Bawah): <span id="val_y"><?= htmlspecialchars(isset($ls['hero_image_y']) ? $ls['hero_image_y'] : '50'); ?></span>%</label>
+                        <input type="range" name="hero_image_y" id="hero_y" min="-100" max="200" value="<?= htmlspecialchars(isset($ls['hero_image_y']) ? $ls['hero_image_y'] : '50'); ?>" oninput="document.getElementById('val_y').innerText = this.value; updatePreviewPosition();" style="width: 100%; border: none; padding: 0; background: transparent;">
                     </div>
                 </div>
                 <div class="card">
@@ -578,26 +578,26 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                     </div>
                     <div class="input-group">
                         <label>Poin Keunggulan 1</label>
-                        <input type="text" name="about_list1" value="<?= htmlspecialchars($ls['about_list1'] ?? 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'); ?>">
+                        <input type="text" name="about_list1" value="<?= htmlspecialchars(isset($ls['about_list1']) ? $ls['about_list1'] : 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'); ?>">
                     </div>
                     <div class="input-group">
                         <label>Poin Keunggulan 2</label>
-                        <input type="text" name="about_list2" value="<?= htmlspecialchars($ls['about_list2'] ?? 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'); ?>">
+                        <input type="text" name="about_list2" value="<?= htmlspecialchars(isset($ls['about_list2']) ? $ls['about_list2'] : 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'); ?>">
                     </div>
                     <div class="input-group">
                         <label>Poin Keunggulan 3</label>
-                        <input type="text" name="about_list3" value="<?= htmlspecialchars($ls['about_list3'] ?? 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi'); ?>">
+                        <input type="text" name="about_list3" value="<?= htmlspecialchars(isset($ls['about_list3']) ? $ls['about_list3'] : 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi'); ?>">
                     </div>
                 </div>
                 <div class="card">
                     <h3>3. Bagian Teks Galeri Kegiatan</h3>
                     <div class="input-group">
                         <label>Judul Galeri</label>
-                    <input type="text" name="gallery_title" value="<?= htmlspecialchars($ls['gallery_title'] ?? 'Kegiatan MGMP'); ?>">
+                    <input type="text" name="gallery_title" value="<?= htmlspecialchars(isset($ls['gallery_title']) ? $ls['gallery_title'] : 'Kegiatan MGMP'); ?>">
                     </div>
                     <div class="input-group">
                         <label>Deskripsi Galeri</label>
-                        <textarea name="gallery_desc" rows="2"><?= htmlspecialchars($ls['gallery_desc'] ?? ''); ?></textarea>
+                        <textarea name="gallery_desc" rows="2"><?= htmlspecialchars(isset($ls['gallery_desc']) ? $ls['gallery_desc'] : ''); ?></textarea>
                     </div>
                 </div>
                 <div class="card">
@@ -613,114 +613,114 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                     <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 1</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature1_icon" value="<?= htmlspecialchars($ls['feature1_icon'] ?? '📚'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature1_title" value="<?= htmlspecialchars($ls['feature1_title'] ?? 'Repositori Digital Terintegrasi'); ?>" style="flex:1" placeholder="Judul Fitur 1">
+                            <input type="text" name="feature1_icon" value="<?= htmlspecialchars(isset($ls['feature1_icon']) ? $ls['feature1_icon'] : '📚'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature1_title" value="<?= htmlspecialchars(isset($ls['feature1_title']) ? $ls['feature1_title'] : 'Repositori Digital Terintegrasi'); ?>" style="flex:1" placeholder="Judul Fitur 1">
                         </div>
-                        <textarea name="feature1_desc" rows="2"><?= htmlspecialchars($ls['feature1_desc'] ?? 'Fasilitas penyimpanan komprehensif yang dirancang khusus untuk mengarsipkan dan mendistribusikan dokumen pedagogis, modul ajar, serta instrumen evaluasi secara tersentralisasi guna menjamin aksesibilitas dan keamanan data berkelanjutan.'); ?></textarea>
+                        <textarea name="feature1_desc" rows="2"><?= htmlspecialchars(isset($ls['feature1_desc']) ? $ls['feature1_desc'] : 'Fasilitas penyimpanan komprehensif yang dirancang khusus untuk mengarsipkan dan mendistribusikan dokumen pedagogis, modul ajar, serta instrumen evaluasi secara tersentralisasi guna menjamin aksesibilitas dan keamanan data berkelanjutan.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 2</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature2_icon" value="<?= htmlspecialchars($ls['feature2_icon'] ?? '📊'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature2_title" value="<?= htmlspecialchars($ls['feature2_title'] ?? 'Sistem Meritokrasi Digital'); ?>" style="flex:1" placeholder="Judul Fitur 2">
+                            <input type="text" name="feature2_icon" value="<?= htmlspecialchars(isset($ls['feature2_icon']) ? $ls['feature2_icon'] : '📊'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature2_title" value="<?= htmlspecialchars(isset($ls['feature2_title']) ? $ls['feature2_title'] : 'Sistem Meritokrasi Digital'); ?>" style="flex:1" placeholder="Judul Fitur 2">
                         </div>
-                        <textarea name="feature2_desc" rows="2"><?= htmlspecialchars($ls['feature2_desc'] ?? 'Mekanisme terotomatisasi yang mengukur dan memberikan atribusi poin prestasi secara kuantitatif berdasarkan tingkat partisipasi aktif tenaga pendidik dalam berbagi (upload) dan memanfaatkan (download) sumber daya pembelajaran.'); ?></textarea>
+                        <textarea name="feature2_desc" rows="2"><?= htmlspecialchars(isset($ls['feature2_desc']) ? $ls['feature2_desc'] : 'Mekanisme terotomatisasi yang mengukur dan memberikan atribusi poin prestasi secara kuantitatif berdasarkan tingkat partisipasi aktif tenaga pendidik dalam berbagi (upload) dan memanfaatkan (download) sumber daya pembelajaran.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 3</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature3_icon" value="<?= htmlspecialchars($ls['feature3_icon'] ?? '🤝'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature3_title" value="<?= htmlspecialchars($ls['feature3_title'] ?? 'Jalur Kontribusi Akademisi Eksternal'); ?>" style="flex:1" placeholder="Judul Fitur 3">
+                            <input type="text" name="feature3_icon" value="<?= htmlspecialchars(isset($ls['feature3_icon']) ? $ls['feature3_icon'] : '🤝'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature3_title" value="<?= htmlspecialchars(isset($ls['feature3_title']) ? $ls['feature3_title'] : 'Jalur Kontribusi Akademisi Eksternal'); ?>" style="flex:1" placeholder="Judul Fitur 3">
                         </div>
-                        <textarea name="feature3_desc" rows="2"><?= htmlspecialchars($ls['feature3_desc'] ?? 'Menyediakan kanal khusus bagi para akademisi, dosen, dan praktisi pendidikan untuk menyumbangkan materi ajar terkurasi guna memperkaya dan meningkatkan mutu referensi pedagogis dalam ekosistem.'); ?></textarea>
+                        <textarea name="feature3_desc" rows="2"><?= htmlspecialchars(isset($ls['feature3_desc']) ? $ls['feature3_desc'] : 'Menyediakan kanal khusus bagi para akademisi, dosen, dan praktisi pendidikan untuk menyumbangkan materi ajar terkurasi guna memperkaya dan meningkatkan mutu referensi pedagogis dalam ekosistem.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 4</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature4_icon" value="<?= htmlspecialchars($ls['feature4_icon'] ?? '👥'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature4_title" value="<?= htmlspecialchars($ls['feature4_title'] ?? 'Jejaring Kolaborasi Referensi'); ?>" style="flex:1" placeholder="Judul Fitur 4">
+                            <input type="text" name="feature4_icon" value="<?= htmlspecialchars(isset($ls['feature4_icon']) ? $ls['feature4_icon'] : '👥'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature4_title" value="<?= htmlspecialchars(isset($ls['feature4_title']) ? $ls['feature4_title'] : 'Jejaring Kolaborasi Referensi'); ?>" style="flex:1" placeholder="Judul Fitur 4">
                         </div>
-                        <textarea name="feature4_desc" rows="2"><?= htmlspecialchars($ls['feature4_desc'] ?? 'Infrastruktur interaktif yang memungkinkan tenaga pendidik untuk mengajukan permohonan spesifik terkait bahan ajar, memfasilitasi pertukaran materi secara responsif antar institusi.'); ?></textarea>
+                        <textarea name="feature4_desc" rows="2"><?= htmlspecialchars(isset($ls['feature4_desc']) ? $ls['feature4_desc'] : 'Infrastruktur interaktif yang memungkinkan tenaga pendidik untuk mengajukan permohonan spesifik terkait bahan ajar, memfasilitasi pertukaran materi secara responsif antar institusi.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 5</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature5_icon" value="<?= htmlspecialchars($ls['feature5_icon'] ?? '📈'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature5_title" value="<?= htmlspecialchars($ls['feature5_title'] ?? 'Inovasi & Adaptasi Pedagogis'); ?>" style="flex:1" placeholder="Judul Fitur 5">
+                            <input type="text" name="feature5_icon" value="<?= htmlspecialchars(isset($ls['feature5_icon']) ? $ls['feature5_icon'] : '📈'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature5_title" value="<?= htmlspecialchars(isset($ls['feature5_title']) ? $ls['feature5_title'] : 'Inovasi & Adaptasi Pedagogis'); ?>" style="flex:1" placeholder="Judul Fitur 5">
                         </div>
-                        <textarea name="feature5_desc" rows="2"><?= htmlspecialchars($ls['feature5_desc'] ?? 'Mendorong pengembangan kompetensi instruksional melalui metode observasi, adopsi, dan modifikasi terhadap instrumen pembelajaran unggulan lintas institusi guna memperkaya variasi pendekatan edukatif.'); ?></textarea>
+                        <textarea name="feature5_desc" rows="2"><?= htmlspecialchars(isset($ls['feature5_desc']) ? $ls['feature5_desc'] : 'Mendorong pengembangan kompetensi instruksional melalui metode observasi, adopsi, dan modifikasi terhadap instrumen pembelajaran unggulan lintas institusi guna memperkaya variasi pendekatan edukatif.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 6</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature6_icon" value="<?= htmlspecialchars($ls['feature6_icon'] ?? '🔒'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature6_title" value="<?= htmlspecialchars($ls['feature6_title'] ?? 'Sistem Proteksi Integritas Data'); ?>" style="flex:1" placeholder="Judul Fitur 6">
+                            <input type="text" name="feature6_icon" value="<?= htmlspecialchars(isset($ls['feature6_icon']) ? $ls['feature6_icon'] : '🔒'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature6_title" value="<?= htmlspecialchars(isset($ls['feature6_title']) ? $ls['feature6_title'] : 'Sistem Proteksi Integritas Data'); ?>" style="flex:1" placeholder="Judul Fitur 6">
                         </div>
-                        <textarea name="feature6_desc" rows="2"><?= htmlspecialchars($ls['feature6_desc'] ?? 'Infrastruktur penyimpanan berbasis komputasi cerdas (Hashing) yang secara otomatis memindai dan memfilter redundansi file, memastikan efisiensi kapasitas serta validitas repositori.'); ?></textarea>
+                        <textarea name="feature6_desc" rows="2"><?= htmlspecialchars(isset($ls['feature6_desc']) ? $ls['feature6_desc'] : 'Infrastruktur penyimpanan berbasis komputasi cerdas (Hashing) yang secara otomatis memindai dan memfilter redundansi file, memastikan efisiensi kapasitas serta validitas repositori.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 7</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature7_icon" value="<?= htmlspecialchars($ls['feature7_icon'] ?? '🏆'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature7_title" value="<?= htmlspecialchars($ls['feature7_title'] ?? 'Leaderboard Kinerja Akademik'); ?>" style="flex:1" placeholder="Judul Fitur 7">
+                            <input type="text" name="feature7_icon" value="<?= htmlspecialchars(isset($ls['feature7_icon']) ? $ls['feature7_icon'] : '🏆'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature7_title" value="<?= htmlspecialchars(isset($ls['feature7_title']) ? $ls['feature7_title'] : 'Leaderboard Kinerja Akademik'); ?>" style="flex:1" placeholder="Judul Fitur 7">
                         </div>
-                        <textarea name="feature7_desc" rows="2"><?= htmlspecialchars($ls['feature7_desc'] ?? 'Sistem pemeringkatan transparan berbasis data analitik yang dirancang untuk menstimulasi motivasi intrinsik tenaga pendidik dalam mengoptimalkan kontribusi pedagogis di tingkat ekosistem kota.'); ?></textarea>
+                        <textarea name="feature7_desc" rows="2"><?= htmlspecialchars(isset($ls['feature7_desc']) ? $ls['feature7_desc'] : 'Sistem pemeringkatan transparan berbasis data analitik yang dirancang untuk menstimulasi motivasi intrinsik tenaga pendidik dalam mengoptimalkan kontribusi pedagogis di tingkat ekosistem kota.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 8</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature8_icon" value="<?= htmlspecialchars($ls['feature8_icon'] ?? '📢'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature8_title" value="<?= htmlspecialchars($ls['feature8_title'] ?? 'Kanal Diseminasi Informasi'); ?>" style="flex:1" placeholder="Judul Fitur 8">
+                            <input type="text" name="feature8_icon" value="<?= htmlspecialchars(isset($ls['feature8_icon']) ? $ls['feature8_icon'] : '📢'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature8_title" value="<?= htmlspecialchars(isset($ls['feature8_title']) ? $ls['feature8_title'] : 'Kanal Diseminasi Informasi'); ?>" style="flex:1" placeholder="Judul Fitur 8">
                         </div>
-                        <textarea name="feature8_desc" rows="2"><?= htmlspecialchars($ls['feature8_desc'] ?? 'Infrastruktur komunikasi satu arah yang menjamin penyampaian informasi, jadwal, dan edaran resmi dari administrator MGMP secara terstruktur dan terdokumentasi langsung ke dasbor pengguna.'); ?></textarea>
+                        <textarea name="feature8_desc" rows="2"><?= htmlspecialchars(isset($ls['feature8_desc']) ? $ls['feature8_desc'] : 'Infrastruktur komunikasi satu arah yang menjamin penyampaian informasi, jadwal, dan edaran resmi dari administrator MGMP secara terstruktur dan terdokumentasi langsung ke dasbor pengguna.'); ?></textarea>
                     </div>
                     <div style="margin-top:15px;">
                         <label style="color:#3498db; font-size:15px; margin-bottom:10px;">Fitur 9</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <input type="text" name="feature9_icon" value="<?= htmlspecialchars($ls['feature9_icon'] ?? '🏫'); ?>" style="width:60px;" placeholder="Ikon">
-                            <input type="text" name="feature9_title" value="<?= htmlspecialchars($ls['feature9_title'] ?? 'Indeks Kinerja Institusional'); ?>" style="flex:1" placeholder="Judul Fitur 9">
+                            <input type="text" name="feature9_icon" value="<?= htmlspecialchars(isset($ls['feature9_icon']) ? $ls['feature9_icon'] : '🏫'); ?>" style="width:60px;" placeholder="Ikon">
+                            <input type="text" name="feature9_title" value="<?= htmlspecialchars(isset($ls['feature9_title']) ? $ls['feature9_title'] : 'Indeks Kinerja Institusional'); ?>" style="flex:1" placeholder="Judul Fitur 9">
                         </div>
-                        <textarea name="feature9_desc" rows="2"><?= htmlspecialchars($ls['feature9_desc'] ?? 'Sistem analitik yang mengagregasi skor partisipasi individual dari setiap tenaga pendidik menjadi sebuah Indeks Kinerja Institusional (SPI) terukur, merepresentasikan kontribusi kolektif dan reputasi akademik sekolah dalam ekosistem.'); ?></textarea>
+                        <textarea name="feature9_desc" rows="2"><?= htmlspecialchars(isset($ls['feature9_desc']) ? $ls['feature9_desc'] : 'Sistem analitik yang mengagregasi skor partisipasi individual dari setiap tenaga pendidik menjadi sebuah Indeks Kinerja Institusional (SPI) terukur, merepresentasikan kontribusi kolektif dan reputasi akademik sekolah dalam ekosistem.'); ?></textarea>
                     </div>
                 </div>
                 <div class="card">
                     <h3>5. Bagian Footer</h3>
                     <div class="input-group">
                         <label>Judul Footer</label>
-                        <input type="text" name="footer_title" value="<?= htmlspecialchars($ls['footer_title'] ?? 'SI-LIAK MGMP KOTA DENPASAR'); ?>">
+                        <input type="text" name="footer_title" value="<?= htmlspecialchars(isset($ls['footer_title']) ? $ls['footer_title'] : 'SI-LIAK MGMP KOTA DENPASAR'); ?>">
                     </div>
                     <div class="input-group">
                         <label>Deskripsi Footer</label>
-                        <textarea name="footer_desc" rows="3"><?= htmlspecialchars($ls['footer_desc'] ?? 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'); ?></textarea>
+                        <textarea name="footer_desc" rows="3"><?= htmlspecialchars(isset($ls['footer_desc']) ? $ls['footer_desc'] : 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'); ?></textarea>
                     </div>
                     <div class="input-group">
                         <label>Teks Hak Cipta (Copyright)</label>
-                        <input type="text" name="footer_copyright" value="<?= htmlspecialchars($ls['footer_copyright'] ?? 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'); ?>">
+                        <input type="text" name="footer_copyright" value="<?= htmlspecialchars(isset($ls['footer_copyright']) ? $ls['footer_copyright'] : 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'); ?>">
                         <span class="info-text">* Tahun akan ditambahkan secara otomatis di depan teks (Contoh: © <?= date('Y'); ?> ... )</span>
                     </div>
                     <div class="input-group" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
                         <label>Judul Layanan Kontak</label>
-                        <input type="text" name="footer_contact_title" value="<?= htmlspecialchars($ls['footer_contact_title'] ?? 'Layanan Kontak'); ?>">
+                        <input type="text" name="footer_contact_title" value="<?= htmlspecialchars(isset($ls['footer_contact_title']) ? $ls['footer_contact_title'] : 'Layanan Kontak'); ?>">
                     </div>
                     <div style="margin-top:10px;">
                         <label style="color:#3498db; font-size:14px; margin-bottom:8px;">Tautan Kontak 1</label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" name="footer_contact_1_text" value="<?= htmlspecialchars($ls['footer_contact_1_text'] ?? 'Bantuan Administrasi'); ?>" style="flex:1" placeholder="Teks Tautan">
-                            <input type="text" name="footer_contact_1_url" value="<?= htmlspecialchars($ls['footer_contact_1_url'] ?? '#'); ?>" style="flex:1" placeholder="Cth: admin@email.com" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
+                            <input type="text" name="footer_contact_1_text" value="<?= htmlspecialchars(isset($ls['footer_contact_1_text']) ? $ls['footer_contact_1_text'] : 'Bantuan Administrasi'); ?>" style="flex:1" placeholder="Teks Tautan">
+                            <input type="text" name="footer_contact_1_url" value="<?= htmlspecialchars(isset($ls['footer_contact_1_url']) ? $ls['footer_contact_1_url'] : '#'); ?>" style="flex:1" placeholder="Cth: admin@email.com" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
                         </div>
                     </div>
                     <div style="margin-top:10px;">
                         <label style="color:#3498db; font-size:14px; margin-bottom:8px;">Tautan Kontak 2 (Opsional)</label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" name="footer_contact_2_text" value="<?= htmlspecialchars($ls['footer_contact_2_text'] ?? 'Pendaftaran Kontributor'); ?>" style="flex:1" placeholder="Teks Tautan">
-                            <input type="text" name="footer_contact_2_url" value="<?= htmlspecialchars($ls['footer_contact_2_url'] ?? '#'); ?>" style="flex:1" placeholder="Cth: daftar@email.com" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
+                            <input type="text" name="footer_contact_2_text" value="<?= htmlspecialchars(isset($ls['footer_contact_2_text']) ? $ls['footer_contact_2_text'] : 'Pendaftaran Kontributor'); ?>" style="flex:1" placeholder="Teks Tautan">
+                            <input type="text" name="footer_contact_2_url" value="<?= htmlspecialchars(isset($ls['footer_contact_2_url']) ? $ls['footer_contact_2_url'] : '#'); ?>" style="flex:1" placeholder="Cth: daftar@email.com" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
                         </div>
                     </div>
                     <div style="margin-top:10px;">
                         <label style="color:#3498db; font-size:14px; margin-bottom:8px;">Tautan Kontak 3 (Opsional)</label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" name="footer_contact_3_text" value="<?= htmlspecialchars($ls['footer_contact_3_text'] ?? 'Kebijakan Privasi'); ?>" style="flex:1" placeholder="Teks Tautan">
-                            <input type="text" name="footer_contact_3_url" value="<?= htmlspecialchars($ls['footer_contact_3_url'] ?? '#'); ?>" style="flex:1" placeholder="URL / Link" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
+                            <input type="text" name="footer_contact_3_text" value="<?= htmlspecialchars(isset($ls['footer_contact_3_text']) ? $ls['footer_contact_3_text'] : 'Kebijakan Privasi'); ?>" style="flex:1" placeholder="Teks Tautan">
+                            <input type="text" name="footer_contact_3_url" value="<?= htmlspecialchars(isset($ls['footer_contact_3_url']) ? $ls['footer_contact_3_url'] : '#'); ?>" style="flex:1" placeholder="URL / Link" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
                         </div>
                     </div>
                 </div>

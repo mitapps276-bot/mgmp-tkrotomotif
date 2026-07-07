@@ -30,7 +30,7 @@ if($_SESSION['role_id'] != 1){
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -634,7 +634,7 @@ while($row = mysqli_fetch_assoc($query)){
 
     <td>
 
-        <?= htmlspecialchars($row['username'] ?? '-'); ?>
+        <?= htmlspecialchars(isset($row['username']) ? $row['username'] : '-'); ?>
 
     </td>
 

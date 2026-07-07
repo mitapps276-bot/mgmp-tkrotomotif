@@ -23,14 +23,25 @@ if($_SESSION['role_id'] != 1){
 
     header("Location:index.php");
     exit;
+}
 
+// =======================
+// MIGRATION: ADD TELEGRAM CHAT ID COLUMN (Jika belum ada)
+// =======================
+try {
+    $cek_kolom = @mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'telegram_chat_id'");
+    if($cek_kolom && mysqli_num_rows($cek_kolom) == 0){
+        @mysqli_query($conn, "ALTER TABLE users ADD telegram_chat_id VARCHAR(50) NULL AFTER password");
+    }
+} catch (Exception $e) {
+    // Abaikan jika tidak ada akses ALTER TABLE
 }
 
 // =======================
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -99,6 +110,8 @@ if(isset($_POST['update'])){
     $school_name = trim($_POST['school_name']);
     $role_id = (int) $_POST['role_id'];
     $password = trim($_POST['password']);
+    $telegram_chat_id = isset($_POST['telegram_chat_id']) ? trim($_POST['telegram_chat_id']) : '';
+    $telegram_chat_id = preg_replace('/[^0-9\-]/', '', $telegram_chat_id); // Hanya angka & tanda minus
 
     // =======================
     // VALIDASI EMAIL DUPLIKAT
@@ -141,9 +154,9 @@ if(isset($_POST['update'])){
         );
 
         $stmt_update = mysqli_prepare($conn, "
-            UPDATE users SET full_name = ?, username = ?, email = ?, school_name = ?, role_id = ?, password = ? WHERE id = ?
+            UPDATE users SET full_name = ?, username = ?, email = ?, school_name = ?, role_id = ?, password = ?, telegram_chat_id = ? WHERE id = ?
         ");
-        mysqli_stmt_bind_param($stmt_update, "ssssisi", $full_name, $username, $email, $school_name, $role_id, $hash_password, $id);
+        mysqli_stmt_bind_param($stmt_update, "ssssissi", $full_name, $username, $email, $school_name, $role_id, $hash_password, $telegram_chat_id, $id);
         mysqli_stmt_execute($stmt_update);
         $update = mysqli_stmt_affected_rows($stmt_update) >= 0;
         mysqli_stmt_close($stmt_update);
@@ -157,9 +170,9 @@ if(isset($_POST['update'])){
     else{
 
         $stmt_update = mysqli_prepare($conn, "
-            UPDATE users SET full_name = ?, username = ?, email = ?, school_name = ?, role_id = ? WHERE id = ?
+            UPDATE users SET full_name = ?, username = ?, email = ?, school_name = ?, role_id = ?, telegram_chat_id = ? WHERE id = ?
         ");
-        mysqli_stmt_bind_param($stmt_update, "ssssii", $full_name, $username, $email, $school_name, $role_id, $id);
+        mysqli_stmt_bind_param($stmt_update, "sssssii", $full_name, $username, $email, $school_name, $role_id, $telegram_chat_id, $id);
         mysqli_stmt_execute($stmt_update);
         $update = mysqli_stmt_affected_rows($stmt_update) >= 0;
         mysqli_stmt_close($stmt_update);
@@ -425,7 +438,7 @@ button:hover{
                 type="text"
                 name="username"
                 required
-                value="<?= htmlspecialchars($user['username'] ?? ''); ?>"
+                value="<?= htmlspecialchars(isset($user['username']) ? $user['username'] : ''); ?>"
             >
 
         </div>
@@ -486,6 +499,27 @@ button:hover{
                 type="text"
                 name="school_name"
                 value="<?= htmlspecialchars($user['school_name']); ?>"
+            >
+
+        </div>
+
+        <!-- TELEGRAM CHAT ID -->
+
+        <div class="input-group">
+
+            <label>
+                Telegram Chat ID
+                <small style="display:block; color:#888; font-size:12px; font-weight:normal; margin-top:3px;">
+                    Cari bot <strong>@userinfobot</strong> di Telegram lalu klik /start. Copy angka di bagian "Id" dan paste di sini.
+                </small>
+            </label>
+
+            <input
+                type="text"
+                name="telegram_chat_id"
+                placeholder="Contoh: 123456789"
+                value="<?= htmlspecialchars(isset($user['telegram_chat_id']) ? $user['telegram_chat_id'] : ''); ?>"
+                style="font-family: monospace;"
             >
 
         </div>

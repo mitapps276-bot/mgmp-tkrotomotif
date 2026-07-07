@@ -3,6 +3,7 @@
 session_start();
 
 include 'config/database.php';
+require_once 'config/functions.php';
 
 date_default_timezone_set('Asia/Makassar');
 
@@ -21,7 +22,7 @@ if(!isset($_SESSION['login']) || $_SESSION['role_id'] != 4){
 // CSRF TOKEN
 // =====================================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -113,8 +114,8 @@ if(isset($_SESSION['error'])){
 $user_id = $_SESSION['user_id'];
 $nama_user = $_SESSION['name'];
 
-$upload_message = $_SESSION['upload_message'] ?? "";
-$upload_status = $_SESSION['upload_status'] ?? "";
+$upload_message = isset($_SESSION['upload_message']) ? $_SESSION['upload_message'] : "";
+$upload_status = isset($_SESSION['upload_status']) ? $_SESSION['upload_status'] : "";
 
 unset($_SESSION['upload_message']);
 unset($_SESSION['upload_status']);
@@ -134,7 +135,7 @@ if($user_data && !empty($user_data['full_name'])){
     $_SESSION['name'] = $nama_user;
 }
 
-$profile_photo = $user_data['profile_photo'] ?? "";
+$profile_photo = isset($user_data['profile_photo']) ? $user_data['profile_photo'] : "";
 $profile_photo_path = "";
 
 if(!empty($profile_photo) && file_exists(__DIR__ . "/" . $profile_photo)){
@@ -286,7 +287,7 @@ if(isset($_POST['upload_profile_photo'])){
         $tmp_name = $_FILES['profile_photo']['tmp_name'];
         $extension = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
         $image_info = getimagesize($tmp_name);
-        $mime_type = $image_info['mime'] ?? "";
+        $mime_type = isset($image_info['mime']) ? $image_info['mime'] : "";
 
         if(!in_array($extension, $allowed_extensions) || !in_array($mime_type, $allowed_mimes)){
             $_SESSION['upload_status'] = "error";

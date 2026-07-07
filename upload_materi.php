@@ -3,6 +3,7 @@
 session_start();
 
 include 'config/database.php';
+require_once 'config/functions.php';
 
 // =======================
 // CEK LOGIN
@@ -38,7 +39,7 @@ if($_SESSION['role_id'] == 1){
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -348,7 +349,7 @@ if(isset($_POST['upload'])){
             // SELALU JALANKAN SMART MATCHING UNTUK REQUEST LAIN YANG MIRIP
             // ==========================================
             $uploader_name = $_SESSION['name'];
-            $auto_admin_note = mysqli_real_escape_string($conn, "Sistem (Otomatis): Materi yang mungkin relevan dengan request Anda telah tersedia di Data Materi.");
+            $auto_admin_note = mysqli_real_escape_string($conn, "Sistem (Otomatis): Materi yang mungkin relevan dengan request Anda telah diunggah oleh (" . $uploader_name . "). Silakan cari di menu Data Materi menggunakan kata kunci request Anda.");
             
             // Panggil fungsi helper dari database.php
             jalankanSmartMatching($conn, $title, $category, $grade_level, $auto_admin_note);
@@ -384,9 +385,9 @@ if(isset($_POST['upload'])){
 // =======================
 // POPUP VARIABLES
 // =======================
-$upload_error = $_SESSION['upload_error'] ?? '';
-$upload_success = $_SESSION['upload_success'] ?? '';
-$redirect_url = $_SESSION['redirect_url'] ?? '';
+$upload_error = isset($_SESSION['upload_error']) ? $_SESSION['upload_error'] : '';
+$upload_success = isset($_SESSION['upload_success']) ? $_SESSION['upload_success'] : '';
+$redirect_url = isset($_SESSION['redirect_url']) ? $_SESSION['redirect_url'] : '';
 
 unset($_SESSION['upload_error']);
 unset($_SESSION['upload_success']);
@@ -630,7 +631,7 @@ unset($_SESSION['redirect_url']);
     </div>
 
     <div class="sidebar" id="sidebar-menu">
-        <?php $sidebar_role = $_SESSION['role_id'] ?? 0; ?>
+        <?php $sidebar_role = isset($_SESSION['role_id']) ? $_SESSION['role_id'] : 0; ?>
         <div class="logo">
             <?= ($sidebar_role == 1) ? 'ADMIN PANEL' : 'MGMP PLATFORM'; ?>
         </div>
