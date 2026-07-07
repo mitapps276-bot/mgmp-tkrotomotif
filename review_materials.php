@@ -70,6 +70,22 @@ if(isset($_GET['approve'])){
         if (!empty($mat['fulfilled_request_ids'])) {
             $req_ids = mysqli_real_escape_string($conn, $mat['fulfilled_request_ids']);
             mysqli_query($conn, "UPDATE material_requests SET status = 'selesai', admin_note = '$admin_note' WHERE id IN ($req_ids)");
+            
+            // ✅ NOTIFIKASI TELEGRAM: Kirim ke guru-guru yang me-request
+            if (function_exists('notifGuruRequestTelegram')) {
+                $id_array = explode(',', $mat['fulfilled_request_ids']);
+                foreach ($id_array as $req_id) {
+                    $req_id = trim($req_id);
+                    if (!empty($req_id)) {
+                        $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
+                        $pesan_tg .= "Halo! Kabar baik, request materi Anda telah dipenuhi!\n\n";
+                        $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($mat['title']) . "\n";
+                        $pesan_tg .= "👤 <b>Diunggah Oleh:</b> " . htmlspecialchars($mat['contributor_name']) . " (Kontributor External)\n\n";
+                        $pesan_tg .= "Silakan cek di menu <b>Data Materi</b> pada platform SI-LIAK.";
+                        notifGuruRequestTelegram($conn, $req_id, $pesan_tg);
+                    }
+                }
+            }
         }
         
         // Panggil fungsi helper dari database.php untuk mendeteksi request lain yang mirip
