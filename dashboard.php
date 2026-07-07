@@ -391,6 +391,24 @@ if(isset($_POST['submit_request'])){
     $insert_req = mysqli_stmt_affected_rows($stmt_req) > 0;
     mysqli_stmt_close($stmt_req);
 
+    if($insert_req && $status_request == 'pending'){
+        // Load Telegram Helper
+        if (file_exists(__DIR__ . '/config/telegram.php')) {
+            require_once __DIR__ . '/config/telegram.php';
+        }
+        
+        if (function_exists('notifAdminNewRequestTelegram')) {
+            $nama_peminta = $_SESSION['name'];
+            $pesan_admin = "📢 <b>REQUEST MATERI BARU</b>\n\n";
+            $pesan_admin .= "Halo Admin! Ada request materi baru yang menunggu untuk dipenuhi.\n\n";
+            $pesan_admin .= "👤 <b>Dari:</b> " . htmlspecialchars($nama_peminta) . "\n";
+            $pesan_admin .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($jenis) . "\n";
+            $pesan_admin .= "📝 <b>Detail:</b> " . htmlspecialchars($deskripsi) . "\n\n";
+            $pesan_admin .= "Silakan login ke SI-LIAK untuk merespons atau membantu mencarikan materi tersebut.";
+            notifAdminNewRequestTelegram($conn, $pesan_admin);
+        }
+    }
+
     echo "
     <script>
         location.replace('dashboard.php');

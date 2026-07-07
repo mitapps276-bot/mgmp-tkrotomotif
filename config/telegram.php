@@ -152,3 +152,23 @@ function notifGuruRequestTelegram($conn, $request_id, $pesan) {
         return;
     }
 }
+
+/**
+ * Kirim pesan Telegram ke semua Admin saat ada request baru.
+ */
+function notifAdminNewRequestTelegram($conn, $pesan) {
+    try {
+        $q = mysqli_query($conn, "
+            SELECT telegram_chat_id 
+            FROM users 
+            WHERE role_id = 1 AND telegram_chat_id IS NOT NULL AND telegram_chat_id != ''
+        ");
+        if ($q && mysqli_num_rows($q) > 0) {
+            while($row = mysqli_fetch_assoc($q)) {
+                kirimTelegram($row['telegram_chat_id'], $pesan);
+            }
+        }
+    } catch (Exception $e) {
+        // Abaikan error
+    }
+}
