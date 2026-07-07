@@ -367,10 +367,10 @@ if(isset($_POST['submit_request'])){
             $_SESSION['req_popup_type'] = 'selesai';
             $_SESSION['req_popup_title'] = 'Materi Ditemukan!';
             
-            // Tambahkan tombol download langsung agar user tidak perlu mencari manual
-            $download_btn = '<br><br><a href="download.php?id=' . $materi_ditemukan['id'] . '" target="_blank" style="display:inline-block; background:#2ecc71; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px; transition:0.3s;" onmouseover="this.style.background=\'#27ae60\'" onmouseout="this.style.background=\'#2ecc71\'">📥 Download Materi Langsung</a>';
+            $search_keyword = urlencode($deskripsi_input);
+            $search_btn = '<br><br><a href="data_materi.php?search=' . $search_keyword . '" style="display:inline-block; background:#2ecc71; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px; transition:0.3s;" onmouseover="this.style.background=\'#27ae60\'" onmouseout="this.style.background=\'#2ecc71\'">🔍 Lihat Semua Materi Relevan</a>';
             
-            $_SESSION['req_popup_msg'] = 'Materi yang Anda request <b>sudah tersedia</b> di Data Materi.<br><br>Judul: <i style="color:#2980b9;">"' . htmlspecialchars($materi_ditemukan['title']) . '"</i><br>Lokasi: <b>' . $lokasi_teks . '</b>' . $download_btn . '<br><br>Sistem otomatis menandai request Anda sebagai <b>Selesai</b>.';
+            $_SESSION['req_popup_msg'] = '<strong>Sistem SI-LIAK</strong> mendeteksi ada materi yang relevan dengan request Anda <b>sudah tersedia</b> di Data Materi.<br><br>Kata Kunci Pencarian: <i style="color:#2980b9;">"' . htmlspecialchars($deskripsi_input) . '"</i>' . $search_btn;
         }
     
     // Set sesi popup untuk status Pending
@@ -1742,34 +1742,39 @@ if($total_upload_guru == 0){
     <div class="content">
 
         <!-- HERO -->
+        <?php
+        $q_ls = mysqli_query($conn, "SELECT hero_image FROM landing_settings WHERE id = 1");
+        $ls_dash = mysqli_fetch_assoc($q_ls);
+        $hero_img = $ls_dash ? $ls_dash['hero_image'] : 'assets/images/placeholder.jpg';
+        ?>
         <style>
         .hero-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
             z-index: 1;
-            background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
-            animation: waveBg 8s ease-in-out infinite alternate;
+            background: url('<?= htmlspecialchars($hero_img); ?>') center center / 100% 135% no-repeat !important;
+            filter: url('#flag-wave');
         }
         .hero-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.7), rgba(41, 128, 185, 0.85));
             z-index: 2;
         }
-        @keyframes waveBg {
-            0%   { transform: scale(1.1) translate(0%, 0%); }
-            25%  { transform: scale(1.1) translate(2%, 2%); }
-            50%  { transform: scale(1.1) translate(4%, 0%); }
-            75%  { transform: scale(1.1) translate(2%, -2%); }
-            100% { transform: scale(1.1) translate(0%, 0%); }
-        }
         </style>
+        <svg width="0" height="0" style="position:absolute;z-index:-1;">
+            <filter id="flag-wave">
+                <feTurbulence x="0" y="0" baseFrequency="0.01 0.02" numOctaves="3" seed="2">
+                    <animate attributeName="baseFrequency" dur="8s" values="0.01 0.02;0.015 0.04;0.01 0.02" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="25" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </svg>
         <div class="hero" style="position: relative; overflow: hidden; color: white;">
             <div class="hero-bg"></div>
             <div class="hero-overlay"></div>
             <div class="hero-top" style="position: relative; z-index: 3;">
                 <div class="hero-text">
-                <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
-                    <p>Selamat datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
-                    <p>Platform Kolaboratif MGMP - Sistem Informasi Learning Integration & Analitik Kinerja <span class="mobile-break"></span>(SI-LIAK) <span class="mobile-break"></span>Untuk Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
+                    <p>Selamat Datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
+                    <p><strong>SI-LIAK</strong> (Sistem Informasi Learning Integration & Analitik Kinerja)<br>Wadah kolaborasi digital untuk berbagi materi dan perangkat pembelajaran.</p>
                 
                 <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
                     <div class="badge" style="margin-top: 0;">GURU</div>
@@ -2267,7 +2272,7 @@ function scrollActiveTeacher(direction) {
 <div id="resultModal" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1050; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
     <div style="background: white; width: 90%; max-width: 420px; border-radius: 16px; padding: 35px 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
         <?php if($req_popup_type == 'selesai'){ ?>
-            <div style="font-size: 65px; margin-bottom: 15px; line-height: 1;">🎉</div>
+            <div style="margin-bottom: 15px;"><img src="assets/images/logo.png" alt="Logo SI-LIAK" style="width: 120px; max-width: 45%; height: auto;"></div>
         <?php } else { ?>
             <div style="font-size: 65px; margin-bottom: 15px; line-height: 1;">📨</div>
         <?php } ?>
@@ -2275,7 +2280,9 @@ function scrollActiveTeacher(direction) {
         <p style="color: #555; line-height: 1.6; font-size: 15px; margin-bottom: 25px; padding: 0 10px;">
             <?= $req_popup_msg; ?>
         </p>
-        <button onclick="document.getElementById('resultModal').style.display='none'" style="background: #3498db; color: white; border: none; padding: 12px 35px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Mengerti</button>
+        <?php if($req_popup_type != 'selesai'){ ?>
+            <button onclick="document.getElementById('resultModal').style.display='none'" style="background: #3498db; color: white; border: none; padding: 12px 35px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Tutup</button>
+        <?php } ?>
     </div>
 </div>
 <style>

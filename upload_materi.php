@@ -348,7 +348,7 @@ if(isset($_POST['upload'])){
             // SELALU JALANKAN SMART MATCHING UNTUK REQUEST LAIN YANG MIRIP
             // ==========================================
             $uploader_name = $_SESSION['name'];
-            $auto_admin_note = mysqli_real_escape_string($conn, "Sistem (Otomatis): Materi dengan judul \"$title\" telah diunggah oleh (" . $uploader_name . "). Silakan cek di menu Data Materi.");
+            $auto_admin_note = mysqli_real_escape_string($conn, "Sistem (Otomatis): Materi yang mungkin relevan dengan request Anda telah tersedia di Data Materi.");
             
             // Panggil fungsi helper dari database.php
             jalankanSmartMatching($conn, $title, $category, $grade_level, $auto_admin_note);

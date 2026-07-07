@@ -167,6 +167,28 @@ if(isset($_GET['hapus'])){
 }
 
 // =======================
+// SEARCH HANDLER
+// =======================
+$search_query = isset($_GET['search']) ? mysqli_real_escape_string($conn, trim($_GET['search'])) : '';
+$search_query_sql = "";
+if(!empty($search_query)) {
+    $words = explode(" ", $search_query);
+    $conditions = [];
+    foreach($words as $w) {
+        $w = trim(preg_replace('/[^a-zA-Z0-9]/', '', $w));
+        if(strlen($w) > 2 && strtolower($w) != 'materi' && strtolower($w) != 'tolong' && strtolower($w) != 'mohon') {
+            $conditions[] = "(materials.title LIKE '%$w%' OR materials.description LIKE '%$w%')";
+        }
+    }
+    
+    if(count($conditions) > 0) {
+        $search_query_sql = " AND (" . implode(" OR ", $conditions) . ") ";
+    } else {
+        $search_query_sql = " AND (materials.title LIKE '%$search_query%' OR materials.description LIKE '%$search_query%') ";
+    }
+}
+
+// =======================
 // AMBIL FOLDER
 // =======================
 
@@ -607,6 +629,21 @@ $folder_query = mysqli_query($conn, "
 
 </div>
 
+<?php if(!empty($search_query)){ ?>
+    <div style="margin-bottom: 25px; padding: 15px 20px; background: #e8f4fd; border: 1px solid #b6d4fe; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0 0 5px 0; color: #004085; font-size: 16px;">Pencarian Aktif</h3>
+            <p style="margin: 5px 0 0 0; color: #555; font-size: 14px;">Menampilkan hasil untuk: <strong>"<?= htmlspecialchars($search_query); ?>"</strong></p>
+        </div>
+        <a href="data_materi.php" style="padding: 10px 20px; background: #e74c3c; color: white; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Tutup ✖</a>
+    </div>
+<?php } else { ?>
+    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px; margin-top:20px;">
+        <input type="text" name="search" placeholder="Cari materi berdasarkan judul atau deskripsi..." value="" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; outline: none; font-size: 14px;">
+        <button type="submit" style="padding: 12px 25px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">Cari</button>
+    </form>
+<?php } ?>
+
 <?php
 
 while($folder = mysqli_fetch_assoc($folder_query)){
@@ -631,10 +668,18 @@ while($folder = mysqli_fetch_assoc($folder_query)){
         AND materials.status = 'approved'
 
         AND (users.role_id != 4 OR users.role_id IS NULL)
+        
+        $search_query_sql
 
         ORDER BY materials.created_at DESC
 
     ");
+
+    // Jika pencarian aktif dan tidak ada materi di folder ini, jangan tampilkan foldernya
+    if(mysqli_num_rows($materi_query) == 0 && !empty($search_query)){
+        continue;
+    }
+
 
 ?>
 
@@ -936,9 +981,13 @@ $external_query = mysqli_query($conn, "
 
     AND (materials.user_id IS NULL OR users.role_id = 4)
 
+    $search_query_sql
+
     ORDER BY created_at DESC
 
 ");
+
+if(mysqli_num_rows($external_query) > 0 || empty($search_query)) {
 
 ?>
 
@@ -1146,6 +1195,8 @@ $external_query = mysqli_query($conn, "
 
 </div>
 
+<?php } // End if external query > 0 ?>
+
 </div>
 </div>
 
@@ -1257,3 +1308,19 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
+<!-- Auto Expand Script for Search Results -->
+<?php if(!empty($search_query)){ ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var accordions = document.querySelectorAll('.accordion-header');
+    accordions.forEach(function(acc) {
+        acc.classList.add('active');
+        var body = acc.nextElementSibling;
+        if(body) {
+            body.style.display = 'block';
+        }
+    });
+});
+</script>
+<?php } ?>
