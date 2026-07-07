@@ -343,6 +343,16 @@ if(isset($_POST['upload'])){
                 mysqli_stmt_bind_param($stmt_update_req, "si", $admin_note, $fulfilled_request_id);
                 mysqli_stmt_execute($stmt_update_req);
                 mysqli_stmt_close($stmt_update_req);
+
+                // ✅ NOTIFIKASI TELEGRAM: Kirim ke guru yang me-request
+                if (function_exists('notifGuruRequestTelegram')) {
+                    $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
+                    $pesan_tg .= "Halo! Kabar baik, request materi Anda telah dipenuhi!\n\n";
+                    $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($title) . "\n";
+                    $pesan_tg .= "👤 <b>Diunggah Oleh:</b> " . htmlspecialchars($uploader_name) . "\n\n";
+                    $pesan_tg .= "Silakan cek di menu <b>Data Materi</b> pada platform SI-LIAK.";
+                    notifGuruRequestTelegram($conn, $fulfilled_request_id, $pesan_tg);
+                }
             }
 
             // ==========================================
