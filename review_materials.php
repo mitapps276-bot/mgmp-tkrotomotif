@@ -80,7 +80,7 @@ if(isset($_GET['approve'])){
                         $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
                         $pesan_tg .= "Halo! Kabar baik, request materi Anda telah dipenuhi!\n\n";
                         $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($mat['title']) . "\n";
-                        $pesan_tg .= "👤 <b>Diunggah Oleh:</b> " . htmlspecialchars($mat['contributor_name']) . " (Kontributor External)\n\n";
+                        $pesan_tg .= "👤 <b>Dibantu Upload Oleh:</b> " . htmlspecialchars($mat['contributor_name']) . " (Kontributor External)\n\n";
                         $pesan_tg .= "Silakan cek di menu <b>Data Materi</b> pada platform SI-LIAK.";
                         notifGuruRequestTelegram($conn, $req_id, $pesan_tg);
                     }
@@ -88,8 +88,40 @@ if(isset($_GET['approve'])){
             }
         }
         
+        // --- JARING PENANGKAP (LANGKAH 1): CATAT REQUEST YANG BERPOTENSI COCOK ---
+        $like_grade = '%' . $mat['grade_level'] . '%';
+        $stmt_pre = mysqli_prepare($conn, "SELECT id FROM material_requests WHERE status != 'selesai' AND jenis_request = ? AND deskripsi LIKE ?");
+        mysqli_stmt_bind_param($stmt_pre, "ss", $mat['category'], $like_grade);
+        mysqli_stmt_execute($stmt_pre);
+        $res_pre = mysqli_stmt_get_result($stmt_pre);
+        $pending_ids = [];
+        while($row_pre = mysqli_fetch_assoc($res_pre)) {
+            $pending_ids[] = $row_pre['id'];
+        }
+        mysqli_stmt_close($stmt_pre);
+        // -------------------------------------------------------------------------
+
         // Panggil fungsi helper dari database.php untuk mendeteksi request lain yang mirip
         jalankanSmartMatching($conn, $mat['title'], $mat['category'], $mat['grade_level'], $admin_note);
+
+        // --- JARING PENANGKAP (LANGKAH 2): TANGKAP HASIL DAN KIRIM TELEGRAM ---
+        if (!empty($pending_ids) && function_exists('notifGuruRequestTelegram')) {
+            $in_clause = implode(',', $pending_ids);
+            $res_post = mysqli_query($conn, "SELECT id FROM material_requests WHERE status = 'selesai' AND id IN ($in_clause)");
+            
+            if ($res_post && mysqli_num_rows($res_post) > 0) {
+                while($row_post = mysqli_fetch_assoc($res_post)) {
+                    $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
+                    $pesan_tg .= "Halo! Sistem SI-LIAK mendeteksi materi yang relevan dengan request Anda sudah tersedia.\n\n";
+                    $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($mat['title']) . "\n";
+                    $pesan_tg .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($mat['category']) . "\n\n";
+                    $pesan_tg .= "Silakan cari dengan kata kunci request Anda di menu <b>Data Materi</b> pada platform SI-LIAK.";
+                    
+                    notifGuruRequestTelegram($conn, $row_post['id'], $pesan_tg);
+                }
+            }
+        }
+        // -------------------------------------------------------------------------
     }
 
     $_SESSION['popup_type'] = 'success';
@@ -138,10 +170,18 @@ if(isset($_GET['reject'])){
     $_SESSION['popup_type'] = 'reject';
     $_SESSION['popup_msg'] = 'Materi telah ditolak (Rejected) dan dikembalikan ke kontributor.';
 
+    $cek_mat = mysqli_query($conn, "SELECT title FROM materials WHERE id = '$id'");
+    $mat_title = "Materi";
+    if($cek_mat && mysqli_num_rows($cek_mat) > 0) {
+        $mat_data = mysqli_fetch_assoc($cek_mat);
+        $mat_title = htmlspecialchars($mat_data['title']);
+    }
+
     // ❌ NOTIFIKASI TELEGRAM ke kontributor
     if (function_exists('notifKontributorTelegram')) {
         $pesan_reject = "❌ <b>Materi Perlu Diperbaiki</b>\n\n";
         $pesan_reject .= "Halo! Materi yang Anda kirimkan ke SI-LIAK belum dapat disetujui.\n\n";
+        $pesan_reject .= "📚 <b>Judul:</b> " . $mat_title . "\n\n";
         if (!empty($reason)) {
             $pesan_reject .= "📝 <b>Alasan Admin:</b>\n" . htmlspecialchars($reason) . "\n\n";
         }

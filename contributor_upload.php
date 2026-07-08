@@ -618,6 +618,27 @@ if(isset($_POST['upload'])){
     ");
 
     if($query){
+        $new_mat_id = mysqli_insert_id($conn);
+
+        // ✅ NOTIFIKASI TELEGRAM KE KONTRIBUTOR (STATUS PENDING)
+        if (function_exists('notifKontributorTelegram')) {
+            $pesan_pending = "⏳ <b>Materi Berhasil Diunggah!</b>\n\n";
+            $pesan_pending .= "Halo! Materi yang Anda kirimkan ke SI-LIAK telah kami terima dan saat ini berstatus <b>PENDING</b> menunggu verifikasi dari Admin.\n\n";
+            $pesan_pending .= "📚 <b>Judul:</b> " . htmlspecialchars($title) . "\n\n";
+            $pesan_pending .= "Anda akan mendapat notifikasi kembali jika materi disetujui atau ditolak.";
+            notifKontributorTelegram($conn, $new_mat_id, $pesan_pending);
+        }
+
+        // ✅ NOTIFIKASI TELEGRAM KE ADMIN (MATERI PENDING BARU)
+        if (function_exists('notifAdminNewRequestTelegram')) {
+            $pesan_admin = "📥 <b>MATERI BARU (PENDING REVIEW)</b>\n\n";
+            $pesan_admin .= "Halo Admin! Ada materi baru dari Kontributor Eksternal yang menunggu verifikasi Anda.\n\n";
+            $pesan_admin .= "👤 <b>Pengunggah:</b> " . htmlspecialchars($name) . " (" . htmlspecialchars($institution) . ")\n";
+            $pesan_admin .= "📚 <b>Judul:</b> " . htmlspecialchars($title) . "\n";
+            $pesan_admin .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($category) . "\n\n";
+            $pesan_admin .= "Silakan login ke SI-LIAK menu <b>Review Contributor</b> untuk menyetujui atau menolaknya.";
+            notifAdminNewRequestTelegram($conn, $pesan_admin);
+        }
 
         $_SESSION['success'] =
             "File berhasil terkirim untuk diverifikasi oleh administrator.";
