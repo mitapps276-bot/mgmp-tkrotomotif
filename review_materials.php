@@ -144,11 +144,13 @@ if(isset($_GET['approve'])){
     $instansi = mysqli_real_escape_string($conn, $mat['contributor_institution'] ?? '');
     
     $asal_instansi = !empty($instansi) ? " dari " . $instansi : "";
-    $pesan_pengumuman = "[INFO MATERI BARU]" . PHP_EOL . PHP_EOL . "Telah ditambahkan materi baru berjudul '" . $judul_materi . "' karya Bpk/Ibu " . $kontributor . $asal_instansi . " (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
-    $pesan_pengumuman_escaped = mysqli_real_escape_string($conn, $pesan_pengumuman);
     $tgl_sekarang = date('Y-m-d H:i:s');
 
-    mysqli_query($conn, "INSERT INTO announcements (pesan, tanggal) VALUES ('$pesan_pengumuman_escaped', '$tgl_sekarang')");
+    $sql_announce = "INSERT INTO announcements (pesan, tanggal) VALUES (CONCAT('[INFO MATERI BARU]', CHAR(10), CHAR(10), 'Telah ditambahkan materi baru berjudul \'', '$judul_materi', '\' karya Bpk/Ibu ', '$kontributor', '$asal_instansi', ' (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!'), '$tgl_sekarang')";
+    mysqli_query($conn, $sql_announce);
+
+    // Otomatis membersihkan teks \r\n dari pengumuman lama yang sempat error
+    mysqli_query($conn, "UPDATE announcements SET pesan = REPLACE(REPLACE(pesan, '\\\\r\\\\n', CHAR(10)), '\\\\n', CHAR(10)) WHERE pesan LIKE '%\\\\n%'");
 
     header("Location: review_materials.php");
     exit;
