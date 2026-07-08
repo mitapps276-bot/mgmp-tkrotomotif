@@ -144,7 +144,7 @@ if(isset($_GET['approve'])){
     $pesan_pengumuman = "📢 [INFO MATERI BARU]\n\nTelah ditambahkan materi baru berjudul \"$judul_materi\" karya Bpk/Ibu $kontributor (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
     $tgl_sekarang = date('Y-m-d H:i:s');
 
-    mysqli_query($conn, "INSERT INTO announcements (pesan, target_audience, file_path, tanggal) VALUES ('$pesan_pengumuman', 'all', '', '$tgl_sekarang')");
+    mysqli_query($conn, "INSERT INTO announcements (pesan, tanggal) VALUES ('$pesan_pengumuman', '$tgl_sekarang')");
 
     header("Location: review_materials.php");
     exit;
