@@ -141,7 +141,7 @@ if(isset($_GET['approve'])){
     // ==========================================
     $judul_materi = mysqli_real_escape_string($conn, $mat['title']);
     $kontributor = mysqli_real_escape_string($conn, $mat['contributor_name']);
-    $pesan_pengumuman = "📢 [INFO MATERI BARU]\n\nTelah ditambahkan materi baru berjudul \"$judul_materi\" karya Bpk/Ibu $kontributor (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
+    $pesan_pengumuman = "[INFO MATERI BARU]" . PHP_EOL . PHP_EOL . "Telah ditambahkan materi baru berjudul '" . $judul_materi . "' karya Bpk/Ibu " . $kontributor . " (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
     $tgl_sekarang = date('Y-m-d H:i:s');
 
     mysqli_query($conn, "INSERT INTO announcements (pesan, tanggal) VALUES ('$pesan_pengumuman', '$tgl_sekarang')");
