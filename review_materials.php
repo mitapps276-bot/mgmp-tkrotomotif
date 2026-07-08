@@ -61,7 +61,7 @@ if(isset($_GET['approve'])){
     // ==========================================
     // AUTO-DETECT REQUEST (SMART MATCHING)
     // ==========================================
-    $cek_mat = mysqli_query($conn, "SELECT title, category, grade_level, contributor_name, contributor_institution, fulfilled_request_ids FROM materials WHERE id = '$id'");
+    $cek_mat = mysqli_query($conn, "SELECT * FROM materials WHERE id = '$id'");
     if($cek_mat && mysqli_num_rows($cek_mat) > 0) {
         $mat = mysqli_fetch_assoc($cek_mat);
         
