@@ -136,6 +136,16 @@ if(isset($_GET['approve'])){
         notifKontributorTelegram($conn, $id, $pesan_approve);
     }
 
+    // ==========================================
+    // AUTO-BROADCAST PENGUMUMAN ADMIN
+    // ==========================================
+    $judul_materi = mysqli_real_escape_string($conn, $mat['title']);
+    $kontributor = mysqli_real_escape_string($conn, $mat['contributor_name']);
+    $pesan_pengumuman = "📢 [INFO MATERI BARU]\n\nTelah ditambahkan materi baru berjudul \"$judul_materi\" karya Bpk/Ibu $kontributor (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
+    $tgl_sekarang = date('Y-m-d H:i:s');
+
+    mysqli_query($conn, "INSERT INTO announcements (pesan, target_audience, file_path, tanggal) VALUES ('$pesan_pengumuman', 'all', '', '$tgl_sekarang')");
+
     header("Location: review_materials.php");
     exit;
 }
