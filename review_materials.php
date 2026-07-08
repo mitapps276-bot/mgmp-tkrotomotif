@@ -131,7 +131,7 @@ if(isset($_GET['approve'])){
     if (function_exists('notifKontributorTelegram')) {
         $pesan_approve = "✅ <b>Materi Anda Disetujui!</b>\n\n";
         $pesan_approve .= "Halo! Materi yang Anda kirimkan ke SI-LIAK telah <b>disetujui</b> oleh Admin.\n\n";
-        $pesan_approve .= "📚 <b>Judul:</b> " . htmlspecialchars($mat['title']) . "\n\n";
+        $pesan_approve .= "📚 <b>Judul:</b> " . htmlspecialchars($mat['title'] ?? '') . "\n\n";
         $pesan_approve .= "Materi Anda kini tersedia untuk diakses seluruh guru MGMP. Terima kasih atas kontribusinya! 🙏";
         notifKontributorTelegram($conn, $id, $pesan_approve);
     }
@@ -139,9 +139,9 @@ if(isset($_GET['approve'])){
     // ==========================================
     // AUTO-BROADCAST PENGUMUMAN ADMIN
     // ==========================================
-    $judul_materi = mysqli_real_escape_string($conn, $mat['title']);
-    $kontributor = mysqli_real_escape_string($conn, $mat['contributor_name']);
-    $instansi = mysqli_real_escape_string($conn, $mat['contributor_institution']);
+    $judul_materi = mysqli_real_escape_string($conn, $mat['title'] ?? '');
+    $kontributor = mysqli_real_escape_string($conn, $mat['contributor_name'] ?? '');
+    $instansi = mysqli_real_escape_string($conn, $mat['contributor_institution'] ?? '');
     
     $asal_instansi = !empty($instansi) ? " dari " . $instansi : "";
     $pesan_pengumuman = "[INFO MATERI BARU]" . PHP_EOL . PHP_EOL . "Telah ditambahkan materi baru berjudul '" . $judul_materi . "' karya Bpk/Ibu " . $kontributor . $asal_instansi . " (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
