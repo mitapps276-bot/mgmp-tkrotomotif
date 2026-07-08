@@ -61,7 +61,7 @@ if(isset($_GET['approve'])){
     // ==========================================
     // AUTO-DETECT REQUEST (SMART MATCHING)
     // ==========================================
-    $cek_mat = mysqli_query($conn, "SELECT title, category, grade_level, contributor_name, fulfilled_request_ids FROM materials WHERE id = '$id'");
+    $cek_mat = mysqli_query($conn, "SELECT title, category, grade_level, contributor_name, contributor_institution, fulfilled_request_ids FROM materials WHERE id = '$id'");
     if($cek_mat && mysqli_num_rows($cek_mat) > 0) {
         $mat = mysqli_fetch_assoc($cek_mat);
         
@@ -141,7 +141,10 @@ if(isset($_GET['approve'])){
     // ==========================================
     $judul_materi = mysqli_real_escape_string($conn, $mat['title']);
     $kontributor = mysqli_real_escape_string($conn, $mat['contributor_name']);
-    $pesan_pengumuman = "[INFO MATERI BARU]" . PHP_EOL . PHP_EOL . "Telah ditambahkan materi baru berjudul '" . $judul_materi . "' karya Bpk/Ibu " . $kontributor . " (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
+    $instansi = mysqli_real_escape_string($conn, $mat['contributor_institution']);
+    
+    $asal_instansi = !empty($instansi) ? " dari " . $instansi : "";
+    $pesan_pengumuman = "[INFO MATERI BARU]" . PHP_EOL . PHP_EOL . "Telah ditambahkan materi baru berjudul '" . $judul_materi . "' karya Bpk/Ibu " . $kontributor . $asal_instansi . " (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!";
     $tgl_sekarang = date('Y-m-d H:i:s');
 
     mysqli_query($conn, "INSERT INTO announcements (pesan, tanggal) VALUES ('$pesan_pengumuman', '$tgl_sekarang')");
