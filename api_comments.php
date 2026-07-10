@@ -14,13 +14,19 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         material_id INT NOT NULL,
         user_id INT NOT NULL,
+        parent_id INT NULL DEFAULT NULL,
         comment_text TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (material_id) REFERENCES materials(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (parent_id) REFERENCES material_comments(id) ON DELETE CASCADE
     )");
+    
+    // Add parent_id column if the table already existed before this update
+    mysqli_query($conn, "ALTER TABLE material_comments ADD COLUMN parent_id INT NULL DEFAULT NULL AFTER user_id");
+    mysqli_query($conn, "ALTER TABLE material_comments ADD CONSTRAINT fk_parent_comment FOREIGN KEY (parent_id) REFERENCES material_comments(id) ON DELETE CASCADE");
 } catch (Exception $e) {
-    // Ignore error if table exists but foreign key fails, etc.
+    // Ignore error if table exists but foreign key fails, or column already exists
 }
 
 function sendJson($data) {
@@ -104,7 +110,12 @@ if ($method === 'POST') {
         $material_id = (int)$_POST['material_id'];
         $comment_text = mysqli_real_escape_string($conn, trim($_POST['comment_text']));
         
-        $sql = "INSERT INTO material_comments (material_id, user_id, comment_text) VALUES ($material_id, $user_id, '$comment_text')";
+        $parent_id_val = "NULL";
+        if (isset($_POST['parent_id']) && !empty($_POST['parent_id'])) {
+            $parent_id_val = (int)$_POST['parent_id'];
+        }
+        
+        $sql = "INSERT INTO material_comments (material_id, user_id, parent_id, comment_text) VALUES ($material_id, $user_id, $parent_id_val, '$comment_text')";
         try {
             if (mysqli_query($conn, $sql)) {
                 // Trigger Telegram Notif

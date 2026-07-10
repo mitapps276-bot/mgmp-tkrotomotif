@@ -1354,6 +1354,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <div style="border-top:1px solid #eee;padding-top:15px;">
             <form id="commentForm" onsubmit="submitComment(event)">
                 <input type="hidden" id="commentMaterialId" name="material_id">
+                <div id="replyIndicator" style="display:none;background:#f0f3f4;padding:8px;border-radius:5px;margin-bottom:10px;font-size:13px;color:#2c3e50;border-left:3px solid #3498db;justify-content:space-between;align-items:center;">
+                    <span id="replyText">Membalas komentar...</span>
+                    <button type="button" onclick="cancelReply()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-weight:bold;font-size:14px;">&times; Batal</button>
+                </div>
                 <textarea id="commentText" name="comment_text" rows="3" placeholder="Tulis komentar Anda di sini..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;resize:vertical;font-family:inherit;margin-bottom:10px;" required></textarea>
                 <button type="submit" id="btnSubmitComment" style="background:#3498db;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-weight:bold;transition:0.3s;">Kirim Komentar</button>
             </form>
@@ -1363,6 +1367,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 let currentMaterialId = 0;
+let replyingToCommentId = null;
+
+function replyTo(commentId, nama) {
+    replyingToCommentId = commentId;
+    document.getElementById('replyIndicator').style.display = 'flex';
+    document.getElementById('replyText').innerHTML = 'Membalas komentar <strong>' + nama + '</strong>';
+    document.getElementById('commentText').focus();
+}
+
+function cancelReply() {
+    replyingToCommentId = null;
+    document.getElementById('replyIndicator').style.display = 'none';
+}
 
 function openCommentModal(materialId, fileName) {
     currentMaterialId = materialId;
@@ -1370,6 +1387,7 @@ function openCommentModal(materialId, fileName) {
     document.getElementById('commentModalTitle').innerHTML = '💬 Diskusi: <br><small style="color:#7f8c8d;font-weight:normal;">' + fileName + '</small>';
     document.getElementById('commentModal').style.display = 'block';
     document.getElementById('commentText').value = '';
+    cancelReply();
     loadComments();
 }
 
@@ -1391,8 +1409,12 @@ function loadComments() {
                         list.innerHTML = '<p style="text-align:center;color:#7f8c8d;font-style:italic;">Belum ada komentar. Jadilah yang pertama!</p>';
                     } else {
                         let html = '';
-                        data.data.forEach(c => {
+                        let parents = data.data.filter(c => !c.parent_id);
+                        let replies = data.data.filter(c => c.parent_id);
+
+                        parents.forEach(c => {
                             let delBtn = c.is_owner ? `<button onclick="deleteComment(${c.id})" style="float:right;background:none;border:none;color:#e74c3c;cursor:pointer;font-size:12px;padding:0;" title="Hapus Komentar">🗑️ Hapus</button>` : '';
+                            let replyBtn = `<button onclick="replyTo(${c.id}, '${c.nama.replace(/'/g, "\\'")}')" style="float:left;background:none;border:none;color:#3498db;cursor:pointer;font-size:12px;padding:0;margin-top:8px;font-weight:bold;" title="Balas Komentar ini">↩️ Balas</button>`;
                             html += `
                             <div style="background:#f8f9fa;padding:10px;border-radius:6px;margin-bottom:10px;border-left:3px solid #3498db;">
                                 <div style="margin-bottom:5px;">
@@ -1401,9 +1423,26 @@ function loadComments() {
                                     <span style="float:right;color:#bdc3c7;font-size:11px;">${c.formatted_date}</span>
                                 </div>
                                 <div style="color:#34495e;line-height:1.4;white-space:pre-wrap;font-size:14px;">${c.comment_text}</div>
+                                ${replyBtn}
                                 ${delBtn}
                                 <div style="clear:both;"></div>
                             </div>`;
+                            
+                            let pReplies = replies.filter(r => r.parent_id == c.id);
+                            pReplies.forEach(r => {
+                                let delReplyBtn = r.is_owner ? `<button onclick="deleteComment(${r.id})" style="float:right;background:none;border:none;color:#e74c3c;cursor:pointer;font-size:12px;padding:0;" title="Hapus Balasan">🗑️ Hapus</button>` : '';
+                                html += `
+                                <div style="background:#fff;padding:8px 10px;border-radius:6px;margin-bottom:10px;margin-left:30px;border-left:2px solid #bdc3c7;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                                    <div style="margin-bottom:3px;">
+                                        <strong style="color:#2c3e50;font-size:13px;">${r.nama}</strong> 
+                                        <span style="color:#95a5a6;font-size:11px;margin-left:5px;">(${r.sekolah_asal})</span>
+                                        <span style="float:right;color:#bdc3c7;font-size:11px;">${r.formatted_date}</span>
+                                    </div>
+                                    <div style="color:#555;line-height:1.4;white-space:pre-wrap;font-size:13px;">${r.comment_text}</div>
+                                    ${delReplyBtn}
+                                    <div style="clear:both;"></div>
+                                </div>`;
+                            });
                         });
                         list.innerHTML = html;
                         list.scrollTop = list.scrollHeight;
@@ -1427,6 +1466,9 @@ function submitComment(e) {
     btn.disabled = true;
     
     const formData = new FormData(document.getElementById('commentForm'));
+    if (replyingToCommentId) {
+        formData.append('parent_id', replyingToCommentId);
+    }
     
     fetch('api_comments.php', {
         method: 'POST',
@@ -1440,6 +1482,7 @@ function submitComment(e) {
             let data = JSON.parse(text);
             if(data.status === 'success') {
                 document.getElementById('commentText').value = '';
+                cancelReply();
                 loadComments();
             } else {
                 alert('Gagal: ' + data.message);
