@@ -133,7 +133,7 @@ if ($method === 'POST') {
                         $mat_title = mysqli_fetch_assoc($mat_q)['file_name'];
                     }
                     
-                    $pesan = "💬 *Komentar Baru di Materi Anda*\n\n";
+                    $pesan = "🟡 *Komentar Baru di Materi Anda*\n\n";
                     if ($parent_id_val != "NULL") {
                         $pesan = "🟢 *Komentar Balasan*\n\n";
                     }
