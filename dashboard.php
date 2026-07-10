@@ -2127,7 +2127,7 @@ if($total_upload_guru == 0){
                                     <?php } ?>
                                     
                                     <?php if(isset($unread_counts[$login['id']]) && $unread_counts[$login['id']] > 0) { ?>
-                                        <span style="position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:50%; border:2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                        <span id="badge_unread_<?= $login['id']; ?>" style="position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:50%; border:2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                                             <?= $unread_counts[$login['id']] > 99 ? '99+' : $unread_counts[$login['id']]; ?>
                                         </span>
                                     <?php } ?>

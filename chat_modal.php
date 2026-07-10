@@ -41,6 +41,12 @@ function openChatModal(targetId, targetName) {
     currentChatTarget = targetId;
     lastMessageCount = 0;
     
+    // Sembunyikan badge unread jika ada
+    let badge = document.getElementById('badge_unread_' + targetId);
+    if (badge) {
+        badge.style.display = 'none';
+    }
+    
     // Fetch immediately
     fetchChatMessages(true);
     
