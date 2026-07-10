@@ -1229,7 +1229,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
                     ?>
                     <div class="active-teacher-card" style="display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
                         <div style="display:flex; gap:10px;">
-                            <div style="position:relative;">
+                            <div style="position:relative;" id="photo_wrapper_<?= $login['id']; ?>">
                                 <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
                                     <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
                                 <?php }else{ ?>

@@ -64,6 +64,43 @@ function closeChatModal() {
     }
 }
 
+// Global polling untuk unread badge setiap 10 detik
+setInterval(() => {
+    fetch('api_unread.php')
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === 'success') {
+                let unreadData = res.data;
+                // Ambil semua wrapper foto di dashboard
+                let wrappers = document.querySelectorAll('[id^="photo_wrapper_"]');
+                wrappers.forEach(wrapper => {
+                    let userId = wrapper.id.replace('photo_wrapper_', '');
+                    let count = unreadData[userId] ? parseInt(unreadData[userId]) : 0;
+                    
+                    let badge = document.getElementById('badge_unread_' + userId);
+                    if (count > 0) {
+                        let displayCount = count > 99 ? '99+' : count;
+                        if (badge) {
+                            badge.innerText = displayCount;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            let newBadge = document.createElement('span');
+                            newBadge.id = 'badge_unread_' + userId;
+                            newBadge.style.cssText = 'position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:50%; border:2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);';
+                            newBadge.innerText = displayCount;
+                            wrapper.appendChild(newBadge);
+                        }
+                    } else {
+                        if (badge) {
+                            badge.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error('Error fetching unread counts:', err));
+}, 10000);
+
 function fetchChatMessages(scrollToBottom = false) {
     if (!currentChatTarget) return;
     
