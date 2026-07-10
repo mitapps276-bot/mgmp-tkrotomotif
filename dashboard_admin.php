@@ -443,7 +443,7 @@ if($cek_photo_column && mysqli_num_rows($cek_photo_column) == 0){
 }
 
 $recent_logins_query = mysqli_query($conn, "
-    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo, u.role_id 
+    SELECT u.id, u.full_name, u.school_name, l.login_time, u.profile_photo, u.role_id, u.last_activity
     FROM login_activity l
     JOIN users u ON l.user_id = u.id
     WHERE u.role_id IN (1, 2, 4) AND l.login_date = CURDATE()
@@ -1178,29 +1178,57 @@ $recent_logins_query = mysqli_query($conn, "
                         $login_time = date('H:i', strtotime($login['login_time']));
                         $initial_login = strtoupper(substr(trim($login['full_name']), 0, 1));
                         $photo_login = isset($login['profile_photo']) ? $login['profile_photo'] : '';
+                        $is_me = ($login['id'] == $user_id);
+                        
+                        // Menentukan Status Online/Offline (Batas 10 Menit)
+                        $is_online = false;
+                        if (isset($login['last_activity']) && !empty($login['last_activity'])) {
+                            $last_act = strtotime($login['last_activity']);
+                            $now = time();
+                            if (($now - $last_act) <= 600) { // 10 menit
+                                $is_online = true;
+                            }
+                        }
+                        
+                        if ($is_online) {
+                            $status_badge = '<span style="background:#eafaf1; color:#27ae60; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">🟢 Online</span>';
+                        } else {
+                            $status_badge = '<span style="background:#f2f3f4; color:#7f8c8d; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #bdc3c7;">⚪ Offline</span>';
+                        }
                     ?>
-                    <div class="active-teacher-card">
-                        <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
-                            <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
-                        <?php }else{ ?>
-                            <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
-                                <?= htmlspecialchars($initial_login); ?>
+                    <div class="active-teacher-card" style="display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
+                        <div style="display:flex; gap:10px;">
+                            <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
+                                <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                            <?php }else{ ?>
+                                <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
+                                    <?= htmlspecialchars($initial_login); ?>
+                                </div>
+                            <?php } ?>
+                            <div style="flex:1; min-width:0;">
+                                <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    <?= htmlspecialchars($login['full_name']); ?>
+                                    <?= $is_me ? '<span style="color:#27ae60; font-size:11px;">(Anda)</span>' : ''; ?>
+                                </strong>
+                                <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    <?= htmlspecialchars(isset($login['school_name']) ? $login['school_name'] : '-'); ?>
+                                </span>
+                                <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
+                                <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
                             </div>
-                        <?php } ?>
-                        <div style="flex:1; min-width:0;">
-                            <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <?= htmlspecialchars($login['full_name']); ?>
-                            </strong>
-                            <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                <?= htmlspecialchars(isset($login['school_name']) ? $login['school_name'] : '-'); ?>
-                            </span>
-                            <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
-                            <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
                         </div>
-                        <div style="text-align:right; flex-shrink:0;">
-                            <span style="background:#eafaf1; color:#27ae60; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">
-                                🟢 <?= $login_time; ?> WITA
-                            </span>
+                        
+                        <div style="margin-top: 15px; display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top: 10px;">
+                            <div>
+                                <?= $status_badge; ?>
+                            </div>
+                            <?php if (!$is_me) { ?>
+                            <div>
+                                <button onclick="openChatModal(<?= $login['id']; ?>, '<?= addslashes($login['full_name']); ?>')" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="font-size:14px;">💬</span> Chat</button>
+                            </div>
+                            <?php } else { ?>
+                                <div style="font-size:11px; color:#aaa;">Login: <?= $login_time; ?></div>
+                            <?php } ?>
                         </div>
                     </div>
                     <?php } ?>
@@ -1619,6 +1647,8 @@ function validatePengumumanSize(formId, inputId) {
     return true; // Lanjutkan submit
 }
 </script>
+<!-- Include Chat Modal -->
+<?php include 'chat_modal.php'; ?>
 
 </body>
 </html>
