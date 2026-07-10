@@ -204,3 +204,24 @@ function notifAdminNewRequestTelegram($conn, $pesan) {
         // Abaikan error
     }
 }
+
+/**
+ * Kirim pesan Telegram ke pengunggah materi saat ada komentar baru.
+ */
+function notifGuruCommentTelegram($conn, $material_id, $pesan) {
+    try {
+        $mid = mysqli_real_escape_string($conn, $material_id);
+        $q = mysqli_query($conn, "
+            SELECT u.telegram_chat_id 
+            FROM materials m
+            JOIN users u ON m.user_id = u.id
+            WHERE m.id = '$mid' AND u.telegram_chat_id IS NOT NULL AND u.telegram_chat_id != ''
+        ");
+        if ($q && mysqli_num_rows($q) > 0) {
+            $row = mysqli_fetch_assoc($q);
+            kirimTelegram($row['telegram_chat_id'], $pesan);
+        }
+    } catch (Exception $e) {
+        // Abaikan error
+    }
+}

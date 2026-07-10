@@ -795,6 +795,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
                 <td class="col-aksi">
 
                     <div class="aksi-wrapper">
+                        <a href="#" class="diskusi-btn" onclick="openCommentModal(<?= $row['id']; ?>, '<?= htmlspecialchars(addslashes($row['file_name'])); ?>'); return false;" style="background:#2ecc71;color:#fff;padding:8px 15px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:bold;transition:0.3s;" onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">💬 Diskusi</a>
 
                         <?php
 
@@ -1323,5 +1324,148 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php } ?>
+<!-- Modal Komentar -->
+<div id="commentModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color:#fff;margin:5% auto;padding:20px;border-radius:8px;width:90%;max-width:600px;box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+        <span class="close" onclick="closeCommentModal()" style="color:#aaa;float:right;font-size:28px;font-weight:bold;cursor:pointer;">&times;</span>
+        <h3 id="commentModalTitle" style="margin-top:0;color:#2c3e50;border-bottom:1px solid #eee;padding-bottom:10px;">💬 Diskusi Materi</h3>
+        
+        <div id="commentsList" style="max-height:300px;overflow-y:auto;margin:15px 0;padding-right:10px;">
+            <p style="text-align:center;color:#7f8c8d;">Memuat komentar...</p>
+        </div>
+        
+        <div style="border-top:1px solid #eee;padding-top:15px;">
+            <form id="commentForm" onsubmit="submitComment(event)">
+                <input type="hidden" id="commentMaterialId" name="material_id">
+                <textarea id="commentText" name="comment_text" rows="3" placeholder="Tulis komentar Anda di sini..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;resize:vertical;font-family:inherit;margin-bottom:10px;" required></textarea>
+                <button type="submit" id="btnSubmitComment" style="background:#3498db;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-weight:bold;transition:0.3s;">Kirim Komentar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMaterialId = 0;
+
+function openCommentModal(materialId, fileName) {
+    currentMaterialId = materialId;
+    document.getElementById('commentMaterialId').value = materialId;
+    document.getElementById('commentModalTitle').innerHTML = '💬 Diskusi: <br><small style="color:#7f8c8d;font-weight:normal;">' + fileName + '</small>';
+    document.getElementById('commentModal').style.display = 'block';
+    document.getElementById('commentText').value = '';
+    loadComments();
+}
+
+function closeCommentModal() {
+    document.getElementById('commentModal').style.display = 'none';
+}
+
+function loadComments() {
+    const list = document.getElementById('commentsList');
+    list.innerHTML = '<p style="text-align:center;color:#7f8c8d;">Memuat komentar...</p>';
+    
+    fetch('api_comments.php?material_id=' + currentMaterialId)
+        .then(res => res.text())
+        .then(text => {
+            try {
+                let data = JSON.parse(text);
+                if(data.status === 'success') {
+                    if(data.data.length === 0) {
+                        list.innerHTML = '<p style="text-align:center;color:#7f8c8d;font-style:italic;">Belum ada komentar. Jadilah yang pertama!</p>';
+                    } else {
+                        let html = '';
+                        data.data.forEach(c => {
+                            let delBtn = c.is_owner ? `<button onclick="deleteComment(${c.id})" style="float:right;background:none;border:none;color:#e74c3c;cursor:pointer;font-size:12px;padding:0;" title="Hapus Komentar">🗑️ Hapus</button>` : '';
+                            html += `
+                            <div style="background:#f8f9fa;padding:10px;border-radius:6px;margin-bottom:10px;border-left:3px solid #3498db;">
+                                <div style="margin-bottom:5px;">
+                                    <strong style="color:#2c3e50;">${c.nama}</strong> 
+                                    <span style="color:#95a5a6;font-size:12px;margin-left:5px;">(${c.sekolah_asal})</span>
+                                    <span style="float:right;color:#bdc3c7;font-size:11px;">${c.formatted_date}</span>
+                                </div>
+                                <div style="color:#34495e;line-height:1.4;white-space:pre-wrap;font-size:14px;">${c.comment_text}</div>
+                                ${delBtn}
+                                <div style="clear:both;"></div>
+                            </div>`;
+                        });
+                        list.innerHTML = html;
+                        list.scrollTop = list.scrollHeight;
+                    }
+                } else {
+                    list.innerHTML = '<p style="color:#e74c3c;">Gagal memuat: ' + data.message + '</p>';
+                }
+            } catch(e) {
+                list.innerHTML = '<p style="color:#e74c3c;">Error Server: </p><div style="font-size:10px;background:#eee;padding:5px;word-break:break-all;">' + text + '</div>';
+            }
+        })
+        .catch(e => {
+            list.innerHTML = '<p style="color:#e74c3c;">Terjadi kesalahan koneksi.</p>';
+        });
+}
+
+function submitComment(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitComment');
+    btn.innerHTML = 'Mengirim...';
+    btn.disabled = true;
+    
+    const formData = new FormData(document.getElementById('commentForm'));
+    
+    fetch('api_comments.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(text => {
+        btn.innerHTML = 'Kirim Komentar';
+        btn.disabled = false;
+        try {
+            let data = JSON.parse(text);
+            if(data.status === 'success') {
+                document.getElementById('commentText').value = '';
+                loadComments();
+            } else {
+                alert('Gagal: ' + data.message);
+            }
+        } catch(e) {
+            console.error("Parse error:", text);
+            alert("Terjadi kesalahan parsing: \n\n" + text.substring(0, 100));
+        }
+    })
+    .catch(e => {
+        btn.innerHTML = 'Kirim Komentar';
+        btn.disabled = false;
+        alert('Kesalahan koneksi internet');
+    });
+}
+
+function deleteComment(commentId) {
+    if(!confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('comment_id', commentId);
+    
+    fetch('api_comments.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            loadComments();
+        } else {
+            alert('Gagal: ' + data.message);
+        }
+    });
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('commentModal');
+    if (event.target == modal) {
+        closeCommentModal();
+    }
+}
+</script>
 </body>
 </html>
