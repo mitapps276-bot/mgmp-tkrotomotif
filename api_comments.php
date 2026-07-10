@@ -133,12 +133,29 @@ if ($method === 'POST') {
                         $mat_title = mysqli_fetch_assoc($mat_q)['file_name'];
                     }
                     
-                    $pesan = "💬 *Komentar Baru di Materi Anda*\n\n"
-                           . "👤 *Dari:* " . $user_name . "\n"
+                    $pesan = "💬 *Komentar Baru di Materi Anda*\n\n";
+                    if ($parent_id_val != "NULL") {
+                        $pesan = "🟢 *Komentar Balasan*\n\n";
+                    }
+                    
+                    $pesan .= "👤 *Dari:* " . $user_name . "\n"
                            . "📄 *Materi:* " . $mat_title . "\n"
                            . "💬 *Komentar:* " . stripslashes($comment_text) . "\n\n"
                            . "Silakan cek dashboard SI-LIAK Anda untuk membalas.";
-                    notifGuruCommentTelegram($conn, $material_id, $pesan);
+                           
+                    if ($parent_id_val != "NULL" && function_exists('kirimTelegram')) {
+                        // Notifikasi dikirim ke guru yang komentarnya dibalas
+                        $q_parent = mysqli_query($conn, "SELECT u.telegram_chat_id FROM material_comments mc JOIN users u ON mc.user_id = u.id WHERE mc.id = $parent_id_val");
+                        if ($q_parent && mysqli_num_rows($q_parent) > 0) {
+                            $parent_chat_id = mysqli_fetch_assoc($q_parent)['telegram_chat_id'];
+                            if (!empty($parent_chat_id)) {
+                                kirimTelegram($parent_chat_id, $pesan);
+                            }
+                        }
+                    } else {
+                        // Notifikasi ke pemilik materi (default)
+                        notifGuruCommentTelegram($conn, $material_id, $pesan);
+                    }
                 }
                 
                 sendJson(['status' => 'success']);
