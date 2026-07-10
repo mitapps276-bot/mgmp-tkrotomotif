@@ -91,6 +91,9 @@ if ($method === 'POST') {
     
     $sql_insert = "INSERT INTO private_messages (sender_id, receiver_id, message_text) VALUES ($user_id, $target_id, '$message_text')";
     if (mysqli_query($conn, $sql_insert)) {
+        // Auto-Sweep: Hapus pesan yang usianya lebih dari 3 hari secara otomatis
+        @mysqli_query($conn, "DELETE FROM private_messages WHERE created_at < DATE_SUB(NOW(), INTERVAL 3 DAY)");
+        
         // Notifikasi Telegram
         if (function_exists('kirimTelegram')) {
             $q_target = mysqli_query($conn, "SELECT telegram_chat_id FROM users WHERE id = $target_id");
