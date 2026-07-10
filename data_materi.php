@@ -19,7 +19,7 @@ if(!isset($_SESSION['login'])){
 // CSRF TOKEN
 // =======================
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -630,9 +630,9 @@ $folder_query = mysqli_query($conn, "
 </div>
 
 <?php if(!empty($search_query)){ ?>
-    <div style="margin-bottom: 25px; padding: 15px 20px; background: #e8f4fd; border: 1px solid #b6d4fe; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #eef2f5; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #3498db; margin: 20px 0; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
         <div>
-            <h3 style="margin: 0 0 5px 0; color: #004085; font-size: 16px;">Pencarian Aktif</h3>
+            <h3 style="margin: 0; font-size: 18px; color: #2c3e50;">Pencarian Materi</h3>
             <p style="margin: 5px 0 0 0; color: #555; font-size: 14px;">Menampilkan hasil untuk: <strong>"<?= htmlspecialchars($search_query); ?>"</strong></p>
         </div>
         <a href="data_materi.php" style="padding: 10px 20px; background: #e74c3c; color: white; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Tutup ✖</a>
@@ -675,11 +675,9 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 
     ");
 
-    // Jika pencarian aktif dan tidak ada materi di folder ini, jangan tampilkan foldernya
-    if(mysqli_num_rows($materi_query) == 0 && !empty($search_query)){
+    if(!empty($search_query) && mysqli_num_rows($materi_query) == 0) {
         continue;
     }
-
 
 ?>
 
@@ -980,14 +978,19 @@ $external_query = mysqli_query($conn, "
     WHERE status = 'approved'
 
     AND (materials.user_id IS NULL OR users.role_id = 4)
-
+    
     $search_query_sql
 
     ORDER BY created_at DESC
 
 ");
 
-if(mysqli_num_rows($external_query) > 0 || empty($search_query)) {
+$show_external = true;
+if(!empty($search_query) && mysqli_num_rows($external_query) == 0) {
+    $show_external = false;
+}
+
+if($show_external) {
 
 ?>
 
@@ -1195,7 +1198,7 @@ if(mysqli_num_rows($external_query) > 0 || empty($search_query)) {
 
 </div>
 
-<?php } // End if external query > 0 ?>
+<?php } ?>
 
 </div>
 </div>
@@ -1306,21 +1309,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-</body>
-</html>
-
-<!-- Auto Expand Script for Search Results -->
 <?php if(!empty($search_query)){ ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var accordions = document.querySelectorAll('.accordion-header');
-    accordions.forEach(function(acc) {
-        acc.classList.add('active');
-        var body = acc.nextElementSibling;
-        if(body) {
-            body.style.display = 'block';
+    var headers = document.getElementsByClassName("accordion-header");
+    for (var i = 0; i < headers.length; i++) {
+        headers[i].classList.add("active");
+        var panel = headers[i].nextElementSibling;
+        if (panel) {
+            panel.style.display = "block";
         }
-    });
+    }
 });
 </script>
 <?php } ?>
+</body>
+</html>

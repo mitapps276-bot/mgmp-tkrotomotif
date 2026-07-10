@@ -49,6 +49,10 @@ if (!defined('TELEGRAM_BOT_TOKEN')) {
 function kirimTelegram($chat_id, $pesan) {
     $token = TELEGRAM_BOT_TOKEN;
 
+    // DEBUG LOG
+    $log_msg = "[" . date('Y-m-d H:i:s') . "] kirimTelegram dipanggil. Chat ID: " . $chat_id . ", Token: " . (empty($token) ? 'KOSONG' : 'ADA') . "\n";
+    @file_put_contents(__DIR__ . '/telegram_debug.txt', $log_msg, FILE_APPEND);
+
     // Jika token kosong atau chat_id kosong, skip tanpa error
     if (empty($token) || empty($chat_id)) {
         return false;
@@ -67,15 +71,21 @@ function kirimTelegram($chat_id, $pesan) {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);          // Maksimal tunggu 3 detik
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);   // Koneksi maksimal 3 detik
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);          // Maksimal tunggu 10 detik
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);   // Koneksi maksimal 10 detik
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_error = curl_error($ch);
         curl_close($ch);
+        
+        $log_msg_res = "[" . date('Y-m-d H:i:s') . "] HTTP: $httpCode | Result: $result | Error: $curl_error\n";
+        @file_put_contents(__DIR__ . '/telegram_debug.txt', $log_msg_res, FILE_APPEND);
+        
         return ($httpCode == 200);
     } catch (Exception $e) {
         // Abaikan semua error, jangan ganggu proses utama
+        @file_put_contents(__DIR__ . '/telegram_debug.txt', "Exception: " . $e->getMessage() . "\n", FILE_APPEND);
         return false;
     }
 }
@@ -89,16 +99,26 @@ function kirimTelegram($chat_id, $pesan) {
  */
 function broadcastTelegram($conn, $pesan) {
     $token = TELEGRAM_BOT_TOKEN;
+    @file_put_contents(__DIR__ . '/telegram_broadcast_debug.txt', "[" . date('Y-m-d H:i:s') . "] broadcastTelegram start. Token: " . (empty($token) ? 'KOSONG' : substr($token, 0, 10).'...'). "\n", FILE_APPEND);
+
     if (empty($token)) return;
 
     try {
         $q = mysqli_query($conn, "SELECT telegram_chat_id FROM users WHERE telegram_chat_id IS NOT NULL AND telegram_chat_id != '' AND role_id != 1");
-        if (!$q) return;
-
-        while ($row = mysqli_fetch_assoc($q)) {
-            kirimTelegram($row['telegram_chat_id'], $pesan);
+        if (!$q) {
+            @file_put_contents(__DIR__ . '/telegram_broadcast_debug.txt', "Query gagal: " . mysqli_error($conn) . "\n", FILE_APPEND);
+            return;
         }
+
+        $count = 0;
+        while ($row = mysqli_fetch_assoc($q)) {
+            $count++;
+            $res = kirimTelegram($row['telegram_chat_id'], $pesan);
+            @file_put_contents(__DIR__ . '/telegram_broadcast_debug.txt', " -> Kirim ke " . $row['telegram_chat_id'] . ": " . ($res ? "OK" : "GAGAL") . "\n", FILE_APPEND);
+        }
+        @file_put_contents(__DIR__ . '/telegram_broadcast_debug.txt', "Selesai. Total target: $count\n", FILE_APPEND);
     } catch (Exception $e) {
+        @file_put_contents(__DIR__ . '/telegram_broadcast_debug.txt', "Exception: " . $e->getMessage() . "\n", FILE_APPEND);
         return;
     }
 }
@@ -144,12 +164,24 @@ function notifGuruRequestTelegram($conn, $request_id, $pesan) {
             LEFT JOIN users u ON mr.user_id = u.id
             WHERE mr.id = '$rid' AND u.telegram_chat_id IS NOT NULL AND u.telegram_chat_id != ''
         ");
-        if ($q && mysqli_num_rows($q) > 0) {
-            $row = mysqli_fetch_assoc($q);
-            kirimTelegram($row['telegram_chat_id'], $pesan);
+        
+        $log_msg = "[" . date('Y-m-d H:i:s') . "] notifGuruRequestTelegram dipanggil. Req ID: " . $rid . "\n";
+        
+        if ($q) {
+            $num_rows = mysqli_num_rows($q);
+            $log_msg .= "[" . date('Y-m-d H:i:s') . "] Query OK. Jumlah Baris: " . $num_rows . "\n";
+            if ($num_rows > 0) {
+                $row = mysqli_fetch_assoc($q);
+                $log_msg .= "[" . date('Y-m-d H:i:s') . "] Memanggil kirimTelegram untuk Chat ID: " . $row['telegram_chat_id'] . "\n";
+                kirimTelegram($row['telegram_chat_id'], $pesan);
+            }
+        } else {
+            $log_msg .= "[" . date('Y-m-d H:i:s') . "] Query GAGAL: " . mysqli_error($conn) . "\n";
         }
+        @file_put_contents(__DIR__ . '/telegram_debug.txt', $log_msg, FILE_APPEND);
     } catch (Exception $e) {
-        return;
+        $log_msg = "[" . date('Y-m-d H:i:s') . "] EXCEPTION: " . $e->getMessage() . "\n";
+        @file_put_contents(__DIR__ . '/telegram_debug.txt', $log_msg, FILE_APPEND);
     }
 }
 

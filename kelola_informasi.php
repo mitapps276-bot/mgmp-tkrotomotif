@@ -58,6 +58,8 @@ if(mysqli_num_rows($cek_kolom_y) == 0){
 $new_cols = [
     'topbar_text' => 'TEXT',
     'navbar_logo_text' => 'TEXT',
+    'menu_profil' => 'VARCHAR(50)',
+    'menu_akademik' => 'VARCHAR(50)',
     'about_list1' => 'TEXT',
     'about_list2' => 'TEXT',
     'about_list3' => 'TEXT',
@@ -141,6 +143,8 @@ if(isset($_POST['update_landing'])){
 
     $topbar_text = mysqli_real_escape_string($conn, trim(isset($_POST['topbar_text']) ? $_POST['topbar_text'] : 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )'));
     $navbar_logo_text = mysqli_real_escape_string($conn, trim(isset($_POST['navbar_logo_text']) ? $_POST['navbar_logo_text'] : 'SI-LIAK MGMP'));
+    $menu_profil = mysqli_real_escape_string($conn, trim(isset($_POST['menu_profil']) ? $_POST['menu_profil'] : 'Tentang Sistem'));
+    $menu_akademik = mysqli_real_escape_string($conn, trim(isset($_POST['menu_akademik']) ? $_POST['menu_akademik'] : 'Infrastruktur Akademik'));
     $about_list1 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list1']) ? $_POST['about_list1'] : 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file'));
     $about_list2 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list2']) ? $_POST['about_list2'] : 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas'));
     $about_list3 = mysqli_real_escape_string($conn, trim(isset($_POST['about_list3']) ? $_POST['about_list3'] : 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi'));
@@ -241,7 +245,7 @@ if(isset($_POST['update_landing'])){
     $new_hero = uploadGambar('hero_image', 'Gambar Latar'); if($new_hero) $hero_image_sql = "hero_image = '$new_hero',";
     $new_about = uploadGambar('about_image', 'Gambar Profil'); if($new_about) $about_image_sql = "about_image = '$new_about',";
 
-    $q_update = "UPDATE landing_settings SET $hero_image_sql $about_image_sql hero_title = '$hero_title', hero_subtitle = '$hero_subtitle', hero_image_x = '$hero_image_x', hero_image_y = '$hero_image_y', about_title = '$about_title', about_desc1 = '$about_desc1', about_desc2 = '$about_desc2', analytic_title = '$analytic_title', analytic_subtitle = '$analytic_subtitle', login_title = '$login_title', login_desc = '$login_desc', topbar_text = '$topbar_text', navbar_logo_text = '$navbar_logo_text', about_list1 = '$about_list1', about_list2 = '$about_list2', about_list3 = '$about_list3', gallery_title = '$gallery_title', gallery_desc = '$gallery_desc', feature1_icon = '$feature1_icon', feature1_title = '$feature1_title', feature1_desc = '$feature1_desc', feature2_icon = '$feature2_icon', feature2_title = '$feature2_title', feature2_desc = '$feature2_desc', feature3_icon = '$feature3_icon', feature3_title = '$feature3_title', feature3_desc = '$feature3_desc', feature4_icon = '$feature4_icon', feature4_title = '$feature4_title', feature4_desc = '$feature4_desc', feature5_icon = '$feature5_icon', feature5_title = '$feature5_title', feature5_desc = '$feature5_desc', feature6_icon = '$feature6_icon', feature6_title = '$feature6_title', feature6_desc = '$feature6_desc', feature7_icon = '$feature7_icon', feature7_title = '$feature7_title', feature7_desc = '$feature7_desc', feature8_icon = '$feature8_icon', feature8_title = '$feature8_title', feature8_desc = '$feature8_desc', feature9_icon = '$feature9_icon', feature9_title = '$feature9_title', feature9_desc = '$feature9_desc', footer_title = '$footer_title', footer_desc = '$footer_desc', footer_copyright = '$footer_copyright', footer_contact_title = '$footer_contact_title', footer_contact_1_text = '$footer_contact_1_text', footer_contact_1_url = '$footer_contact_1_url', footer_contact_2_text = '$footer_contact_2_text', footer_contact_2_url = '$footer_contact_2_url', footer_contact_3_text = '$footer_contact_3_text', footer_contact_3_url = '$footer_contact_3_url' WHERE id = 1";
+    $q_update = "UPDATE landing_settings SET $hero_image_sql $about_image_sql hero_title = '$hero_title', hero_subtitle = '$hero_subtitle', hero_image_x = '$hero_image_x', hero_image_y = '$hero_image_y', about_title = '$about_title', about_desc1 = '$about_desc1', about_desc2 = '$about_desc2', analytic_title = '$analytic_title', analytic_subtitle = '$analytic_subtitle', login_title = '$login_title', login_desc = '$login_desc', topbar_text = '$topbar_text', navbar_logo_text = '$navbar_logo_text', menu_profil = '$menu_profil', menu_akademik = '$menu_akademik', about_list1 = '$about_list1', about_list2 = '$about_list2', about_list3 = '$about_list3', gallery_title = '$gallery_title', gallery_desc = '$gallery_desc', feature1_icon = '$feature1_icon', feature1_title = '$feature1_title', feature1_desc = '$feature1_desc', feature2_icon = '$feature2_icon', feature2_title = '$feature2_title', feature2_desc = '$feature2_desc', feature3_icon = '$feature3_icon', feature3_title = '$feature3_title', feature3_desc = '$feature3_desc', feature4_icon = '$feature4_icon', feature4_title = '$feature4_title', feature4_desc = '$feature4_desc', feature5_icon = '$feature5_icon', feature5_title = '$feature5_title', feature5_desc = '$feature5_desc', feature6_icon = '$feature6_icon', feature6_title = '$feature6_title', feature6_desc = '$feature6_desc', feature7_icon = '$feature7_icon', feature7_title = '$feature7_title', feature7_desc = '$feature7_desc', feature8_icon = '$feature8_icon', feature8_title = '$feature8_title', feature8_desc = '$feature8_desc', feature9_icon = '$feature9_icon', feature9_title = '$feature9_title', feature9_desc = '$feature9_desc', footer_title = '$footer_title', footer_desc = '$footer_desc', footer_copyright = '$footer_copyright', footer_contact_title = '$footer_contact_title', footer_contact_1_text = '$footer_contact_1_text', footer_contact_1_url = '$footer_contact_1_url', footer_contact_2_text = '$footer_contact_2_text', footer_contact_2_url = '$footer_contact_2_url', footer_contact_3_text = '$footer_contact_3_text', footer_contact_3_url = '$footer_contact_3_url' WHERE id = 1";
     
     if(mysqli_query($conn, $q_update)){
         if(!isset($_SESSION['error'])){
@@ -527,6 +531,14 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                         <label>Teks Logo Navbar</label>
                         <input type="text" name="navbar_logo_text" required value="<?= htmlspecialchars(isset($ls['navbar_logo_text']) ? $ls['navbar_logo_text'] : 'SI-LIAK MGMP'); ?>">
                     </div>
+                    <div class="input-group">
+                        <label>Teks Menu: Tentang Sistem</label>
+                        <input type="text" name="menu_profil" required value="<?= htmlspecialchars(isset($ls['menu_profil']) ? $ls['menu_profil'] : 'Tentang Sistem'); ?>">
+                    </div>
+                    <div class="input-group">
+                        <label>Teks Menu: Infrastruktur Akademik</label>
+                        <input type="text" name="menu_akademik" required value="<?= htmlspecialchars(isset($ls['menu_akademik']) ? $ls['menu_akademik'] : 'Infrastruktur Akademik'); ?>">
+                    </div>
                 </div>
                 <div class="card">
                     <h3>1. Bagian Beranda Utama (Hero Section)</h3>
@@ -693,11 +705,7 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                         <label>Deskripsi Footer</label>
                         <textarea name="footer_desc" rows="3"><?= htmlspecialchars(isset($ls['footer_desc']) ? $ls['footer_desc'] : 'Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK) Musyawarah Guru Mata Pelajaran. Dedikasi terhadap peningkatan mutu pendidikan melalui digitalisasi pendistribusian materi dan analisis data kinerja yang presisi.'); ?></textarea>
                     </div>
-                    <div class="input-group">
-                        <label>Teks Hak Cipta (Copyright)</label>
-                        <input type="text" name="footer_copyright" value="<?= htmlspecialchars(isset($ls['footer_copyright']) ? $ls['footer_copyright'] : 'Sistem Informasi MGMP. Hak Cipta Dilindungi Undang-Undang.'); ?>">
-                        <span class="info-text">* Tahun akan ditambahkan secara otomatis di depan teks (Contoh: © <?= date('Y'); ?> ... )</span>
-                    </div>
+
                     <div class="input-group" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
                         <label>Judul Layanan Kontak</label>
                         <input type="text" name="footer_contact_title" value="<?= htmlspecialchars(isset($ls['footer_contact_title']) ? $ls['footer_contact_title'] : 'Layanan Kontak'); ?>">

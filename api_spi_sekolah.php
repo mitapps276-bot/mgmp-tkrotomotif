@@ -1,4 +1,22 @@
 <?php
+session_start();
+
+$api_secret = 'LIAK-SYNC-2026-X9';
+$is_authenticated = false;
+
+// Mendukung dua jalur autentikasi: Sesi Internal Web ATAU API Key (untuk Sistem Luar)
+if (isset($_SESSION['login']) && $_SESSION['login'] === true) {
+    $is_authenticated = true;
+} elseif (isset($_GET['api_key']) && $_GET['api_key'] === $api_secret) {
+    $is_authenticated = true;
+}
+
+if (!$is_authenticated) {
+    header('HTTP/1.1 401 Unauthorized');
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Akses ditolak. Membutuhkan autentikasi atau API Key yang valid.']);
+    exit;
+}
 
 // Memuat konfigurasi koneksi database
 include 'config/database.php';

@@ -172,7 +172,7 @@ if(isset($_POST['update'])){
         $stmt_update = mysqli_prepare($conn, "
             UPDATE users SET full_name = ?, username = ?, email = ?, school_name = ?, role_id = ?, telegram_chat_id = ? WHERE id = ?
         ");
-        mysqli_stmt_bind_param($stmt_update, "sssssii", $full_name, $username, $email, $school_name, $role_id, $telegram_chat_id, $id);
+        mysqli_stmt_bind_param($stmt_update, "ssssssi", $full_name, $username, $email, $school_name, $role_id, $telegram_chat_id, $id);
         mysqli_stmt_execute($stmt_update);
         $update = mysqli_stmt_affected_rows($stmt_update) >= 0;
         mysqli_stmt_close($stmt_update);

@@ -163,6 +163,7 @@ if(isset($_POST['submit_pengumuman'])){
             mysqli_stmt_bind_param($stmt, "ss", $pesan, $target_audience);
         }
         mysqli_stmt_execute($stmt);
+        $new_announcement_id = mysqli_insert_id($conn);
         mysqli_stmt_close($stmt);
 
         // 📢 BROADCAST TELEGRAM ke semua guru
@@ -170,6 +171,15 @@ if(isset($_POST['submit_pengumuman'])){
             $pesan_broadcast = "📢 <b>Pengumuman Resmi MGMP</b>\n\n";
             $pesan_broadcast .= htmlspecialchars(substr(strip_tags($pesan), 0, 300));
             if (strlen(strip_tags($pesan)) > 300) $pesan_broadcast .= "...";
+            
+            if ($file_path !== null) {
+                $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                $host = $_SERVER['HTTP_HOST'];
+                $base_dir = rtrim(dirname(explode('?', $_SERVER['REQUEST_URI'])[0]), '/\\');
+                $full_url = $protocol . "://" . $host . $base_dir . "/download_pengumuman.php?id=" . $new_announcement_id;
+                $pesan_broadcast .= "\n\n📎 <b>Lampiran File:</b>\n<a href=\"" . $full_url . "\">Unduh Lampiran</a>";
+            }
+            
             $pesan_broadcast .= "\n\n— <i>Admin SI-LIAK</i>";
             broadcastTelegram($conn, $pesan_broadcast);
         }

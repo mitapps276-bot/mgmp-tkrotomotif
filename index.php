@@ -26,7 +26,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 include 'config/database.php';
 
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(uniqid(mt_rand(), true));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
@@ -64,6 +64,8 @@ $ls = [
     'login_desc' => 'Akses khusus bagi administrator, tenaga pendidik, dan kontributor terdaftar untuk masuk ke dalam ruang kerja virtual MGMP.',
     'topbar_text' => 'Selamat Datang di SI-LIAK ( Sistem Informasi Learning Integration & Analitik Kinerja )',
     'navbar_logo_text' => 'SI-LIAK MGMP',
+    'menu_profil' => 'Tentang Sistem',
+    'menu_akademik' => 'Infrastruktur Akademik',
     'about_list1' => 'Sistem pemenuhan permintaan materi otomatis (Smart Matching) dan anti-duplikasi file',
     'about_list2' => 'Pengukuran Learning Analytics (SPI & KSI) beserta sistem rekomendasi cerdas',
     'about_list3' => 'Jalur kontribusi khusus bagi praktisi pendidikan eksternal untuk pengayaan materi',
@@ -137,34 +139,34 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- SEO Meta Tags -->
-    <title>SI-LIAK - MGMP PPKN Kota Denpasar</title>
-    <meta name="description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi Musyawarah Guru Mata Pelajaran (MGMP) PPKN Kota Denpasar untuk ekosistem pembelajaran inovatif.">
-    <meta name="keywords" content="SI-LIAK, MGMP, PPKN, Denpasar, Pendidikan, Guru, e-Learning, Platform Kolaborasi Guru, Repositori Materi">
-    <meta name="author" content="MGMP PPKN Kota Denpasar">
+    <title>SI-LIAK - MGMP Muatan Lokal Kota Denpasar</title>
+    <meta name="description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi Musyawarah Guru Mata Pelajaran (MGMP) Muatan Lokal Kota Denpasar untuk ekosistem pembelajaran inovatif.">
+    <meta name="keywords" content="SI-LIAK, MGMP, Muatan Lokal, Denpasar, Pendidikan, Guru, e-Learning, Platform Kolaborasi Guru, Repositori Materi">
+    <meta name="author" content="MGMP Muatan Lokal Kota Denpasar">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://mgmpmulokdps.com/" />
     
     <!-- Favicon / Logo Web -->
-    <link rel="icon" href="assets/images/logo.png" sizes="192x192" type="image/png">
-    <link rel="apple-touch-icon" href="assets/images/logo.png">
+    <link rel="icon" href="/favicon.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
     
     <!-- Schema.org Markup untuk Google Knowledge Graph -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "MGMP PPKN Kota Denpasar: SI-LIAK",
+      "name": "MGMP Muatan Lokal Kota Denpasar: SI-LIAK",
       "url": "https://mgmpmulokdps.com",
       "logo": "https://mgmpmulokdps.com/assets/images/logo.png"
     }
     </script>
     
     <!-- Open Graph / Social Media -->
-    <meta property="og:title" content="SI-LIAK - MGMP PPKN Kota Denpasar">
-    <meta property="og:description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi MGMP PPKN Kota Denpasar.">
+    <meta property="og:title" content="SI-LIAK - MGMP Muatan Lokal Kota Denpasar">
+    <meta property="og:description" content="Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK). Wadah kolaborasi MGMP Muatan Lokal Kota Denpasar.">
     <meta property="og:url" content="https://mgmpmulokdps.com/">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="SI-LIAK MGMP PPKN Denpasar">
+    <meta property="og:site_name" content="SI-LIAK MGMP Muatan Lokal Denpasar">
     
     <!-- Academic Fonts: Merriweather for headings, Open Sans for body -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -335,6 +337,23 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         .gallery-card:hover {
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             animation-play-state: paused;
+            overflow: visible;
+            z-index: 10;
+        }
+        .gallery-card {
+            position: relative;
+            z-index: 1;
+        }
+        .gallery-card img {
+            transition: transform 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .gallery-card:hover img {
+            transform: scale(2.0);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 8px;
         }
 
         /* ========================
@@ -449,8 +468,8 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
     <div class="nav-links">
         <a href="#page-top" class="active">Beranda</a>
         <a href="#galeri">Galeri</a>
-        <a href="#profil">Tentang Sistem</a>
-        <a href="#akademik">Infrastruktur Akademik</a>
+        <a href="#profil"><?= htmlspecialchars($ls['menu_profil']); ?></a>
+        <a href="#akademik"><?= htmlspecialchars($ls['menu_akademik']); ?></a>
         <a href="#login">LOGIN</a>
     </div>
 </nav>
@@ -494,7 +513,7 @@ $bg_pos_y = isset($ls['hero_image_y']) ? htmlspecialchars($ls['hero_image_y']) .
             <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=600&q=80" alt="Kegiatan 1" style="width: 100%; height: 250px; object-fit: fill; background: #f8fafc; display: block;">
             <div style="padding: 15px 20px; border-top: 4px solid var(--primary);">
                 <h3 style="font-size: 18px; margin-bottom: 8px;">Lokakarya Kurikulum</h3>
-                <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Pembahasan dan penyelarasan modul ajar PPKN.</p>
+                <p style="margin: 0; font-size: 13px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: justify;">Pembahasan dan penyelarasan modul ajar muatan lokal.</p>
             </div>
         </div>
         <div class="gallery-card">
@@ -673,7 +692,7 @@ $bg_pos_y = isset($ls['hero_image_y']) ? htmlspecialchars($ls['hero_image_y']) .
         </div>
     </div>
     <div class="copyright">
-        &copy; <?= date('Y'); ?> <?= htmlspecialchars($ls['footer_copyright']); ?>
+        &copy; <?= date('Y'); ?> <?= base64_decode('U2lzdGVtIEluZm9ybWFzaSBMZWFybmluZyBJbnRlZ3JhdGlvbiAmIEFuYWxpdGlrIEtpbmVyamEgKFNJLUxJQUspLiBIYWsgQ2lwdGEgRGlsaW5kdW5naSBVbmRhbmctVW5kYW5nLg=='); ?>
     </div>
 </footer>
 

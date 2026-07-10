@@ -14,8 +14,13 @@ if (!isset($conn)) {
     }
 }
 
-// Hanya jalankan jika TELEMETRY_ENDPOINT diatur
-if (!defined('TELEMETRY_ENDPOINT')) {
+// =====================================
+// PENGATURAN URL NGROK (UBAH DI SINI LEWAT LOKAL & GIT PUSH)
+// =====================================
+$ngrok_url = 'https://wok-item-mounted.ngrok-free.dev/siliak-pusat/api/telemetry.php';
+
+// Jika URL kosong, hentikan
+if (empty($ngrok_url)) {
     return;
 }
 
@@ -31,14 +36,21 @@ if (file_exists($sync_file)) {
     }
 }
 
-// 2. AUTO-REGISTRATION: Generate atau Ambil UUID MGMP Lokal
+// 2. AUTO-REGISTRATION: Generate atau Ambil UUID & Nama MGMP Lokal
 $uuid_file = __DIR__ . '/config/telemetry_uuid.txt';
+$name_file = __DIR__ . '/config/telemetry_name.txt';
+
 if (file_exists($uuid_file)) {
     $mgmp_uuid = trim(file_get_contents($uuid_file));
 } else {
-    // Generate simple UUID
-    $mgmp_uuid = 'LIAK-' . strtoupper(bin2hex(random_bytes(4)) . '-' . bin2hex(random_bytes(2)));
-    @file_put_contents($uuid_file, $mgmp_uuid);
+    $mgmp_uuid = 'LIAK-' . strtoupper(substr(uniqid(mt_rand(), true), 0, 8) . '-' . substr(uniqid(mt_rand(), true), 0, 4));    @file_put_contents($uuid_file, $mgmp_uuid);
+}
+
+if (file_exists($name_file)) {
+    $mgmp_name = trim(file_get_contents($name_file));
+} else {
+    $mgmp_name = 'MGMP Muatan Lokal'; // Default fallback name
+    @file_put_contents($name_file, $mgmp_name);
 }
 
 // Ambil nama host/domain
@@ -120,6 +132,7 @@ if ($cs_query) {
 $payload = [
     'api_secret' => 'LIAK-SYNC-2026-X9',
     'mgmp_id' => $mgmp_uuid,
+    'mgmp_name' => $mgmp_name,
     'domain' => $domain,
     'sync_time' => date('Y-m-d H:i:s'),
     'metrics' => [
@@ -138,14 +151,14 @@ $payload = [
 ];
 
 // 5. KIRIM DATA VIA cURL (Asimetris / Asynchronous fallback)
-$ch = curl_init(TELEMETRY_ENDPOINT);
+$ch = curl_init($ngrok_url);
 $json_payload = json_encode($payload);
 
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $json_payload);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 2); // Sangat cepat agar tidak blocking halaman jika server pusat lemot
+curl_setopt($ch, CURLOPT_TIMEOUT, 10); // Diperpanjang agar request ke ngrok sempat terselesaikan
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
 $response = curl_exec($ch);

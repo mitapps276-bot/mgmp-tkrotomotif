@@ -1,0 +1,6 @@
+<Files "*.txt">
+    Require all denied
+</Files>
+<Files "*.php">
+    Require all denied
+</Files>

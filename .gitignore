@@ -3,3 +3,7 @@
 /.vscode/
 /.idea/
 *.log
+
+config/database.php
+
+config/telegram_config.php

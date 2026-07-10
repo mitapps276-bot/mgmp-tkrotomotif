@@ -1,4 +1,17 @@
 <?php
+session_start();
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['login']) || $_SESSION['login'] !== true) {
+    header("Location: index.php#login");
+    exit;
+}
+
+// Keamanan Ekstra: Pastikan hanya Admin (role_id = 1) yang bisa mengakses
+if (!isset($_SESSION['role_id']) || $_SESSION['role_id'] != 1) {
+    die("Akses ditolak. Hanya Admin yang dapat mengunduh dokumen testing ini.");
+}
+
 // Header untuk memaksa browser mendownload file sebagai dokumen Ms Word
 header("Content-Type: application/vnd.ms-word");
 header("Expires: 0");
