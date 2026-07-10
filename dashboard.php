@@ -770,6 +770,18 @@ $recent_logins_query = mysqli_query($conn, "
     ORDER BY l.login_time DESC
 ");
 
+// Ambil jumlah unread messages untuk fitur Chat
+$unread_counts = [];
+$cek_pm_table = @mysqli_query($conn, "SHOW TABLES LIKE 'private_messages'");
+if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
+    $q_unread = @mysqli_query($conn, "SELECT sender_id, COUNT(*) as count FROM private_messages WHERE receiver_id = $user_id AND is_read = 0 GROUP BY sender_id");
+    if ($q_unread) {
+        while ($r = mysqli_fetch_assoc($q_unread)) {
+            $unread_counts[$r['sender_id']] = $r['count'];
+        }
+    }
+}
+
 // =======================
 // INTELLIGENT ANALYTICS
 // =======================
@@ -2105,13 +2117,21 @@ if($total_upload_guru == 0){
                         ?>
                         <div class="active-teacher-card" style="display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
                             <div style="display:flex; gap:10px;">
-                                <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
-                                    <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
-                                <?php }else{ ?>
-                                    <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
-                                        <?= htmlspecialchars($initial_login); ?>
-                                    </div>
-                                <?php } ?>
+                                <div style="position:relative;">
+                                    <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
+                                        <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+                                    <?php }else{ ?>
+                                        <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
+                                            <?= htmlspecialchars($initial_login); ?>
+                                        </div>
+                                    <?php } ?>
+                                    
+                                    <?php if(isset($unread_counts[$login['id']]) && $unread_counts[$login['id']] > 0) { ?>
+                                        <span style="position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:50%; border:2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                            <?= $unread_counts[$login['id']] > 99 ? '99+' : $unread_counts[$login['id']]; ?>
+                                        </span>
+                                    <?php } ?>
+                                </div>
                                 <div style="flex:1; min-width:0;">
                                     <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                         <?= htmlspecialchars($login['full_name']); ?> 
