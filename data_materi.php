@@ -1217,6 +1217,19 @@ if($show_external) {
     </div>
 </div>
 
+<!-- Modal Hapus Komentar -->
+<div id="deleteCommentModal" class="modal" style="z-index: 10000;">
+    <div class="modal-content">
+        <div style="font-size: 50px; margin-bottom: 15px; line-height: 1;">🗑️</div>
+        <h3>Hapus Komentar?</h3>
+        <p style="color: #555; font-size: 14px; margin-bottom: 0;">Yakin ingin menghapus komentar ini?</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeDeleteCommentModal()">Batal</button>
+            <button id="confirmDeleteCommentBtn" class="btn-confirm" onclick="processDeleteComment()">Ya, Hapus</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function openDeleteModal(url) {
     const modal = document.getElementById('deleteModal');
@@ -1234,6 +1247,10 @@ function closeDeleteModal() {
 window.addEventListener('click', function(e) {
     let modal = document.getElementById('deleteModal');
     if (e.target == modal) closeDeleteModal();
+    let cModal = document.getElementById('commentModal');
+    if (e.target == cModal) closeCommentModal();
+    let dModal = document.getElementById('deleteCommentModal');
+    if (e.target == dModal) closeDeleteCommentModal();
 });
 
 const itemsPerPage = 4;
@@ -1439,12 +1456,29 @@ function submitComment(e) {
     });
 }
 
+let currentCommentIdToDelete = null;
+
 function deleteComment(commentId) {
-    if(!confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
+    currentCommentIdToDelete = commentId;
+    const modal = document.getElementById('deleteCommentModal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeDeleteCommentModal() {
+    const modal = document.getElementById('deleteCommentModal');
+    modal.classList.remove('show');
+    setTimeout(() => modal.style.display = 'none', 300);
+}
+
+function processDeleteComment() {
+    if(!currentCommentIdToDelete) return;
+    
+    closeDeleteCommentModal();
     
     const formData = new FormData();
     formData.append('action', 'delete');
-    formData.append('comment_id', commentId);
+    formData.append('comment_id', currentCommentIdToDelete);
     
     fetch('api_comments.php', {
         method: 'POST',
