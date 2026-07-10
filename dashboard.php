@@ -2384,6 +2384,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script><!-- Include Chat Modal -->
 <?php include 'chat_modal.php'; ?>
 
+    <!-- Public Chat Widget -->
+    <?php include 'public_chat_widget.php'; ?>
+
 </body>
 </html>
 
