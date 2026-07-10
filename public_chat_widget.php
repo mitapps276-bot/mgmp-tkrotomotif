@@ -1,7 +1,8 @@
 <!-- Widget Tombol Floating Obrolan Publik -->
-<div id="publicChatWidgetBtn" onclick="togglePublicChat()" style="position:fixed; bottom:30px; right:30px; width:60px; height:60px; background:#e67e22; border-radius:50%; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; cursor:pointer; z-index:9998; transition:transform 0.3s;">
-    <span style="font-size:24px; color:white;">📢</span>
-    <span id="publicUnreadBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:12px; font-weight:bold; padding:2px 8px; border-radius:10px; border:2px solid white;">Baru</span>
+<div id="publicChatWidgetBtn" onclick="togglePublicChat()" style="position:fixed; bottom:30px; right:30px; height:50px; padding:0 20px; background:#e67e22; border-radius:25px; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; gap:10px; cursor:pointer; z-index:9998; transition:transform 0.3s;">
+    <span style="font-size:22px; color:white;">📢</span>
+    <span style="color:white; font-weight:bold; font-size:14px; white-space:nowrap;">Diskusi Terbuka</span>
+    <span id="publicUnreadBadge" style="display:none; position:absolute; top:-8px; right:-8px; background:#e74c3c; color:white; font-size:12px; font-weight:bold; padding:2px 8px; border-radius:10px; border:2px solid white;">0</span>
 </div>
 
 <!-- Kotak Obrolan Publik -->
