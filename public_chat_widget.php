@@ -42,6 +42,11 @@ function togglePublicChat() {
         btn.style.transform = 'scale(0.9)';
         badge.style.display = 'none'; // Sembunyikan notifikasi saat dibuka
         
+        // Simpan ID terakhir ke local storage agar terbaca
+        if (lastPublicMessageId > 0) {
+            localStorage.setItem('mgmp_public_last_read', lastPublicMessageId);
+        }
+        
         // Mulai polling jika belum jalan
         if (!publicChatPolling) {
             fetchPublicMessages(true); // Fetch awal dan scroll ke bawah
@@ -113,15 +118,34 @@ function fetchPublicMessages(scrollToBottom = false) {
                 
                 list.innerHTML = html;
                 
-                // Deteksi pesan baru
+                // Deteksi pesan yang belum dibaca menggunakan localStorage
+                let savedLastReadId = parseInt(localStorage.getItem('mgmp_public_last_read')) || 0;
+                let unreadCount = 0;
+                
+                msgs.forEach(m => {
+                    if (parseInt(m.id) > savedLastReadId) {
+                        unreadCount++;
+                    }
+                });
+                
+                if (isPublicChatOpen && latestId > 0) {
+                    localStorage.setItem('mgmp_public_last_read', latestId);
+                    unreadCount = 0;
+                }
+                
                 if (latestId > lastPublicMessageId) {
                     if (isPublicChatOpen || scrollToBottom) {
                         list.scrollTop = list.scrollHeight;
-                    } else if (lastPublicMessageId !== 0) {
-                        // Tampilkan badge "Baru" jika ada pesan masuk saat ditutup (kecuali saat load pertama)
-                        document.getElementById('publicUnreadBadge').style.display = 'inline-block';
                     }
                     lastPublicMessageId = latestId;
+                }
+                
+                if (unreadCount > 0 && !isPublicChatOpen) {
+                    let badge = document.getElementById('publicUnreadBadge');
+                    badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    document.getElementById('publicUnreadBadge').style.display = 'none';
                 }
             }
         })
