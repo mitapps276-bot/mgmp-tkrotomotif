@@ -6,7 +6,11 @@ if (isset($_SESSION['user_id'])) {
     include 'config/database.php';
     if ($conn) {
         $user_id = (int)$_SESSION['user_id'];
-        @mysqli_query($conn, "UPDATE users SET last_activity = NULL WHERE id = $user_id");
+        try {
+            @mysqli_query($conn, "UPDATE users SET last_activity = NULL WHERE id = $user_id");
+        } catch (Exception $e) {
+            // Ignore error jika kolom belum dibuat
+        }
     }
 }
 

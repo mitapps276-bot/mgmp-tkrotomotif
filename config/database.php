@@ -43,20 +43,4 @@ if (!defined('TELEMETRY_ENDPOINT')) {
     define('TELEMETRY_ENDPOINT', 'https://wok-item-mounted.ngrok-free.dev/siliak-pusat/api/telemetry.php');
 }
 
-// =====================================
-// UPDATE LAST ACTIVITY (ONLINE STATUS)
-// =====================================
-if (isset($_SESSION['user_id']) && $conn) {
-    $current_user_id = (int)$_SESSION['user_id'];
-    
-    // Coba update timestamp. Jika gagal karena kolom belum ada, buat kolomnya.
-    $update_activity = @mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $current_user_id");
-    if (!$update_activity) {
-        $err = mysqli_error($conn);
-        if (strpos($err, "Unknown column 'last_activity'") !== false) {
-            @mysqli_query($conn, "ALTER TABLE users ADD last_activity DATETIME NULL");
-            @mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $current_user_id");
-        }
-    }
-}
 ?>

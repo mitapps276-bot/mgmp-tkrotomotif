@@ -29,6 +29,23 @@ $csrf_token = $_SESSION['csrf_token'];
 
 $user_id = $_SESSION['user_id'];
 
+// =====================================
+// UPDATE LAST ACTIVITY & AUTO-HEAL DB
+// =====================================
+try {
+    // Coba update timestamp.
+    $update_activity = @mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $user_id");
+    if (!$update_activity) {
+        // Jika gagal karena kolom belum ada, buat kolomnya.
+        @mysqli_query($conn, "ALTER TABLE users ADD last_activity DATETIME NULL");
+        @mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $user_id");
+    }
+} catch (Exception $e) {
+    // Tangkap exception jika PHP 8.1+ melempar error saat kolom tidak ada
+    @mysqli_query($conn, "ALTER TABLE users ADD last_activity DATETIME NULL");
+    @mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $user_id");
+}
+
 $nama_guru = $_SESSION['name'];
 
 $upload_message = isset($_SESSION['upload_message']) ? $_SESSION['upload_message'] : "";
