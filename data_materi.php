@@ -795,7 +795,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
                 <td class="col-aksi">
 
                     <div class="aksi-wrapper">
-                        <a href="#" class="diskusi-btn" onclick="openCommentModal(<?= $row['id']; ?>, '<?= htmlspecialchars(addslashes($row['file_name'])); ?>'); return false;" style="background:#2ecc71;color:#fff;padding:8px 15px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:bold;transition:0.3s;margin-right:8px;display:inline-block;" onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">💬 Diskusi</a>
+                        <a href="#" class="diskusi-btn" onclick="openCommentModal(<?= $row['id']; ?>, '<?= htmlspecialchars(addslashes($row['file_name'])); ?>'); return false;" style="background:#2ecc71;color:white;padding:10px 15px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:130px;height:45px;font-weight:bold;transition:0.3s;margin-bottom:10px;box-sizing:border-box;" onmouseover="this.style.background='#27ae60'" onmouseout="this.style.background='#2ecc71'">💬 Diskusi</a>
 
                         <?php
 
