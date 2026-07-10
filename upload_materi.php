@@ -147,10 +147,10 @@ if(isset($_POST['upload'])){
     // VALIDASI SIZE
     // =======================
 
-    $max_size = 2 * 1024 * 1024;
+    $max_size = 5 * 1024 * 1024;
 
     if($file_size > $max_size){
-        $_SESSION['upload_error'] = 'Ukuran file maksimal 2 MB!';
+        $_SESSION['upload_error'] = 'Ukuran file maksimal 5 MB!';
         header("Location: upload_materi.php" . (isset($_POST['request_id']) ? "?request_id=".$_POST['request_id'] : ""));
         exit;
 
@@ -837,7 +837,7 @@ unset($_SESSION['redirect_url']);
 
             <br>
 
-            2 MB
+            5 MB
 
         </div>
 
@@ -854,12 +854,12 @@ document
     if(this.files.length > 0){
         let file = this.files[0];
         
-        // Cek ukuran file (Maksimal 2 MB)
-        if (file.size > 2 * 1024 * 1024) {
+        // Cek ukuran file (Maksimal 5 MB)
+        if (file.size > 5 * 1024 * 1024) {
             Swal.fire({
                 icon: 'error',
                 title: 'File Terlalu Besar!',
-                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+                text: 'Ukuran maksimal adalah 5 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
             });
             this.value = ''; // Hapus file yang dipilih
             document.getElementById('file-name').innerHTML = 'Tidak ada file yang dipilih (Maks 2MB)';
@@ -881,12 +881,12 @@ document.querySelector('form').addEventListener('submit', function(e) {
     let fileInput = document.getElementById('file');
     if (fileInput.files.length > 0) {
         let file = fileInput.files[0];
-        if (file.size > 2 * 1024 * 1024) {
+        if (file.size > 5 * 1024 * 1024) {
             e.preventDefault(); // Hentikan proses upload ke server
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal Upload!',
-                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+                text: 'Ukuran maksimal adalah 5 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
             });
             return false;
         }

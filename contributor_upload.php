@@ -270,7 +270,7 @@ if(isset($_POST['upload_profile_photo'])){
         die("Error: Token keamanan (CSRF) tidak valid!");
     }
 
-    $max_size = 2 * 1024 * 1024;
+    $max_size = 5 * 1024 * 1024;
     $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
     $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -487,7 +487,7 @@ if(isset($_POST['upload'])){
 
     }
 
-    if($size > 2 * 1024 * 1024){
+    if($size > 5 * 1024 * 1024){
 
         $_SESSION['error'] =
             "Ukuran file maksimal 2MB.";
@@ -1480,12 +1480,12 @@ document
     let fileName = 'Pilih File Materi';
 
     if (this.files[0]) {
-        // Cek ukuran file (Maksimal 2 MB)
-        if (this.files[0].size > 2 * 1024 * 1024) {
+        // Cek ukuran file (Maksimal 5 MB)
+        if (this.files[0].size > 5 * 1024 * 1024) {
             Swal.fire({
                 icon: 'error',
                 title: 'File Terlalu Besar!',
-                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (this.files[0].size / (1024 * 1024)).toFixed(2) + ' MB.'
+                text: 'Ukuran maksimal adalah 5 MB. File Anda berukuran ' + (this.files[0].size / (1024 * 1024)).toFixed(2) + ' MB.'
             });
             this.value = ''; // Hapus file yang dipilih
         } else {
@@ -1504,12 +1504,12 @@ document.querySelector('form').addEventListener('submit', function(e) {
     let fileInput = document.getElementById('file');
     if (fileInput.files.length > 0) {
         let file = fileInput.files[0];
-        if (file.size > 2 * 1024 * 1024) {
+        if (file.size > 5 * 1024 * 1024) {
             e.preventDefault(); // Hentikan proses upload ke server
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal Upload!',
-                text: 'Ukuran maksimal adalah 2 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
+                text: 'Ukuran maksimal adalah 5 MB. File Anda berukuran ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB.'
             });
             return false;
         }

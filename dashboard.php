@@ -138,7 +138,7 @@ if(isset($_POST['upload_profile_photo'])){
         die("Error: Token keamanan (CSRF) tidak valid!");
     }
 
-    $max_size = 2 * 1024 * 1024;
+    $max_size = 5 * 1024 * 1024;
     $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
     $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp'];
 

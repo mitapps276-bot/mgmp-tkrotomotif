@@ -208,7 +208,7 @@ if(isset($_POST['update_landing'])){
             $err = $_FILES[$file_input_name]['error'];
             $size = $_FILES[$file_input_name]['size'];
             
-            if($err == UPLOAD_ERR_INI_SIZE || $err == UPLOAD_ERR_FORM_SIZE || $size > 2 * 1024 * 1024) {
+            if($err == UPLOAD_ERR_INI_SIZE || $err == UPLOAD_ERR_FORM_SIZE || $size > 5 * 1024 * 1024) {
                 $_SESSION['error'] = "Gagal upload $label_nama: Ukuran file terlalu besar (Maksimal 2MB)!";
                 return null;
             } elseif ($err != UPLOAD_ERR_OK) {
@@ -274,7 +274,7 @@ if(isset($_POST['tambah_galeri'])){
 
     if(isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK){
         // Validasi ukuran file
-        if ($_FILES['image']['size'] > 2 * 1024 * 1024) {
+        if ($_FILES['image']['size'] > 5 * 1024 * 1024) {
             $_SESSION['error'] = "Ukuran file galeri maksimal 2MB.";
             $_SESSION['active_tab'] = 'galeri';
             header("Location: kelola_informasi.php");
@@ -338,7 +338,7 @@ if(isset($_POST['edit_galeri'])){
     $image_sql = "";
     if(isset($_FILES['edit_image']) && $_FILES['edit_image']['error'] == UPLOAD_ERR_OK){
         // Validasi ukuran file
-        if ($_FILES['edit_image']['size'] > 2 * 1024 * 1024) {
+        if ($_FILES['edit_image']['size'] > 5 * 1024 * 1024) {
             $_SESSION['error'] = "Ukuran file galeri maksimal 2MB.";
             $_SESSION['active_tab'] = 'galeri';
             header("Location: kelola_informasi.php");
