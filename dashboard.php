@@ -2117,19 +2117,13 @@ if($total_upload_guru == 0){
                         ?>
                         <div class="active-teacher-card" style="display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
                             <div style="display:flex; gap:10px;">
-                                <div style="position:relative;" id="photo_wrapper_<?= $login['id']; ?>">
+                                <div>
                                     <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
                                         <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
                                     <?php }else{ ?>
                                         <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
                                             <?= htmlspecialchars($initial_login); ?>
                                         </div>
-                                    <?php } ?>
-                                    
-                                    <?php if(isset($unread_counts[$login['id']]) && $unread_counts[$login['id']] > 0) { ?>
-                                        <span id="badge_unread_<?= $login['id']; ?>" style="position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:50%; border:2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                            <?= $unread_counts[$login['id']] > 99 ? '99+' : $unread_counts[$login['id']]; ?>
-                                        </span>
                                     <?php } ?>
                                 </div>
                                 <div style="flex:1; min-width:0;">
@@ -2150,8 +2144,14 @@ if($total_upload_guru == 0){
                                     <?= $status_badge; ?>
                                 </div>
                                 <?php if (!$is_me) { ?>
-                                <div>
+                                <div style="position:relative;" id="chat_btn_wrapper_<?= $login['id']; ?>">
                                     <button onclick="openChatModal(<?= $login['id']; ?>, '<?= addslashes($login['full_name']); ?>')" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="font-size:14px;">💬</span> Chat</button>
+                                    
+                                    <?php if(isset($unread_counts[$login['id']]) && $unread_counts[$login['id']] > 0) { ?>
+                                        <span id="badge_unread_<?= $login['id']; ?>" style="position:absolute; top:-8px; right:-8px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:10px; border:1px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                            <?= $unread_counts[$login['id']] > 99 ? '99+' : $unread_counts[$login['id']]; ?>
+                                        </span>
+                                    <?php } ?>
                                 </div>
                                 <?php } else { ?>
                                     <div style="font-size:11px; color:#aaa;">Login: <?= $login_time; ?></div>
