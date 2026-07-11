@@ -994,7 +994,15 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
             <p>
                 Hak Akses Tertinggi Dalam Platform (SI-LIAK)
             </p>
-
+            <div style="margin-top: 15px;">
+                <form method="POST" action="reset.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="hidden" name="step" value="1">
+                    <button type="submit" style="background-color: #e74a3b; color: white; border: 1px solid #c0392b; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        RESET SISTEM
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
