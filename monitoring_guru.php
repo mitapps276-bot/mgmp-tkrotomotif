@@ -412,28 +412,57 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 
 <style>
 @media print {
-    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, .search-box, .carousel-btn, .accordion-header { display: none !important; }
+    /* Sembunyikan semua elemen UI */
+    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, form, .search-box, .carousel-btn, .accordion-header { 
+        display: none !important; 
+    }
     
-    html, body, .wrapper, .main-content, .container, .card, .accordion-card {
+    /* Reset struktur layout yang bisa merusak halaman print */
+    html, body, .wrapper, .main-content, .container, .card, .accordion-card, .accordion-body {
+        display: block !important;
         height: auto !important;
         min-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
-        display: block !important; /* Force block to fix flexbox pagination issue */
         border: none !important;
         border-radius: 0 !important;
+        box-shadow: none !important;
+        float: none !important;
+        position: static !important;
     }
     
-    .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #2c3e50; }
-    .accordion-card { box-shadow: none !important; }
+    /* Header Cetak */
+    .print-header { 
+        display: block !important; 
+        text-align: center !important; 
+        margin-bottom: 15px !important; 
+        padding-bottom: 10px !important; 
+        border-bottom: 2px solid #000 !important; 
+    }
     
-    /* Matikan flexbox carousel agar semua data ter-print ke bawah, bukan menyamping */
-    .table-carousel-list { display: block !important; overflow: visible !important; }
-    .table-carousel-item { flex: none !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
-    table { page-break-inside: auto !important; }
+    /* Perbaikan Carousel dan Tabel */
+    .carousel-wrapper { display: block !important; overflow: visible !important; height: auto !important; }
+    .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
+    .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
+    
+    /* Perbaikan Kolom Tabel Terpotong */
+    .table-responsive { overflow: visible !important; display: block !important; }
+    table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; page-break-inside: auto !important; }
     tr { page-break-inside: avoid !important; page-break-after: auto !important; }
-    /* Ensure background colors for badges print */
+    
+    /* Pengecilan Font dan Padding agar muat 10 kolom di kertas A4 */
+    th, td { 
+        font-size: 9.5pt !important; 
+        padding: 6px 4px !important; 
+        white-space: normal !important; 
+        word-wrap: break-word !important; 
+    }
+    
+    /* Sembunyikan Progress Bar untuk menghemat ruang kolom */
+    td .progress { display: none !important; }
+    td strong { font-size: 9.5pt !important; }
+    
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     @page { margin: 1cm; size: landscape; }
 }
