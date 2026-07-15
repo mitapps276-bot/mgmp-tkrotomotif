@@ -448,7 +448,8 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     .carousel-wrapper { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
-    .table-carousel-item:not(:first-child) thead { display: none !important; } /* Sembunyikan thead selain yang pertama */
+    .table-carousel-item:not(:first-child) thead { display: none !important; } /* Sembunyikan thead selain yang pertama (CSS Fallback) */
+    .hide-on-print { display: none !important; } /* Sembunyikan via PHP class */
     
     /* Perbaikan Kolom Tabel Terpotong dan Bug Header Ganda Chrome */
     .table-responsive { overflow: visible !important; display: block !important; }
@@ -1367,6 +1368,7 @@ CAROUSEL TABLE
             <div class="table-carousel-list" id="guruTableCarousel">
                 <?php
                 $no = 1;
+                $isFirstChunk = true;
                 if(count($chunks) > 0){
                     foreach($chunks as $chunk){
                 ?>
@@ -1375,7 +1377,7 @@ CAROUSEL TABLE
 
                         <table>
 
-                            <thead>
+                            <thead class="<?php echo !$isFirstChunk ? 'hide-on-print' : ''; ?>">
 
                                 <tr>
 
@@ -1632,7 +1634,11 @@ CAROUSEL TABLE
 
                     </div>
                 </div>
-                <?php } } else { ?>
+                <?php 
+                        $isFirstChunk = false;
+                    } 
+                } else { 
+                ?>
                 <div class="table-carousel-item">
                     <div class="table-responsive">
                         <table>
