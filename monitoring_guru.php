@@ -1015,48 +1015,7 @@ CAROUSEL TABLE
     .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
-/* ======================
-   PRINT STYLES
-====================== */
-@media print {
-    body {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        background: white !important;
-    }
-    .sidebar { display: none !important; }
-    .mobile-nav { display: none !important; }
-    .main-content { width: 100% !important; padding: 0 !important; margin: 0 !important; }
-    .wrapper { display: block !important; }
-    .btn-print { display: none !important; }
-    .search-box { display: none !important; }
-    .carousel-btn { display: none !important; }
-    .table-carousel-list { display: block !important; overflow: visible !important; }
-    .table-carousel-item { display: block !important; margin-bottom: 20px !important; }
-    .accordion-body { display: block !important; }
-    .accordion-header::after { display: none !important; }
-    
-    /* Memastikan tabel tampil penuh di PDF */
-    .table-container { overflow: visible !important; width: 100% !important; }
-    table { width: 100% !important; page-break-inside: auto; }
-    tr { page-break-inside: avoid; page-break-after: auto; }
-    
-    /* Membuat Grid menjadi Block agar menyusun ke bawah di kertas A4 */
-    .top-grid, .analytics-chart-wrap, .range-chart-wrap {
-        display: block !important;
-        width: 100% !important;
-    }
 
-    .card, .info-card, .formula-box, .top-card, .accordion-card, .chart-card { 
-        width: 100% !important;
-        box-shadow: none !important; 
-        border: 1px solid #ccc !important; 
-        page-break-inside: avoid; 
-        margin-bottom: 20px !important; 
-    }
-    .top-card { background: white !important; color: #2c3e50 !important; border: 2px solid #1abc9c !important; }
-    .top-card h1, .top-card p, .top-card h2 { color: #2c3e50 !important; }
-}
 
 </style>
 
