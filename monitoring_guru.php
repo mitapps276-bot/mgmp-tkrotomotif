@@ -412,10 +412,19 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 
 <style>
 @media print {
-    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, .search-box, .carousel-btn { display: none !important; }
-    .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
-    .container { padding: 10px !important; }
+    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, .search-box, .carousel-btn, .accordion-header { display: none !important; }
+    
+    html, body, .wrapper, .main-content, .container, .card, .accordion-card {
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    
+    .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #2c3e50; }
     .accordion-card { box-shadow: none !important; border: none !important; }
+    
     /* Matikan flexbox carousel agar semua data ter-print ke bawah, bukan menyamping */
     .table-carousel-list { display: block !important; overflow: visible !important; }
     .table-carousel-item { flex: none !important; width: 100% !important; margin-bottom: 20px; page-break-inside: avoid; }
@@ -423,6 +432,7 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     @page { margin: 1cm; size: landscape; }
 }
+.print-header { display: none; }
 
 body{
 
@@ -1302,6 +1312,14 @@ CAROUSEL TABLE
         </div>
         
         <div class="accordion-body" style="display: block;">
+
+        <!-- HEADER RESMI UNTUK CETAK -->
+        <div class="print-header">
+            <h2 style="margin: 0; font-size: 18pt; color: #2c3e50;">Laporan Monitoring Aktivitas Guru</h2>
+            <p style="margin: 5px 0; font-size: 12pt; color: #444;">MGMP Platform</p>
+            <p style="margin: 0; font-size: 10pt; color: #666;">Dicetak pada: <?= date('d M Y H:i') ?></p>
+        </div>
+        <!-- END HEADER RESMI -->
 
         <form method="GET">
 
