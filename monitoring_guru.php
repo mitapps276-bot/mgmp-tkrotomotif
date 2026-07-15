@@ -434,7 +434,10 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     
     /* Header Cetak */
     .print-header { 
-        display: block !important; 
+        display: flex !important; 
+        align-items: center !important; 
+        justify-content: center !important; 
+        gap: 20px !important; 
         text-align: center !important; 
         margin-bottom: 15px !important; 
         padding-bottom: 10px !important; 
@@ -1320,9 +1323,12 @@ CAROUSEL TABLE
 
         <!-- HEADER RESMI UNTUK CETAK -->
         <div class="print-header">
-            <h2 style="margin: 0; font-size: 18pt; color: #2c3e50;">Laporan Monitoring Aktivitas Guru</h2>
-            <p style="margin: 5px 0; font-size: 12pt; color: #444;">MGMP Platform</p>
-            <p style="margin: 0; font-size: 10pt; color: #666;">Dicetak pada: <?= date('d M Y H:i') ?></p>
+            <img src="assets/images/logo.png" alt="Logo Si-Liak" style="width: 80px; height: auto;">
+            <div>
+                <h2 style="margin: 0; font-size: 18pt; color: #2c3e50;">Laporan Monitoring Aktivitas Guru</h2>
+                <p style="margin: 5px 0; font-size: 12pt; color: #444;">MGMP Platform</p>
+                <p style="margin: 0; font-size: 10pt; color: #666;">Dicetak pada: <?= date('d M Y H:i') ?></p>
+            </div>
         </div>
         <!-- END HEADER RESMI -->
 
