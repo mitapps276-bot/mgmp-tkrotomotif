@@ -449,9 +449,10 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
     
-    /* Perbaikan Kolom Tabel Terpotong */
+    /* Perbaikan Kolom Tabel Terpotong dan Bug Header Ganda Chrome */
     .table-responsive { overflow: visible !important; display: block !important; }
     table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; page-break-inside: auto !important; }
+    thead { display: table-row-group !important; } /* Mencegah Chrome menduplikasi thead */
     tr { page-break-inside: avoid !important; page-break-after: auto !important; }
     
     /* Pengecilan Font dan Padding agar muat 10 kolom di kertas A4 */
