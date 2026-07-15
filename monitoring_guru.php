@@ -448,8 +448,10 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     .carousel-wrapper { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
-    .table-carousel-item:not(:first-child) thead { display: none !important; } /* Sembunyikan thead selain yang pertama (CSS Fallback) */
-    .hide-on-print { display: none !important; } /* Sembunyikan via PHP class */
+    
+    /* Tabel Utuh Khusus Cetak */
+    .print-only-table { display: block !important; page-break-inside: auto !important; margin-bottom: 20px; }
+    .print-only-table table thead { display: table-row-group !important; } /* Mencegah duplikasi Chrome */
     
     /* Perbaikan Kolom Tabel Terpotong dan Bug Header Ganda Chrome */
     .table-responsive { overflow: visible !important; display: block !important; }
@@ -1358,55 +1360,17 @@ CAROUSEL TABLE
         while($row = mysqli_fetch_assoc($monitoring)){
             $monitoring_data[] = $row;
         }
-        $chunks = array_chunk($monitoring_data, 5); // Pisahkan 5 baris per halaman
-        ?>
+        
+        // Render semua baris ke dalam array HTML terlebih dahulu
+        $row_htmls = [];
+        $no = 1;
+        foreach($monitoring_data as $row){
+            ob_start();
+            $skor = $row['skor_aktivitas'];
 
-        <div class="carousel-wrapper">
-            <button class="carousel-btn prev" onclick="scrollCarousel(-1, 'guruTableCarousel')">&#10094;</button>
-            <button class="carousel-btn next" onclick="scrollCarousel(1, 'guruTableCarousel')">&#10095;</button>
-            
-            <div class="table-carousel-list" id="guruTableCarousel">
-                <?php
-                $no = 1;
-                $isFirstChunk = true;
-                if(count($chunks) > 0){
-                    foreach($chunks as $chunk){
-                ?>
-                <div class="table-carousel-item">
-                    <div class="table-responsive">
-
-                        <table>
-
-                            <thead class="<?php echo !$isFirstChunk ? 'hide-on-print' : ''; ?>">
-
-                                <tr>
-
-                                    <th>Rank</th>
-                                    <th>Guru</th>
-                                    <th>Sekolah</th>
-                                    <th>Upload</th>
-                                    <th>Download</th>
-                                    <th>Login</th>
-                                    <th>Skor Aktivitas</th>
-                                    <th>Status</th>
-                                    <th>Rekomendasi Sistem</th>
-                                    <th>Aktivitas Terakhir</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                            <?php
-                            foreach($chunk as $row){
-
-                    $skor =
-                    $row['skor_aktivitas'];
-
-                    // =================================
-                    // STATUS GURU
-                    // =================================
+            // =================================
+            // STATUS GURU
+            // =================================
 
                     if($skor >= 50){
 
@@ -1626,19 +1590,47 @@ CAROUSEL TABLE
 
                 </tr>
 
-                <?php } ?>
+            <?php 
+                $row_htmls[] = ob_get_clean();
+            } 
+            
+            $chunks = array_chunk($row_htmls, 5); 
+            ?>
 
+        <!-- LAYAR: Carousel Table -->
+        <div class="carousel-wrapper d-print-none">
+            <button class="carousel-btn prev" onclick="scrollCarousel(-1, 'guruTableCarousel')">&#10094;</button>
+            <button class="carousel-btn next" onclick="scrollCarousel(1, 'guruTableCarousel')">&#10095;</button>
+            
+            <div class="table-carousel-list" id="guruTableCarousel">
+                <?php
+                if(count($chunks) > 0){
+                    foreach($chunks as $chunk){
+                ?>
+                <div class="table-carousel-item">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Guru</th>
+                                    <th>Sekolah</th>
+                                    <th>Upload</th>
+                                    <th>Download</th>
+                                    <th>Login</th>
+                                    <th>Skor Aktivitas</th>
+                                    <th>Status</th>
+                                    <th>Rekomendasi Sistem</th>
+                                    <th>Aktivitas Terakhir</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php echo implode('', $chunk); ?>
                             </tbody>
-
                         </table>
-
                     </div>
                 </div>
-                <?php 
-                        $isFirstChunk = false;
-                    } 
-                } else { 
-                ?>
+                <?php } } else { ?>
                 <div class="table-carousel-item">
                     <div class="table-responsive">
                         <table>
@@ -1664,6 +1656,39 @@ CAROUSEL TABLE
                     </div>
                 </div>
                 <?php } ?>
+            </div>
+        </div>
+
+        <!-- CETAK: Tabel Utuh -->
+        <div class="d-none d-print-block print-only-table">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Guru</th>
+                            <th>Sekolah</th>
+                            <th>Upload</th>
+                            <th>Download</th>
+                            <th>Login</th>
+                            <th>Skor Aktivitas</th>
+                            <th>Status</th>
+                            <th>Rekomendasi Sistem</th>
+                            <th>Aktivitas Terakhir</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        if(count($row_htmls) > 0){
+                            echo implode('', $row_htmls);
+                        } else {
+                        ?>
+                        <tr>
+                            <td colspan="10" style="text-align:center; padding:30px; color:#7f8c8d;">Tidak ada data guru yang ditemukan.</td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
             </div>
         </div>
 
