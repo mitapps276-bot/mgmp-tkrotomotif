@@ -464,7 +464,10 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     td strong { font-size: 9.5pt !important; }
     
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    @page { margin: 1cm; size: landscape; }
+    
+    /* Menghilangkan Header (Tanggal) dan Footer (URL/Halaman) bawaan Browser */
+    @page { margin: 0; size: landscape; }
+    body { padding: 1cm 1.5cm !important; }
 }
 .print-header { display: none; }
 
