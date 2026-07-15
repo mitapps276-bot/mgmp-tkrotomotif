@@ -411,13 +411,14 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* CSS Khusus Cetak Laporan (Print Layout) */
-#printArea { display: none; }
 @media print {
-    body { background: white; font-size: 12pt; }
-    .wrapper { display: none !important; }
-    #printArea { display: block !important; margin: 0; padding: 0; }
-    @page { margin: 1.5cm; }
+    .sidebar, .mobile-nav, .top-grid, .top-card, .empty-top, .formula-box, .search-box, .carousel-btn { display: none !important; }
+    .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+    .container { padding: 10px !important; }
+    .accordion-card { box-shadow: none !important; border: none !important; }
+    /* Ensure background colors for badges print */
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    @page { margin: 1cm; size: landscape; }
 }
 
 body{
@@ -1353,6 +1354,7 @@ CAROUSEL TABLE
                                     <th>Login</th>
                                     <th>Skor Aktivitas</th>
                                     <th>Status</th>
+                                    <th>Rekomendasi Sistem</th>
                                     <th>Aktivitas Terakhir</th>
 
                                 </tr>
@@ -1409,6 +1411,21 @@ CAROUSEL TABLE
                         $badge =
                         "rendah";
 
+                    }
+
+                    $up = (int)$row['total_upload'];
+                    $dl = (int)$row['total_download'];
+                    $rekom = "";
+                    if($up == 0){
+                        $rekom = "Belum pernah upload materi. Disarankan mulai berbagi.";
+                    } elseif($up <= 3){
+                        $rekom = "Aktivitas mulai berkembang. Disarankan tingkatkan upload.";
+                    } elseif($dl <= 5){
+                        $rekom = "Materi aktif diupload, tingkat download rendah.";
+                    } elseif($no <= 3){ 
+                        $rekom = "Termasuk kontributor utama. Pertahankan kualitas.";
+                    } else {
+                        $rekom = "Aktivitas sudah cukup baik. Pertahankan konsistensi.";
                     }
 
                     $persen =
@@ -1526,6 +1543,12 @@ CAROUSEL TABLE
 
                         </span>
 
+                    </td>
+
+                    <td>
+                        <small style="color:#666; font-style:italic; line-height:1.4; display:block;">
+                            <?= $rekom; ?>
+                        </small>
                     </td>
 
                     <td>
@@ -1807,58 +1830,5 @@ function handlePrintOrDownload() {
     }
 }
 </script>
-<!-- ===================================== -->
-<!-- PRINT AREA -->
-<!-- ===================================== -->
-<div id="printArea">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2>Laporan Monitoring Aktivitas Guru</h2>
-        <p>Dicetak pada: <?= date('d M Y H:i') ?></p>
-        <hr style="border:1px solid #000; margin-bottom: 15px;">
-    </div>
-    <table style="width: 100%; border-collapse: collapse; font-size: 11pt;">
-        <thead>
-            <tr>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center;">No</th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Nama Guru</th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Asal Sekolah</th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center;">Up</th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: center;">Down</th>
-                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Status Rekomendasi Sistem</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $no_print = 1;
-            foreach ($monitoring_data as $row) {
-                $up = (int)$row['total_upload'];
-                $dl = (int)$row['total_download'];
-                
-                $rekom = "";
-                if($up == 0){
-                    $rekom = "Belum pernah melakukan upload materi. Disarankan mulai berbagi materi.";
-                } elseif($up <= 3){
-                    $rekom = "Aktivitas mulai berkembang. Disarankan meningkatkan konsistensi upload.";
-                } elseif($dl <= 5){
-                    $rekom = "Materi sudah aktif diupload namun tingkat download rendah.";
-                } elseif($no_print <= 3){
-                    $rekom = "Termasuk kontributor utama. Pertahankan kualitas kontribusi.";
-                } else {
-                    $rekom = "Aktivitas sudah cukup baik. Pertahankan konsistensi.";
-                }
-            ?>
-            <tr>
-                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $no_print++ ?></td>
-                <td style="border: 1px solid #000; padding: 8px;"><?= htmlspecialchars($row['full_name']) ?></td>
-                <td style="border: 1px solid #000; padding: 8px;"><?= htmlspecialchars($row['school_name']) ?></td>
-                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $up ?></td>
-                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $dl ?></td>
-                <td style="border: 1px solid #000; padding: 8px;"><?= $rekom ?></td>
-            </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-</div>
-
 </body>
 </html>
