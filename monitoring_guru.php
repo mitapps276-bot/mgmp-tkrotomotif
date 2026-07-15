@@ -411,6 +411,14 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* CSS Khusus Cetak Laporan (Print Layout) */
+#printArea { display: none; }
+@media print {
+    body { background: white; font-size: 12pt; }
+    .wrapper { display: none !important; }
+    #printArea { display: block !important; margin: 0; padding: 0; }
+    @page { margin: 1.5cm; }
+}
 
 body{
 
@@ -1799,6 +1807,58 @@ function handlePrintOrDownload() {
     }
 }
 </script>
+<!-- ===================================== -->
+<!-- PRINT AREA -->
+<!-- ===================================== -->
+<div id="printArea">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2>Laporan Monitoring Aktivitas Guru</h2>
+        <p>Dicetak pada: <?= date('d M Y H:i') ?></p>
+        <hr style="border:1px solid #000; margin-bottom: 15px;">
+    </div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 11pt;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center;">No</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Nama Guru</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Asal Sekolah</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center;">Up</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: center;">Down</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left;">Status Rekomendasi Sistem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $no_print = 1;
+            foreach ($monitoring_data as $row) {
+                $up = (int)$row['total_upload'];
+                $dl = (int)$row['total_download'];
+                
+                $rekom = "";
+                if($up == 0){
+                    $rekom = "Belum pernah melakukan upload materi. Disarankan mulai berbagi materi.";
+                } elseif($up <= 3){
+                    $rekom = "Aktivitas mulai berkembang. Disarankan meningkatkan konsistensi upload.";
+                } elseif($dl <= 5){
+                    $rekom = "Materi sudah aktif diupload namun tingkat download rendah.";
+                } elseif($no_print <= 3){
+                    $rekom = "Termasuk kontributor utama. Pertahankan kualitas kontribusi.";
+                } else {
+                    $rekom = "Aktivitas sudah cukup baik. Pertahankan konsistensi.";
+                }
+            ?>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $no_print++ ?></td>
+                <td style="border: 1px solid #000; padding: 8px;"><?= htmlspecialchars($row['full_name']) ?></td>
+                <td style="border: 1px solid #000; padding: 8px;"><?= htmlspecialchars($row['school_name']) ?></td>
+                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $up ?></td>
+                <td style="border: 1px solid #000; padding: 8px; text-align: center;"><?= $dl ?></td>
+                <td style="border: 1px solid #000; padding: 8px;"><?= $rekom ?></td>
+            </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</div>
 
 </body>
 </html>
