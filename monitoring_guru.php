@@ -784,6 +784,15 @@ table td{
 
 }
 
+/* Rapikan kolom angka (Upload, Download, Login, Skor Aktivitas) dan Status menjadi rata tengah */
+table th:nth-child(4), table td:nth-child(4),
+table th:nth-child(5), table td:nth-child(5),
+table th:nth-child(6), table td:nth-child(6),
+table th:nth-child(7), table td:nth-child(7),
+table th:nth-child(8), table td:nth-child(8) {
+    text-align: center;
+}
+
 table tr:hover{
 
     background:#fafafa;
