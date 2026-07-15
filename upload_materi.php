@@ -4,6 +4,7 @@ session_start();
 
 include 'config/database.php';
 require_once 'config/functions.php';
+require_once 'config/telegram.php';
 
 // =======================
 // CEK LOGIN
@@ -361,41 +362,8 @@ if(isset($_POST['upload'])){
             $uploader_name = $_SESSION['name'];
             $auto_admin_note = mysqli_real_escape_string($conn, "Sistem (Otomatis): Materi yang mungkin relevan dengan request Anda telah diunggah oleh (" . $uploader_name . "). Silakan cari di menu Data Materi menggunakan kata kunci request Anda.");
             
-            // --- JARING PENANGKAP (LANGKAH 1): CATAT REQUEST YANG BERPOTENSI COCOK ---
-            $like_grade = '%' . $grade_level . '%';
-            $stmt_pre = mysqli_prepare($conn, "SELECT id FROM material_requests WHERE status != 'selesai' AND jenis_request = ? AND deskripsi LIKE ?");
-            mysqli_stmt_bind_param($stmt_pre, "ss", $category, $like_grade);
-            mysqli_stmt_execute($stmt_pre);
-            $res_pre = mysqli_stmt_get_result($stmt_pre);
-            $pending_ids = [];
-            while($row_pre = mysqli_fetch_assoc($res_pre)) {
-                $pending_ids[] = $row_pre['id'];
-            }
-            mysqli_stmt_close($stmt_pre);
-            // -------------------------------------------------------------------------
-
-            // Panggil fungsi helper dari database.php (Mini AI dibiarkan bekerja sendiri)
-            jalankanSmartMatching($conn, $title, $category, $grade_level, $auto_admin_note);
-
-            // --- JARING PENANGKAP (LANGKAH 2): TANGKAP HASIL DAN KIRIM TELEGRAM ---
-            if (!empty($pending_ids) && function_exists('notifGuruRequestTelegram')) {
-                // Ambil ID mana saja dari daftar $pending_ids yang SEKARANG statusnya jadi 'selesai'
-                $in_clause = implode(',', $pending_ids);
-                $res_post = mysqli_query($conn, "SELECT id FROM material_requests WHERE status = 'selesai' AND id IN ($in_clause)");
-                
-                if ($res_post && mysqli_num_rows($res_post) > 0) {
-                    while($row_post = mysqli_fetch_assoc($res_post)) {
-                        $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
-                        $pesan_tg .= "Halo! Sistem SI-LIAK mendeteksi materi yang relevan dengan request Anda sudah tersedia.\n\n";
-                        $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($title) . "\n";
-                        $pesan_tg .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($category) . "\n\n";
-                        $pesan_tg .= "Silakan cari dengan kata kunci request Anda di menu <b>Data Materi</b> pada platform SI-LIAK.";
-                        
-                        notifGuruRequestTelegram($conn, $row_post['id'], $pesan_tg);
-                    }
-                }
-            }
-            // -------------------------------------------------------------------------
+            // Panggil fungsi helper dari config/functions.php (Mini AI akan mengurus pencocokan & telegram)
+            jalankanSmartMatchingV2($conn, $title, $category, $grade_level, $auto_admin_note);
 
             $_SESSION['upload_success'] = 'Upload materi berhasil!';
             $_SESSION['redirect_url'] = $redirect;
@@ -459,8 +427,30 @@ unset($_SESSION['redirect_url']);
         .wrapper{ display:flex; min-height:100vh; }
         .sidebar{ width:250px; height:100vh; background:#2c3e50; position:sticky; top:0; align-self:flex-start; overflow-y:auto; flex-shrink:0; }
         .sidebar .logo{ color:white; text-align:center; padding:30px; font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); }
-        .sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
-        .sidebar .menu a:hover{ background:#34495e; }
+        .sidebar .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
         .main-content{ flex:1; min-width:0; padding-top:40px; }
 
         .box{

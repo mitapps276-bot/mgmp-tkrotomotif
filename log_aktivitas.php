@@ -45,14 +45,36 @@ $query = mysqli_query($conn, "$base_query ORDER BY waktu DESC LIMIT $limit OFFSE
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Log Aktivitas (Audit Trail)</title>
+    <title>Log Aktivitas</title>
     <style>
         body{ font-family:Arial; background:#f4f6f9; margin:0; }
         .wrapper{ display:flex; min-height:100vh; }
         .sidebar{ width:250px; height:100vh; background:#2c3e50; position:sticky; top:0; }
         .sidebar .logo{ color:white; text-align:center; padding:30px; font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); }
-        .sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
-        .sidebar .menu a:hover{ background:#34495e; }
+        .sidebar .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
         .content{ flex:1; padding:30px; }
         .card{ background:white; padding:25px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,0.05); }
         table{ width:100%; border-collapse:collapse; }
@@ -71,6 +93,20 @@ $query = mysqli_query($conn, "$base_query ORDER BY waktu DESC LIMIT $limit OFFSE
             .content{ padding:15px; }
             .card { padding: 15px; }
         }
+        @page { margin: 0; }
+        
+        @media print {
+            body { margin: 1.5cm !important; background: white !important; }
+            .sidebar { display: none !important; }
+            .content { padding: 0 !important; width: 100% !important; margin: 0 !important; }
+            .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            table { border: 1px solid #ddd; }
+            table th, table td { border: 1px solid #ddd; color: black !important; }
+            .badge { border: 1px solid #000; color: #000 !important; background: transparent !important; }
+        }
+        .print-only { display: none; }
     </style>
 </head>
 <body>
@@ -81,15 +117,31 @@ $query = mysqli_query($conn, "$base_query ORDER BY waktu DESC LIMIT $limit OFFSE
             <a href="dashboard_admin.php">Dashboard</a>
             <a href="monitoring_guru.php">Monitoring Guru</a>
             <a href="data_materi.php">Data Materi</a>
-            <a href="log_aktivitas.php" style="background:#34495e;">Log Aktivitas (Audit)</a>
+            <a href="log_aktivitas.php" style="background:#34495e;">Log Aktivitas</a>
             <a href="kelola_informasi.php">Kelola Informasi Umum</a>
             <a href="kelola_user.php">Kelola Akun</a>
             <a href="logout.php">Logout</a>
         </div>
     </div>
     <div class="content">
-        <h2 style="margin-top:0; color:#2c3e50;">Log Aktivitas & Jejak Audit Sistem</h2>
-        <p style="color:#7f8c8d; margin-top:-10px; margin-bottom:20px;">Memantau seluruh interaksi pengguna: Login, Upload, Download, dan Request.</p>
+        <?php 
+        $tz = date_default_timezone_get();
+        date_default_timezone_set('Asia/Jakarta'); 
+        $print_date = date('d/m/Y H:i'); 
+        date_default_timezone_set($tz); 
+        ?>
+        <div class="print-only" style="text-align: right; font-size: 13px; color: #555; margin-bottom: 15px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px;">
+            Dicetak pada: <strong><?= $print_date; ?> WIB</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div>
+
+                <p style="color:#7f8c8d; margin-top:0; margin-bottom:0;">Memantau seluruh interaksi pengguna: Login, Upload, Download, dan Request.</p>
+            </div>
+            <button onclick="window.print()" class="no-print" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                🖨️ Cetak Laporan
+            </button>
+        </div>
         
         <div class="card">
             <div style="overflow-x:auto;">
@@ -107,7 +159,7 @@ $query = mysqli_query($conn, "$base_query ORDER BY waktu DESC LIMIT $limit OFFSE
                     if($row['aktivitas'] == 'Request') $b_class = 'b-request';
                 ?>
                 <tr>
-                    <td style="color:#7f8c8d; font-size: 13px;"><?= date('d M Y H:i:s', strtotime($row['waktu'])); ?></td>
+                    <td style="color:#7f8c8d; font-size: 13px;"><?= date('d/m/Y H:i:s', strtotime($row['waktu'])); ?></td>
                     <td><strong><?= htmlspecialchars($row['full_name']); ?></strong><br><span style="font-size:12px; color:#7f8c8d;"><?= htmlspecialchars($row['school_name']); ?></span></td>
                     <td><span class="badge <?= $b_class; ?>"><?= $row['aktivitas']; ?></span></td>
                     <td style="color:#34495e; line-height: 1.5;"><?= htmlspecialchars($row['detail']); ?></td>
@@ -118,7 +170,7 @@ $query = mysqli_query($conn, "$base_query ORDER BY waktu DESC LIMIT $limit OFFSE
             
             <!-- PAGINATION UI -->
             <?php if($total_pages > 1): ?>
-            <div style="margin-top:25px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+            <div class="no-print" style="margin-top:25px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
                 <div style="color:#7f8c8d; font-size:14px;">
                     Menampilkan halaman <strong><?= $page; ?></strong> dari <strong><?= $total_pages; ?></strong> <br>(Total: <?= number_format($total_data); ?> riwayat aktivitas)
                 </div>

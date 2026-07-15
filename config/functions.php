@@ -10,8 +10,8 @@ if (file_exists(__DIR__ . '/telegram.php')) {
     require_once __DIR__ . '/telegram.php';
 }
 
-if (!function_exists('jalankanSmartMatching')) {
-    function jalankanSmartMatching($conn, $title, $category, $grade_level, $admin_note) {
+if (!function_exists('jalankanSmartMatchingV2')) {
+    function jalankanSmartMatchingV2($conn, $title, $category, $grade_level, $admin_note) {
         $cek_col = @mysqli_query($conn, "SHOW COLUMNS FROM material_requests LIKE 'admin_note'");
         if($cek_col && mysqli_num_rows($cek_col) == 0){
             @mysqli_query($conn, "ALTER TABLE material_requests ADD admin_note TEXT NULL");
@@ -44,7 +44,6 @@ if (!function_exists('jalankanSmartMatching')) {
                     foreach($keywords as $kw) { if(strpos($desc_lower, $kw) !== false) { $matched_count++; } }
                     
                     $pct = ($matched_count / count($keywords)) * 100;
-                    @file_put_contents(__DIR__ . '/../matching_debug.txt', "[" . date('Y-m-d H:i:s') . "] Checking Req ID: $auto_req_id. Match Pct: $pct%\n", FILE_APPEND);
 
                     // Jika kecocokan >= 60%, tandai sebagai selesai
                     if($pct >= 60) {
@@ -53,24 +52,17 @@ if (!function_exists('jalankanSmartMatching')) {
                         mysqli_stmt_execute($stmt_upd);
                         mysqli_stmt_close($stmt_upd);
 
-                        @file_put_contents(__DIR__ . '/../matching_debug.txt', "[" . date('Y-m-d H:i:s') . "] Req ID $auto_req_id updated to selesai. Checking func...\n", FILE_APPEND);
-
                         // ✅ NOTIFIKASI TELEGRAM: Kirim ke guru yang punya request ini
                         if (function_exists('notifGuruRequestTelegram')) {
-                            @file_put_contents(__DIR__ . '/../matching_debug.txt', "[" . date('Y-m-d H:i:s') . "] func exists, calling notif...\n", FILE_APPEND);
                             $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
                             $pesan_tg .= "Halo! Sistem SI-LIAK mendeteksi materi yang relevan dengan request Anda sudah tersedia.\n\n";
                             $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($title) . "\n";
                             $pesan_tg .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($category) . "\n\n";
                             $pesan_tg .= "Silakan cek di menu <b>Data Materi</b> pada platform SI-LIAK.";
                             notifGuruRequestTelegram($conn, $auto_req_id, $pesan_tg);
-                        } else {
-                            @file_put_contents(__DIR__ . '/../matching_debug.txt', "[" . date('Y-m-d H:i:s') . "] FUNC NOT FOUND!\n", FILE_APPEND);
                         }
                     }
                 }
-            } else {
-                @file_put_contents(__DIR__ . '/../matching_debug.txt', "[" . date('Y-m-d H:i:s') . "] Query 0 rows. Params: Cat: $category_safe, Like: $like_grade\n", FILE_APPEND);
             }
         }
     }

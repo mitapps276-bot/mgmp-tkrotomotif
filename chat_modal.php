@@ -1,6 +1,32 @@
 <!-- Chat Modal -->
+<style>
+    @media (max-width: 480px) {
+        #privateChatBox {
+            width: calc(100% - 40px) !important;
+            height: 80vh !important;
+            max-height: none !important;
+            border-radius: 12px !important;
+        }
+    }
+    @media (max-height: 600px) {
+        #privateChatBox {
+            height: calc(100vh - 40px) !important;
+            max-height: none !important;
+            width: 350px !important;
+            max-width: 100% !important;
+        }
+    }
+    @media (max-height: 450px) {
+        #privateChatBox {
+            height: 100vh !important;
+            width: 100vw !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
 <div id="privateChatModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:white; width:90%; max-width:500px; border-radius:16px; display:flex; flex-direction:column; max-height:85vh; box-shadow:0 15px 35px rgba(0,0,0,0.2); overflow:hidden;">
+    <div id="privateChatBox" style="background:white; width:350px; height:450px; max-width:100%; border-radius:12px; display:flex; flex-direction:column; box-shadow:0 15px 35px rgba(0,0,0,0.2); overflow:hidden;">
         <!-- Header -->
         <div style="padding:15px 20px; background:#f8f9fa; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
             <div>
@@ -8,7 +34,7 @@
                     <span style="font-size:20px;">💬</span> <span id="chatTargetName">Loading...</span>
                 </h3>
             </div>
-            <button onclick="closeChatModal()" style="background:none; border:none; font-size:24px; color:#7f8c8d; cursor:pointer; line-height:1;">&times;</button>
+            <button onclick="closeChatModal()" style="background:none !important; border:none !important; font-size:24px; color:#7f8c8d; cursor:pointer; line-height:1; width:auto !important; padding:0 !important; margin:0 !important;">&times;</button>
         </div>
         
         <!-- Body / Message List -->
@@ -18,10 +44,10 @@
         
         <!-- Footer / Input Form -->
         <div style="padding:15px 20px; background:#fff; border-top:1px solid #eee;">
-            <form id="chatForm" onsubmit="sendChatMessage(event)" style="display:flex; gap:10px;">
+            <form id="chatForm" onsubmit="sendChatMessage(event)" style="display:flex; gap:10px; margin:0; padding:0;">
                 <input type="hidden" id="chatTargetId" value="">
-                <textarea id="chatInputMessage" placeholder="Ketik pesan..." required style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:inherit; resize:none; font-size:14px; height:45px;"></textarea>
-                <button type="submit" id="btnSendChat" style="background:#2ecc71; color:white; border:none; padding:0 20px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">Kirim</button>
+                <textarea id="chatInputMessage" placeholder="Ketik pesan..." required style="flex:1; padding:12px !important; margin:0 !important; border:1px solid #ddd; border-radius:8px; font-family:inherit; resize:none; font-size:14px; height:45px; min-height:45px !important; width:auto !important;"></textarea>
+                <button type="submit" id="btnSendChat" style="background:#2ecc71 !important; color:white; border:none !important; padding:0 20px !important; margin:0 !important; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; width:auto !important; min-width:80px;">Kirim</button>
             </form>
         </div>
     </div>

@@ -591,12 +591,29 @@ while($row = mysqli_fetch_assoc($cross_school_query)){
             color:white; text-align:center; padding:30px;
             font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1);
         }
-        .sidebar .menu a{
-            display:block; color:white; text-decoration:none;
-            padding:18px 25px; transition:0.3s; font-size:16px;
+        .sidebar .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .sidebar .menu a:hover{
-            background:#34495e;
+        .sidebar .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
         }
 
         .content{

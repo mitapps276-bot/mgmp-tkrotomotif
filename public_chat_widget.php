@@ -1,3 +1,35 @@
+<style>
+    @media (max-width: 480px) {
+        #publicChatBox {
+            width: calc(100% - 40px) !important;
+            right: 20px !important;
+            height: 80vh !important;
+            bottom: 90px !important;
+        }
+        #publicChatWidgetBtn {
+            right: 20px !important;
+            bottom: 20px !important;
+        }
+    }
+    @media (max-height: 600px) {
+        #publicChatBox {
+            height: calc(100vh - 40px) !important;
+            bottom: 20px !important;
+        }
+        #publicChatWidgetBtn {
+            bottom: 20px !important;
+        }
+    }
+    @media (max-height: 450px) {
+        #publicChatBox {
+            height: 100vh !important;
+            width: 100vw !important;
+            bottom: 0 !important;
+            right: 0 !important;
+            border-radius: 0 !important;
+        }
+    }
+</style>
 <!-- Widget Tombol Floating Obrolan Publik -->
 <div id="publicChatWidgetBtn" onclick="togglePublicChat()" style="position:fixed; bottom:30px; right:30px; height:50px; padding:0 20px; background:#e67e22; border-radius:25px; box-shadow:0 4px 10px rgba(0,0,0,0.3); display:flex; justify-content:center; align-items:center; gap:10px; cursor:pointer; z-index:9998; transition:transform 0.3s;">
     <span style="font-size:22px; color:white;">📢</span>

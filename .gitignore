@@ -4,6 +4,23 @@
 /.idea/
 *.log
 
+# File konfigurasi database (mengandung password)
 config/database.php
+config/credentials.php
 
+# File konfigurasi Telegram
 config/telegram_config.php
+
+# File debug & log sensitif
+config/telegram_debug.txt
+config/telegram_broadcast_debug.txt
+config/telemetry_last_sync.txt
+config/telemetry_uuid.txt
+config/telemetry_name.txt
+ngrok_log.txt
+
+# File log error server
+error_log
+
+# Archive & zip (jangan commit file besar)
+*.zip

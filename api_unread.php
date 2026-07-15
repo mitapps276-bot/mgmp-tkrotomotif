@@ -10,6 +10,7 @@ if (!isset($_SESSION['login'])) {
 }
 
 $user_id = (int)$_SESSION['user_id'];
+@mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $user_id");
 $unread_counts = [];
 
 $cek_pm_table = @mysqli_query($conn, "SHOW TABLES LIKE 'private_messages'");

@@ -18,6 +18,9 @@ if(!isset($_SESSION['login']) || $_SESSION['role_id'] != 4){
 
 }
 
+$user_id = (int) $_SESSION['user_id'];
+@mysqli_query($conn, "UPDATE users SET last_activity = NOW() WHERE id = $user_id");
+
 // =====================================
 // CSRF TOKEN
 // =====================================
@@ -111,7 +114,7 @@ if(isset($_SESSION['error'])){
 // DATA USER LOGIN & FOTO PROFIL
 // =====================================
 
-$user_id = $_SESSION['user_id'];
+$user_id = (int) $_SESSION['user_id'];
 $nama_user = $_SESSION['name'];
 
 $upload_message = isset($_SESSION['upload_message']) ? $_SESSION['upload_message'] : "";
@@ -127,7 +130,40 @@ if($cek_photo_column && mysqli_num_rows($cek_photo_column) == 0){
     mysqli_query($conn, "ALTER TABLE users ADD profile_photo VARCHAR(255) NULL");
 }
 
-$user_query = mysqli_query($conn, "SELECT full_name, school_name, profile_photo FROM users WHERE id = '$user_id'");
+$bg_column = "dashboard_bg";
+$cek_bg_column = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE '$bg_column'");
+if($cek_bg_column && mysqli_num_rows($cek_bg_column) == 0){
+    mysqli_query($conn, "ALTER TABLE users ADD dashboard_bg VARCHAR(255) NULL");
+}
+
+// =====================================
+// SIMPAN TELEGRAM CHAT ID
+// =====================================
+if (isset($_POST['save_telegram'])) {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Error: Token keamanan (CSRF) tidak valid!");
+    }
+    
+    $tg_id = preg_replace('/[^0-9\-]/', '', $_POST['telegram_chat_id']);
+    $user_id_tg = $_SESSION['user_id'];
+    
+    $stmt_tg = mysqli_prepare($conn, "UPDATE users SET telegram_chat_id = ? WHERE id = ?");
+    mysqli_stmt_bind_param($stmt_tg, "si", $tg_id, $user_id_tg);
+    mysqli_stmt_execute($stmt_tg);
+    
+    $_SESSION['success'] = "ID Telegram berhasil disimpan. Anda akan menerima notifikasi otomatis.";
+    
+    if (!empty($tg_id)) {
+        require_once 'config/telegram.php';
+        if (function_exists('kirimTelegram')) {
+            kirimTelegram($tg_id, "Halo " . $_SESSION['name'] . "! ID Telegram Anda berhasil dihubungkan ke akun SI-LIAK Anda sebagai Kontributor.");
+        }
+    }
+    header("Location: contributor_upload.php");
+    exit;
+}
+
+$user_query = mysqli_query($conn, "SELECT full_name, school_name, profile_photo, dashboard_bg, telegram_chat_id FROM users WHERE id = '$user_id'");
 $user_data = $user_query ? mysqli_fetch_assoc($user_query) : null;
 
 if($user_data && !empty($user_data['full_name'])){
@@ -140,6 +176,12 @@ $profile_photo_path = "";
 
 if(!empty($profile_photo) && file_exists(__DIR__ . "/" . $profile_photo)){
     $profile_photo_path = $profile_photo;
+}
+
+$dashboard_bg = isset($user_data['dashboard_bg']) ? $user_data['dashboard_bg'] : "";
+$dashboard_bg_path = "assets/uploads/landing/1782051293_LIAK.jpg"; // Default
+if(!empty($dashboard_bg) && file_exists(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $dashboard_bg))){
+    $dashboard_bg_path = $dashboard_bg;
 }
 
 $profile_initial = strtoupper(substr(trim($nama_user), 0, 1));
@@ -271,8 +313,8 @@ if(isset($_POST['upload_profile_photo'])){
     }
 
     $max_size = 5 * 1024 * 1024;
-    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
-    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp'];
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'jfif'];
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpeg'];
 
     if(!isset($_FILES['profile_photo']) || $_FILES['profile_photo']['error'] == UPLOAD_ERR_NO_FILE){
         $_SESSION['upload_status'] = "error";
@@ -342,6 +384,79 @@ if(isset($_POST['upload_profile_photo'])){
     header("Location:contributor_upload.php");
     exit;
 
+}
+
+// =======================
+// UPLOAD DASHBOARD BG
+// =======================
+if(isset($_POST['upload_dashboard_bg'])){
+    if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']){
+        die("Error: Token keamanan (CSRF) tidak valid!");
+    }
+
+    $max_size = 5 * 1024 * 1024; // 5MB
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'jfif'];
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpeg'];
+
+    if(!isset($_FILES['dashboard_bg_file']) || $_FILES['dashboard_bg_file']['error'] == UPLOAD_ERR_NO_FILE){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Pilih gambar latar terlebih dahulu";
+    }elseif($_FILES['dashboard_bg_file']['error'] != UPLOAD_ERR_OK){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Upload gambar gagal";
+    }elseif($_FILES['dashboard_bg_file']['size'] > $max_size){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Ukuran gambar maksimal 5MB";
+    }else{
+        $tmp_name = $_FILES['dashboard_bg_file']['tmp_name'];
+        $extension = strtolower(pathinfo($_FILES['dashboard_bg_file']['name'], PATHINFO_EXTENSION));
+        $image_info = getimagesize($tmp_name);
+        $mime_type = isset($image_info['mime']) ? $image_info['mime'] : "";
+
+        if(!in_array($extension, $allowed_extensions) || !in_array($mime_type, $allowed_mimes)){
+            $_SESSION['upload_status'] = "error";
+            $_SESSION['upload_message'] = "Format gambar tidak didukung (Gunakan JPG, PNG, atau WEBP)";
+        }else{
+            $upload_dir = "uploads/covers";
+            $upload_path = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $upload_dir);
+
+            if(!is_dir($upload_path)){
+                mkdir($upload_path, 0777, true);
+            }
+
+            $new_file_name = "cover_" . $user_id . "_" . time() . "." . $extension;
+            $new_file = $upload_dir . "/" . $new_file_name;
+            $new_file_path = $upload_path . DIRECTORY_SEPARATOR . $new_file_name;
+
+            if(move_uploaded_file($tmp_name, $new_file_path)){
+                $safe_new_file = mysqli_real_escape_string($conn, $new_file);
+                
+                // ambil bg lama buat dihapus
+                $q_old_bg = mysqli_query($conn, "SELECT dashboard_bg FROM users WHERE id = '$user_id'");
+                $r_old_bg = mysqli_fetch_assoc($q_old_bg);
+                $old_bg = $r_old_bg['dashboard_bg'];
+
+                $update_bg = mysqli_query($conn, "UPDATE users SET dashboard_bg = '$safe_new_file' WHERE id = '$user_id'");
+
+                if($update_bg){
+                    if(!empty($old_bg) && strpos($old_bg, "uploads/covers/") === 0 && file_exists(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $old_bg))){
+                        unlink(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $old_bg));
+                    }
+                    $_SESSION['upload_status'] = "success";
+                    $_SESSION['upload_message'] = "Latar belakang berhasil diperbarui";
+                }else{
+                    if(file_exists($new_file_path)) unlink($new_file_path);
+                    $_SESSION['upload_status'] = "error";
+                    $_SESSION['upload_message'] = "Gagal menyimpan latar ke database";
+                }
+            }else{
+                $_SESSION['upload_status'] = "error";
+                $_SESSION['upload_message'] = "Gagal memindahkan file gambar";
+            }
+        }
+    }
+    header("Location:contributor_upload.php");
+    exit;
 }
 
 // =====================================
@@ -490,7 +605,7 @@ if(isset($_POST['upload'])){
     if($size > 5 * 1024 * 1024){
 
         $_SESSION['error'] =
-            "Ukuran file maksimal 2MB.";
+            "Ukuran file maksimal 5MB.";
 
         header(
             "Location: contributor_upload.php"
@@ -693,8 +808,30 @@ if(isset($_POST['upload'])){
         .wrapper{ display:flex; min-height:100vh; }
         .sidebar{ width:250px; height:100vh; background:#2c3e50; position:sticky; top:0; align-self:flex-start; overflow-y:auto; flex-shrink:0; }
         .sidebar .logo{ color:white; text-align:center; padding:30px; font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); }
-        .sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
-        .sidebar .menu a:hover{ background:#34495e; }
+        .sidebar .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
         .main-content{ flex:1; min-width:0; padding:30px; }
 
         .container{
@@ -778,9 +915,7 @@ if(isset($_POST['upload'])){
 
         }
 
-        input,
-        textarea,
-        select{
+        .form-control{
 
             width:100%;
 
@@ -843,30 +978,19 @@ if(isset($_POST['upload'])){
 
         }
 
-        button{
-
+        .btn-primary{
             width:100%;
-
             padding:15px;
-
             border:none;
-
             border-radius:8px;
-
             background:#3498db;
-
             color:white;
-
             font-size:16px;
-
             cursor:pointer;
-
         }
 
-        button:hover{
-
+        .btn-primary:hover{
             background:#2980b9;
-
         }
 
         .menu-disabled{
@@ -1136,10 +1260,12 @@ if(isset($_POST['upload'])){
             .sidebar.active { display: block; }
             .main-content{ padding:20px; }
             .container{ width:92%; }
-            .hero-top{ flex-direction:column; align-items:center; }
+            .hero-top{ flex-direction:column; align-items:center; text-align:center; }
             .hero-text { margin-bottom: 20px; text-align: center; }
+            .hero-text p { text-align: center !important; }
+            .hero-badge-container { justify-content: center !important; }
             .hero-text .badge { margin: 10px auto 0; }
-            .profile-panel{ width:200px; }
+            .profile-panel{ width:100%; max-width:200px; margin: 0 auto; }
             .sidebar .logo { display: none; }
             .request-card { flex: 0 0 calc(50% - 10px); }
         }
@@ -1150,12 +1276,18 @@ if(isset($_POST['upload'])){
 
 
         @media(max-width: 768px) {
-            .request-card { flex: 0 0 100%; }
+            .main-content { padding: 10px; }
+            .container { width: 100%; border-radius: 12px; }
+            .request-card { flex: 0 0 85%; padding: 15px; }
+            .kebutuhan-card { padding: 15px; margin-bottom: 15px; }
+            .tg-card { padding: 15px !important; flex-direction: column; text-align: center; gap: 10px !important; margin-bottom: 15px !important; }
+            .form-accordion-header { padding: 15px; }
+            .form-accordion-body { padding: 15px; }
             .carousel-btn { display: none; }
             .form-grid { grid-template-columns: 1fr; }
-            .hero { padding: 20px; }
+            .hero { padding: 20px 15px; margin-bottom: 15px; }
             .hero-text h1 { font-size: 24px; }
-            .hero-text p { font-size: 14px; text-align: justify; }
+            .hero-text p { font-size: 14px; text-align: center; }
         }
 
     </style>
@@ -1183,6 +1315,10 @@ if(isset($_POST['upload'])){
             <a href="#" class="menu-disabled">Analytics</a>
             <a href="contributor_upload.php?logout=true">Logout</a>
         </div>
+        
+        <div style="padding: 10px; margin-top: auto; text-align: center;">
+            <img src="Logo%20SI-LIAK.png" alt="Logo SI-LIAK" style="max-width: 95%; height: auto; opacity: 0.9; filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.5)); animation: spinLogo 12s linear infinite; transform-style: preserve-3d;">
+        </div>
     </div>
 
 <div class="main-content">
@@ -1192,12 +1328,13 @@ if(isset($_POST['upload'])){
     .hero-bg {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         z-index: 1;
-        background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+        background: url('<?= htmlspecialchars($dashboard_bg_path); ?>?v=<?= time(); ?>') center 25% / cover no-repeat;
         animation: waveBg 8s ease-in-out infinite alternate;
     }
     .hero-overlay {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+        background: rgba(0, 0, 0, 0.4);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         z-index: 2;
     }
     @keyframes waveBg {
@@ -1207,19 +1344,34 @@ if(isset($_POST['upload'])){
         75%  { transform: scale(1.1) translate(2%, -2%); }
         100% { transform: scale(1.1) translate(0%, 0%); }
     }
+    @keyframes spinLogo {
+        from { transform: perspective(600px) rotateY(0deg); }
+        to { transform: perspective(600px) rotateY(360deg); }
+    }
     </style>
     <div class="hero" style="position: relative; overflow: hidden; color: white;">
         <div class="hero-bg"></div>
         <div class="hero-overlay"></div>
-        <div class="hero-top" style="position: relative; z-index: 3;">
+        <div class="hero-top" style="position: relative; z-index: 3; text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">
             <div class="hero-text">
             <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
                 <p>Selamat datang, <strong><?= htmlspecialchars($nama_user); ?></strong></p>
-                <p>Terima kasih telah bergabung sebagai Kontributor Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
+                <p style="font-size: 18px; font-weight: 500; margin-top: -10px; margin-bottom: 15px; color: #3498db; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK)</p>
+                <p style="text-align: justify; max-width: 600px;">Terima kasih telah bergabung sebagai Kontributor Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
             
-            <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
-                <div class="badge" style="margin-top: 0;">External Contributor</div>
-            </div>
+                <div class="hero-badge-container" style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
+                    <div class="badge" style="margin-top: 0;">External Contributor</div>
+                </div>
+                <div class="hero-action-container" style="margin-top: 35px; position: relative; z-index: 50;">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                        <input type="hidden" name="upload_dashboard_bg" value="1">
+                        <label class="photo-button" style="margin-top: 0; background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.5); display: inline-block; width: auto; padding: 8px 15px;">
+                            🖼️ Ganti Latar
+                            <input type="file" name="dashboard_bg_file" accept="image/jpeg,image/png,image/webp,image/jfif,.jfif" required style="display:none;" onchange="if(this.files[0].size > 5242880){ Swal.fire({icon: 'error', title: 'Oops...', text: 'Ukuran gambar maksimal 5MB!'}); this.value=''; } else { this.form.submit(); }">
+                        </label>
+                    </form>
+                </div>
             </div>
             <div class="profile-panel">
                 <?php if(!empty($profile_photo_path)){ ?>
@@ -1227,20 +1379,60 @@ if(isset($_POST['upload'])){
                 <?php }else{ ?>
                     <div class="profile-initial"><?= htmlspecialchars($profile_initial); ?></div>
                 <?php } ?>
-                <form method="POST" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
-                    <input type="hidden" name="upload_profile_photo" value="1">
-                    <label class="photo-button">
-                        📸 Ganti Foto
-                        <input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp" required style="display:none;" onchange="this.form.submit()">
-                    </label>
-                </form>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                        <input type="hidden" name="upload_profile_photo" value="1">
+                        <label class="photo-button" style="margin-top: 0; display: inline-block; width: auto; padding: 8px 15px;">
+                            📸 Ganti Foto
+                            <input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp,image/jfif,.jfif" required style="display:none;" onchange="if(this.files[0].size > 2097152){ Swal.fire({icon: 'error', title: 'Oops...', text: 'Ukuran foto maksimal 2MB!'}); this.value=''; } else { this.form.submit(); }">
+                        </label>
+                    </form>
+                </div>
                 <?php if(!empty($upload_message)){ ?>
                     <div class="upload-alert <?= htmlspecialchars($upload_status); ?>">
                         <?= htmlspecialchars($upload_message); ?>
                     </div>
                 <?php } ?>
             </div>
+        </div>
+    </div>
+
+    <!-- INTEGRASI TELEGRAM -->
+    <div class="tg-card" style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; border-left: 5px solid #3498db;">
+        <div style="font-size: 40px; color: #3498db;">
+            ✈️
+        </div>
+        <div style="flex: 1;">
+            <h3 style="margin-top: 0; color: #2c3e50; font-size: 16px; margin-bottom: 5px; font-weight: bold;">Integrasi Notifikasi Telegram</h3>
+            <p style="font-size: 13px; color: #7f8c8d; margin-top: 0; margin-bottom: 12px;">Dapatkan pemberitahuan otomatis ke Telegram Anda saat materi disetujui atau ditolak oleh Admin.</p>
+            <form method="POST" style="display: flex; flex-direction: column; gap: 10px; max-width: 700px;">
+                <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                <input type="text" name="telegram_chat_id" autocomplete="off" placeholder="Masukkan ID Telegram (bisa ketik atau paste)..." value="<?= htmlspecialchars($user_data['telegram_chat_id'] ?? ''); ?>" required style="width: 350px; max-width: 100%; padding: 8px 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px;">
+                <button type="submit" name="save_telegram" style="background: #3498db; color: white; padding: 5px 12px; border: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap; width: max-content; align-self: flex-start;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">Simpan</button>
+            </form>
+            <div style="font-size: 11px; color: #95a5a6; margin-top: 8px;">
+                💡 Cara mendapatkan ID: Buka Telegram &rarr; cari <strong>@userinfobot</strong> &rarr; ketik <code>/start</code> &rarr; copy angka pada baris <strong>Id</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- AKTIVITAS PENGGUNA REAL-TIME (Untuk Chat Pribadi) -->
+    <div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 style="margin-top: 0; color: #2c3e50; font-size: 18px; margin-bottom: 5px; font-weight: bold;">Guru yang Sedang Aktif Hari Ini</h3>
+                <p style="color:#7f8c8d; font-size:14px; margin:0;">Daftar pengguna yang baru saja masuk ke platform, klik Chat untuk japri.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="carousel-btn" style="width: 35px; height: 35px; font-size: 14px; margin: 0; border: none; background: #ecf0f1; border-radius: 5px; cursor: pointer;" onclick="scrollActiveTeacher(-1)">&#10094;</button>
+                <button class="carousel-btn" style="width: 35px; height: 35px; font-size: 14px; margin: 0; border: none; background: #ecf0f1; border-radius: 5px; cursor: pointer;" onclick="scrollActiveTeacher(1)">&#10095;</button>
+            </div>
+        </div>
+        
+        <div id="activeTeacherContainer">
+            <!-- Live Update Container -->
+            <div style="width:100%; padding:20px; text-align:center; color:#7f8c8d; background:#f8f9fa; border-radius:12px; border:1px dashed #ccc;">Memuat data pengguna...</div>
         </div>
     </div>
 
@@ -1365,7 +1557,7 @@ if(isset($_POST['upload'])){
 
     <?php } ?>
 
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" autocomplete="off">
 
         <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
         <input type="hidden" name="bantu_kategori" id="bantu_kategori" value="">
@@ -1382,19 +1574,19 @@ if(isset($_POST['upload'])){
         <div class="form-grid">
             <div>
                 <label>Nama Lengkap</label>
-                <input type="text" name="name" required>
+                <input type="text" name="name" class="form-control" required>
             </div>
             <div>
                 <label>Email</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email" class="form-control" required>
             </div>
             <div>
                 <label>Sekolah / Instansi</label>
-                <input type="text" name="institution" required>
+                <input type="text" name="institution" class="form-control" required>
             </div>
             <div id="kategori_container">
                 <label>Pilih Kategori Materi</label>
-                <select name="kategori_dropdown" id="kategori_dropdown" required>
+                <select name="kategori" id="kategori_dropdown" class="form-control" required>
                     <option value="">-- Pilih Kategori --</option>
                     <option value="Materi Pembelajaran">Materi Pembelajaran</option>
                     <option value="Soal Latihan">Soal Latihan</option>
@@ -1404,7 +1596,7 @@ if(isset($_POST['upload'])){
             </div>
             <div id="kelas_container">
                 <label>Pilih Kelas</label>
-                <select name="kelas_dropdown" id="kelas_dropdown" required>
+                <select name="kelas" id="kelas_dropdown" class="form-control" required>
                     <option value="">-- Pilih Kelas --</option>
                     <option value="Kelas 10">Kelas 10</option>
                     <option value="Kelas 11">Kelas 11</option>
@@ -1414,16 +1606,12 @@ if(isset($_POST['upload'])){
             </div>
             <div style="grid-column: 1 / -1;">
             <label>Judul Materi</label>
-                <input type="text" name="title" id="input_title" required>
+                <input type="text" name="title" id="input_title" class="form-control" required>
             </div>
         </div>
 
-        <label>Deskripsi Materi</label>
-
-        <textarea
-            name="description"
-            placeholder="Tambahkan penjelasan materi..."
-        ></textarea>
+        <label>Deskripsi / Catatan Tambahan (Boleh kosong)</label>
+        <textarea name="description" class="form-control" placeholder="Tulis catatan..."></textarea>
 
         <label>Pilih File Materi</label>
 
@@ -1433,6 +1621,7 @@ if(isset($_POST['upload'])){
                 type="file"
                 name="file"
                 id="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
                 required
             >
 
@@ -1446,8 +1635,13 @@ if(isset($_POST['upload'])){
             </label>
 
         </div>
+        <div class="info" style="font-size: 13px; color: #555; background-color: #f9f9f9; padding: 10px; border-left: 4px solid #3498db; margin-top: 10px; margin-bottom: 15px;">
+            <b>Informasi Upload:</b><br>
+            Jenis file yang diizinkan: <strong>PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, ZIP, RAR</strong>.<br>
+            Ukuran file maksimal: <strong>5 MB</strong>.
+        </div>
 
-        <button type="submit" name="upload">
+        <button type="submit" name="upload" class="btn-primary">
 
             Upload Materi
 
@@ -1529,6 +1723,29 @@ function scrollTopikDiperlukan(direction) {
     const container = document.getElementById('requestCarouselTopik');
     const scrollAmount = container.clientWidth;
     container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
+function loadActiveTeachers() {
+    fetch('api_active_teachers.php?_t=' + new Date().getTime())
+    .then(response => response.text())
+    .then(html => {
+        const container = document.getElementById('activeTeacherContainer');
+        if (container && html.trim() !== '') {
+            container.innerHTML = html;
+        }
+    })
+    .catch(error => console.error('Error fetching active teachers:', error));
+}
+
+loadActiveTeachers();
+setInterval(loadActiveTeachers, 15000);
+
+function scrollActiveTeacher(direction) {
+    const container = document.getElementById('activeTeacherCarousel');
+    if (container) {
+        const scrollAmount = 335; // width of card (320) + gap (15)
+        container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
 }
 
 function bantuUpload(judul, jenis, kelas, ids) {
@@ -1637,5 +1854,19 @@ if (hamburger && sidebar) {
 
 </div>
 </div>
+    <!-- CHAT MODALS -->
+    <?php include 'chat_modal.php'; ?>
+    <?php include 'public_chat_widget.php'; ?>
+
+    <?php if(!empty($upload_message)){ ?>
+        <script>
+            Swal.fire({
+                icon: '<?= ($upload_status == "success") ? "success" : "error"; ?>',
+                title: '<?= ($upload_status == "success") ? "Berhasil!" : "Gagal!"; ?>',
+                text: '<?= addslashes($upload_message); ?>',
+                confirmButtonColor: '<?= ($upload_status == "success") ? "#2ecc71" : "#e74c3c"; ?>'
+            });
+        </script>
+    <?php } ?>
 </body>
 </html>

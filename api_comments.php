@@ -40,7 +40,7 @@ if (!isset($_SESSION['user_id'])) {
     sendJson(['status' => 'error', 'message' => 'Unauthorized']);
 }
 
-$user_id = $_SESSION['user_id'];
+$user_id = (int) $_SESSION['user_id'];
 $role_id = $_SESSION['role_id'] ?? 2;
 $method = $_SERVER['REQUEST_METHOD'];
 

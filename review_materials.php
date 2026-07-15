@@ -4,6 +4,7 @@ session_start();
 
 include 'config/database.php';
 require_once 'config/functions.php';
+require_once 'config/telegram.php';
 
 date_default_timezone_set('Asia/Makassar');
 
@@ -88,40 +89,8 @@ if(isset($_GET['approve'])){
             }
         }
         
-        // --- JARING PENANGKAP (LANGKAH 1): CATAT REQUEST YANG BERPOTENSI COCOK ---
-        $like_grade = '%' . $mat['grade_level'] . '%';
-        $stmt_pre = mysqli_prepare($conn, "SELECT id FROM material_requests WHERE status != 'selesai' AND jenis_request = ? AND deskripsi LIKE ?");
-        mysqli_stmt_bind_param($stmt_pre, "ss", $mat['category'], $like_grade);
-        mysqli_stmt_execute($stmt_pre);
-        $res_pre = mysqli_stmt_get_result($stmt_pre);
-        $pending_ids = [];
-        while($row_pre = mysqli_fetch_assoc($res_pre)) {
-            $pending_ids[] = $row_pre['id'];
-        }
-        mysqli_stmt_close($stmt_pre);
-        // -------------------------------------------------------------------------
-
         // Panggil fungsi helper dari database.php untuk mendeteksi request lain yang mirip
-        jalankanSmartMatching($conn, $mat['title'], $mat['category'], $mat['grade_level'], $admin_note);
-
-        // --- JARING PENANGKAP (LANGKAH 2): TANGKAP HASIL DAN KIRIM TELEGRAM ---
-        if (!empty($pending_ids) && function_exists('notifGuruRequestTelegram')) {
-            $in_clause = implode(',', $pending_ids);
-            $res_post = mysqli_query($conn, "SELECT id FROM material_requests WHERE status = 'selesai' AND id IN ($in_clause)");
-            
-            if ($res_post && mysqli_num_rows($res_post) > 0) {
-                while($row_post = mysqli_fetch_assoc($res_post)) {
-                    $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
-                    $pesan_tg .= "Halo! Sistem SI-LIAK mendeteksi materi yang relevan dengan request Anda sudah tersedia.\n\n";
-                    $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($mat['title']) . "\n";
-                    $pesan_tg .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($mat['category']) . "\n\n";
-                    $pesan_tg .= "Silakan cari dengan kata kunci request Anda di menu <b>Data Materi</b> pada platform SI-LIAK.";
-                    
-                    notifGuruRequestTelegram($conn, $row_post['id'], $pesan_tg);
-                }
-            }
-        }
-        // -------------------------------------------------------------------------
+        jalankanSmartMatchingV2($conn, $mat['title'], $mat['category'], $mat['grade_level'], $admin_note);
     }
 
     $_SESSION['popup_type'] = 'success';
@@ -298,8 +267,30 @@ unset($_SESSION['popup_type']);
         .wrapper{ display:flex; min-height:100vh; }
         .sidebar{ width:250px; height:100vh; background:#2c3e50; position:sticky; top:0; align-self:flex-start; overflow-y:auto; flex-shrink:0; }
         .sidebar .logo{ color:white; text-align:center; padding:30px; font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); }
-        .sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
-        .sidebar .menu a:hover{ background:#34495e; }
+        .sidebar .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
         .main-content{ flex:1; min-width:0; padding:30px; }
         
         /* ======================
@@ -329,6 +320,66 @@ unset($_SESSION['popup_type']);
             .sidebar.active { display: block; }
             .sidebar .logo { display: none; }
             .main-content{ padding:15px; } 
+        }
+
+        @media(max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid #ccc;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                overflow: hidden;
+                background: white;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            td {
+                border: none !important;
+                border-bottom: 1px solid #eee !important;
+                position: relative;
+                padding: 12px 12px 12px 40% !important;
+                text-align: right !important;
+                word-wrap: break-word;
+            }
+            td:last-child {
+                border-bottom: 0 !important;
+            }
+            td:before {
+                position: absolute;
+                top: 12px;
+                left: 12px;
+                width: 35%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+            td:nth-of-type(1):before { content: "No"; }
+            td:nth-of-type(2):before { content: "Judul"; }
+            td:nth-of-type(3):before { content: "Contributor"; }
+            td:nth-of-type(4):before { content: "Email"; }
+            td:nth-of-type(5):before { content: "Instansi"; }
+            td:nth-of-type(6):before { content: "File"; }
+            td:nth-of-type(7):before { content: "Tanggal"; }
+            td:nth-of-type(8):before { content: "Aksi"; }
+            
+            table td:nth-child(2), table td:nth-child(4), table td:nth-child(5), table td:nth-child(6) {
+                max-width: none !important;
+            }
+            .approve, .reject, .download {
+                display: block;
+                text-align: center;
+                margin-top: 5px;
+                width: 100%;
+                box-sizing: border-box;
+            }
         }
 
         h2{

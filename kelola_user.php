@@ -97,8 +97,30 @@ body{
 .wrapper{ display:flex; min-height:100vh; }
 .sidebar{ width:250px; height:100vh; background:#2c3e50; position:sticky; top:0; align-self:flex-start; overflow-y:auto; flex-shrink:0; }
 .sidebar .logo{ color:white; text-align:center; padding:30px; font-size:24px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); }
-.sidebar .menu a{ display:block; color:white; text-decoration:none; padding:18px 25px; transition:0.3s; font-size:16px; }
-.sidebar .menu a:hover{ background:#34495e; }
+.sidebar .menu {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.sidebar .menu a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    background: transparent;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    font-weight: bold;
+}
+.sidebar .menu a:hover, .sidebar .menu a[style*="background"] {
+    background: #3498db !important;
+    transform: translateX(5px);
+    border-color: #2980b9;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+}
 .main-content{ flex:1; min-width:0; padding:30px; }
 
 h2{

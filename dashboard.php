@@ -27,7 +27,7 @@ $csrf_token = $_SESSION['csrf_token'];
 // DATA USER LOGIN
 // =======================
 
-$user_id = $_SESSION['user_id'];
+$user_id = (int) $_SESSION['user_id'];
 
 // =====================================
 // UPDATE LAST ACTIVITY & AUTO-HEAL DB
@@ -87,6 +87,12 @@ if($cek_photo_column && mysqli_num_rows($cek_photo_column) == 0){
 
 }
 
+$bg_column = "dashboard_bg";
+$cek_bg_column = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE '$bg_column'");
+if($cek_bg_column && mysqli_num_rows($cek_bg_column) == 0){
+    mysqli_query($conn, "ALTER TABLE users ADD dashboard_bg VARCHAR(255) NULL");
+}
+
 $cek_photo_column = mysqli_query($conn, "
 
 SHOW COLUMNS FROM users LIKE '$photo_column'
@@ -102,7 +108,8 @@ if($has_photo_column){
 SELECT
 full_name,
 school_name,
-profile_photo
+profile_photo,
+dashboard_bg
 FROM users
 WHERE id = '$user_id'
 
@@ -115,7 +122,8 @@ WHERE id = '$user_id'
 SELECT
 full_name,
 school_name,
-'' AS profile_photo
+'' AS profile_photo,
+'' AS dashboard_bg
 FROM users
 WHERE id = '$user_id'
 
@@ -141,6 +149,12 @@ if(!empty($profile_photo) && file_exists(__DIR__ . "/" . $profile_photo)){
 
 }
 
+$dashboard_bg = isset($user_data['dashboard_bg']) ? $user_data['dashboard_bg'] : "";
+$dashboard_bg_path = "assets/uploads/landing/1782051293_LIAK.jpg"; // Default
+if(!empty($dashboard_bg) && file_exists(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $dashboard_bg))){
+    $dashboard_bg_path = $dashboard_bg;
+}
+
 $profile_initial = strtoupper(substr(trim($nama_guru), 0, 1));
 
 if(empty($profile_initial)){
@@ -156,8 +170,8 @@ if(isset($_POST['upload_profile_photo'])){
     }
 
     $max_size = 5 * 1024 * 1024;
-    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
-    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp'];
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'jfif'];
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jfif'];
 
     if(!isset($_FILES['profile_photo']) || $_FILES['profile_photo']['error'] == UPLOAD_ERR_NO_FILE){
 
@@ -261,6 +275,73 @@ if(isset($_POST['upload_profile_photo'])){
     header("Location:dashboard.php");
     exit;
 
+}
+
+// =======================
+// UPLOAD DASHBOARD BG
+// =======================
+if(isset($_POST['upload_dashboard_bg'])){
+    if(!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']){
+        die("Error: Token keamanan (CSRF) tidak valid!");
+    }
+
+    $max_size = 5 * 1024 * 1024; // 5MB
+    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp', 'jfif'];
+    $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jfif'];
+
+    if(!isset($_FILES['dashboard_bg_file']) || $_FILES['dashboard_bg_file']['error'] == UPLOAD_ERR_NO_FILE){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Pilih gambar latar terlebih dahulu";
+    }elseif($_FILES['dashboard_bg_file']['error'] != UPLOAD_ERR_OK){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Upload gambar gagal";
+    }elseif($_FILES['dashboard_bg_file']['size'] > $max_size){
+        $_SESSION['upload_status'] = "error";
+        $_SESSION['upload_message'] = "Ukuran gambar maksimal 5MB";
+    }else{
+        $tmp_name = $_FILES['dashboard_bg_file']['tmp_name'];
+        $extension = strtolower(pathinfo($_FILES['dashboard_bg_file']['name'], PATHINFO_EXTENSION));
+        $image_info = getimagesize($tmp_name);
+        $mime_type = isset($image_info['mime']) ? $image_info['mime'] : "";
+
+        if(!in_array($extension, $allowed_extensions) || !in_array($mime_type, $allowed_mimes)){
+            $_SESSION['upload_status'] = "error";
+            $_SESSION['upload_message'] = "Format gambar tidak didukung (Gunakan JPG, PNG, atau WEBP)";
+        }else{
+            $upload_dir = "uploads/covers";
+            $upload_path = __DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $upload_dir);
+
+            if(!is_dir($upload_path)){
+                mkdir($upload_path, 0777, true);
+            }
+
+            $new_file_name = "cover_" . $user_id . "_" . time() . "." . $extension;
+            $new_file = $upload_dir . "/" . $new_file_name;
+            $new_file_path = $upload_path . DIRECTORY_SEPARATOR . $new_file_name;
+
+            if(move_uploaded_file($tmp_name, $new_file_path)){
+                $safe_new_file = mysqli_real_escape_string($conn, $new_file);
+                $update_bg = mysqli_query($conn, "UPDATE users SET dashboard_bg = '$safe_new_file' WHERE id = '$user_id'");
+
+                if($update_bg){
+                    if(!empty($dashboard_bg) && strpos($dashboard_bg, "uploads/covers/") === 0 && file_exists(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $dashboard_bg))){
+                        unlink(__DIR__ . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $dashboard_bg));
+                    }
+                    $_SESSION['upload_status'] = "success";
+                    $_SESSION['upload_message'] = "Latar belakang berhasil diperbarui";
+                }else{
+                    if(file_exists($new_file_path)) unlink($new_file_path);
+                    $_SESSION['upload_status'] = "error";
+                    $_SESSION['upload_message'] = "Gagal menyimpan latar ke database";
+                }
+            }else{
+                $_SESSION['upload_status'] = "error";
+                $_SESSION['upload_message'] = "Gagal memindahkan file gambar";
+            }
+        }
+    }
+    header("Location:dashboard.php");
+    exit;
 }
 
 // =======================
@@ -897,26 +978,29 @@ if($total_upload_guru == 0){
 
         }
 
-        .menu a{
-
-            display:block;
-
-            color:white;
-
-            text-decoration:none;
-
-            padding:18px 25px;
-
-            font-size:16px;
-
-            transition:0.3s;
-
+        .menu {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-
-        .menu a:hover{
-
-            background:#1abc9c;
-
+        .menu a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            background: transparent;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .menu a:hover, .menu a[style*="background"] {
+            background: #3498db !important;
+            transform: translateX(5px);
+            border-color: #2980b9;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
         }
 
         /* ======================
@@ -1138,19 +1222,14 @@ if($total_upload_guru == 0){
         }
 
         .card{
-
-            background:white;
-
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius:20px;
-
             padding:25px;
-
-            box-shadow:
-            0px 0px 12px
-            rgba(0,0,0,0.06);
-
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-
+            box-shadow: 0px 8px 32px rgba(31, 38, 135, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
         }
 
         .card:hover{
@@ -1356,8 +1435,10 @@ if($total_upload_guru == 0){
             .sidebar{ position:static; width:100%; height:auto; display: none; }
             .sidebar.active { display: flex; }
             .grid{ grid-template-columns:1fr; }
-            .hero-top{ flex-direction:column; }
-            .profile-panel{ width:100%; }
+            .hero-top{ flex-direction:column; align-items:center; text-align:center; }
+            .profile-panel{ width:100%; max-width:200px; margin: 0 auto; }
+            .hero-text p { text-align: center !important; }
+            .hero-badge-container { justify-content: center !important; }
             .ai-header { flex-direction:column; align-items:flex-start; gap:15px; }
         }
         @media(max-width: 1024px) {
@@ -1368,7 +1449,7 @@ if($total_upload_guru == 0){
         @media(max-width: 768px) {
             .hero { padding: 20px; }
             .hero h1 { font-size: 26px; margin-bottom: 10px; }
-            .hero p { font-size: 14px; line-height: 1.5; text-align: justify; }
+            .hero p { font-size: 14px; line-height: 1.5; }
             .card { padding: 15px; } /* Kurangi padding card agar konten lega */
             .request-card {
                 flex: 0 0 85%; /* Menampilkan 85% card agar card berikutnya terlihat sedikit (ngintip) */
@@ -1731,6 +1812,8 @@ if($total_upload_guru == 0){
 
 
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -1771,6 +1854,10 @@ if($total_upload_guru == 0){
         </div>
 
         <div style="padding: 20px; margin-top: auto;">
+            <div style="margin-bottom: 25px; text-align: center;">
+                <img src="Logo%20SI-LIAK.png" alt="Logo SI-LIAK" style="max-width: 95%; height: auto; opacity: 0.9; filter: drop-shadow(0px 2px 5px rgba(0,0,0,0.5)); animation: spinLogo 12s linear infinite; transform-style: preserve-3d;">
+            </div>
+
             <div onclick="openGuruModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center; margin-bottom: 15px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
                 <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total Guru MGMP</h4>
                 <h2 style="margin: 0 0 5px 0; color: #1abc9c; font-size: 28px;"><?= $total_guru; ?></h2>
@@ -1795,12 +1882,13 @@ if($total_upload_guru == 0){
         .hero-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1;
-            background: url('assets/uploads/landing/1782051293_LIAK.jpg') center 25% / cover no-repeat;
+            background: url('<?= htmlspecialchars($dashboard_bg_path); ?>?v=<?= time(); ?>') center 25% / cover no-repeat;
             animation: waveBg 8s ease-in-out infinite alternate;
         }
         .hero-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.85), rgba(41, 128, 185, 0.85));
+            background: rgba(0, 0, 0, 0.4); /* Efek gelap tipis agar teks putih tetap terbaca */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             z-index: 2;
         }
         @keyframes waveBg {
@@ -1810,18 +1898,32 @@ if($total_upload_guru == 0){
             75%  { transform: scale(1.1) translate(2%, -2%); }
             100% { transform: scale(1.1) translate(0%, 0%); }
         }
+        @keyframes spinLogo {
+            from { transform: perspective(600px) rotateY(0deg); }
+            to { transform: perspective(600px) rotateY(360deg); }
+        }
         </style>
         <div class="hero" style="position: relative; overflow: hidden; color: white;">
             <div class="hero-bg"></div>
             <div class="hero-overlay"></div>
-            <div class="hero-top" style="position: relative; z-index: 3;">
+            <div class="hero-top" style="position: relative; z-index: 3; text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">
                 <div class="hero-text">
                 <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
                     <p>Selamat datang, <strong><?= htmlspecialchars($nama_guru); ?></strong></p>
-                    <p>Platform Kolaboratif MGMP - Sistem Informasi Learning Integration & Analitik Kinerja <span class="mobile-break"></span>(SI-LIAK) <span class="mobile-break"></span>Untuk Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
+                    <p style="text-align: justify; max-width: 600px;">Platform Kolaboratif MGMP - Sistem Informasi Learning Integration & Analitik Kinerja <span class="mobile-break"></span>(SI-LIAK) <span class="mobile-break"></span>Meningkatkan Partisipasi Guru Dalam Kolaborasi Perangkat dan Materi Pembelajaran.</p>
                 
-                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
+                <div class="hero-badge-container" style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
                     <div class="badge" style="margin-top: 0;">GURU</div>
+                </div>
+                <div class="hero-action-container" style="margin-top: 35px; position: relative; z-index: 50;">
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                        <input type="hidden" name="upload_dashboard_bg" value="1">
+                        <label class="photo-button" style="margin-top: 0; background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.5); display: inline-block; width: auto; padding: 8px 15px;">
+                            🖼️ Ganti Latar
+                            <input type="file" name="dashboard_bg_file" accept="image/jpeg,image/png,image/webp,image/jfif,.jfif" required style="display:none;" onchange="if(this.files[0].size > 5242880){ Swal.fire({icon: 'error', title: 'Oops...', text: 'Ukuran gambar maksimal 5MB!'}); this.value=''; } else { this.form.submit(); }">
+                        </label>
+                    </form>
                 </div>
                 </div>
                 <div class="profile-panel">
@@ -1830,14 +1932,16 @@ if($total_upload_guru == 0){
                     <?php }else{ ?>
                         <div class="profile-initial"><?= htmlspecialchars($profile_initial); ?></div>
                     <?php } ?>
-                    <form method="POST" enctype="multipart/form-data">
-                        <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
-                        <input type="hidden" name="upload_profile_photo" value="1">
-                        <label class="photo-button">
-                            📸 Ganti Foto
-                            <input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp" required style="display:none;" onchange="this.form.submit()">
-                        </label>
-                    </form>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <form method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="<?= $csrf_token; ?>">
+                            <input type="hidden" name="upload_profile_photo" value="1">
+                            <label class="photo-button" style="margin-top: 0; display: inline-block; width: auto; padding: 8px 15px;">
+                                📸 Ganti Foto
+                                <input type="file" name="profile_photo" accept="image/jpeg,image/png,image/webp,image/jfif,.jfif" required style="display:none;" onchange="if(this.files[0].size > 2097152){ Swal.fire({icon: 'error', title: 'Oops...', text: 'Ukuran foto maksimal 2MB!'}); this.value=''; } else { this.form.submit(); }">
+                            </label>
+                        </form>
+                    </div>
                     <?php if(!empty($upload_message)){ ?>
                         <div class="upload-alert <?= htmlspecialchars($upload_status); ?>">
                             <?= htmlspecialchars($upload_message); ?>
@@ -2081,90 +2185,16 @@ if($total_upload_guru == 0){
             <div class="accordion-body">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top:-10px; margin-bottom:20px; flex-wrap: wrap; gap: 10px;">
                     <p style="color:#7f8c8d; font-size:14px; margin:0;">Daftar guru yang baru saja masuk ke platform MGMP hari ini.</p>
-                    <?php if($recent_logins_query && mysqli_num_rows($recent_logins_query) > 2){ ?>
                     <div style="display: flex; gap: 10px;">
                         <button class="carousel-btn" style="width: 35px; height: 35px; font-size: 14px; margin: 0;" onclick="scrollActiveTeacher(-1)">&#10094;</button>
                         <button class="carousel-btn" style="width: 35px; height: 35px; font-size: 14px; margin: 0;" onclick="scrollActiveTeacher(1)">&#10095;</button>
                     </div>
-                    <?php } ?>
                 </div>
                 
-                <?php if($recent_logins_query && mysqli_num_rows($recent_logins_query) > 0){ ?>
-                <div class="active-teacher-carousel-wrapper">
-                    <div class="active-teacher-list" id="activeTeacherCarousel">
-                        <?php
-                        while($login = mysqli_fetch_assoc($recent_logins_query)){
-                            $login_time = date('H:i', strtotime($login['login_time']));
-                            $initial_login = strtoupper(substr(trim($login['full_name']), 0, 1));
-                            $photo_login = isset($login['profile_photo']) ? $login['profile_photo'] : '';
-                            $is_me = ($login['id'] == $user_id);
-                            
-                            // Menentukan Status Online/Offline (Batas 10 Menit)
-                            $is_online = false;
-                            if (isset($login['last_activity']) && !empty($login['last_activity'])) {
-                                $last_act = strtotime($login['last_activity']);
-                                $now = time();
-                                if (($now - $last_act) <= 600) { // 10 menit
-                                    $is_online = true;
-                                }
-                            }
-                            
-                            if ($is_online) {
-                                $status_badge = '<span style="background:#eafaf1; color:#27ae60; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #2ecc71;">🟢 Online</span>';
-                            } else {
-                                $status_badge = '<span style="background:#f2f3f4; color:#7f8c8d; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; border:1px solid #bdc3c7;">⚪ Offline</span>';
-                            }
-                        ?>
-                        <div class="active-teacher-card" style="display:flex; flex-direction:column; justify-content:space-between; height: 100%;">
-                            <div style="display:flex; gap:10px;">
-                                <div>
-                                    <?php if(!empty($photo_login) && file_exists(__DIR__ . "/" . $photo_login)){ ?>
-                                        <img src="<?= htmlspecialchars($photo_login); ?>" class="active-user-photo" style="width:45px; height:45px; border-radius:50%; object-fit:cover; flex-shrink:0;">
-                                    <?php }else{ ?>
-                                        <div class="active-user-photo" style="width:45px; height:45px; border-radius:50%; background:#2c3e50; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; flex-shrink:0;">
-                                            <?= htmlspecialchars($initial_login); ?>
-                                        </div>
-                                    <?php } ?>
-                                </div>
-                                <div style="flex:1; min-width:0;">
-                                    <strong style="color:#2c3e50; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        <?= htmlspecialchars($login['full_name']); ?> 
-                                        <?= $is_me ? '<span style="color:#27ae60; font-size:11px;">(Anda)</span>' : ''; ?>
-                                    </strong>
-                                    <span style="color:#7f8c8d; font-size:12px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        <?= htmlspecialchars(isset($login['school_name']) ? $login['school_name'] : '-'); ?>
-                                    </span>
-                                    <?php if($login['role_id'] == 4){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#fdf2e9; color:#e67e22; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #f39c12;">Ext. Contributor</span></div>'; } ?>
-                                    <?php if($login['role_id'] == 1){ echo '<div style="margin-top:4px;"><span style="display:inline-block; background:#ebf5ff; color:#2980b9; padding:2px 6px; border-radius:4px; font-size:10px; border:1px solid #3498db;">Admin</span></div>'; } ?>
-                                </div>
-                            </div>
-                            
-                            <div style="margin-top: 15px; display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top: 10px;">
-                                <div>
-                                    <?= $status_badge; ?>
-                                </div>
-                                <?php if (!$is_me) { ?>
-                                <div style="position:relative;" id="chat_btn_wrapper_<?= $login['id']; ?>">
-                                    <button onclick="openChatModal(<?= $login['id']; ?>, '<?= addslashes($login['full_name']); ?>')" style="background:#3498db; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;"><span style="font-size:14px;">💬</span> Chat</button>
-                                    
-                                    <?php if(isset($unread_counts[$login['id']]) && $unread_counts[$login['id']] > 0) { ?>
-                                        <span id="badge_unread_<?= $login['id']; ?>" style="position:absolute; top:-8px; right:-8px; background:#e74c3c; color:white; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:10px; border:1px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                            <?= $unread_counts[$login['id']] > 99 ? '99+' : $unread_counts[$login['id']]; ?>
-                                        </span>
-                                    <?php } ?>
-                                </div>
-                                <?php } else { ?>
-                                    <div style="font-size:11px; color:#aaa;">Login: <?= $login_time; ?></div>
-                                <?php } ?>
-                            </div>
-                        </div>
-                        <?php } ?>
-                    </div>
+                <div id="activeTeacherContainer">
+                    <!-- Live Update Container -->
+                    <div style="width:100%; padding:20px; text-align:center; color:#7f8c8d; background:#f8f9fa; border-radius:12px; border:1px dashed #ccc;">Memuat data guru...</div>
                 </div>
-                <p class="mobile-swipe-hint" style="text-align:center; font-size:12px; color:#95a5a6; margin-top:-10px; margin-bottom:0;">&larr; Geser untuk melihat yang lain &rarr;</p>
-                <?php } else { ?>
-                <div style="width:100%; padding:20px; text-align:center; color:#7f8c8d; background:#f8f9fa; border-radius:12px; border:1px dashed #ccc;">Belum ada guru yang login hari ini.</div>
-                <?php } ?>
             </div>
         </div>
 
@@ -2273,6 +2303,23 @@ if($total_upload_guru == 0){
 <script>
 function openGuruModal() { document.getElementById('guruModal').style.display = 'flex'; }
 function closeGuruModal() { document.getElementById('guruModal').style.display = 'none'; }
+
+function loadActiveTeachers() {
+    fetch('api_active_teachers.php?_t=' + new Date().getTime())
+    .then(response => response.text())
+    .then(html => {
+        const container = document.getElementById('activeTeacherContainer');
+        if (container && html.trim() !== '') {
+            container.innerHTML = html;
+        }
+    })
+    .catch(error => console.error('Error fetching active teachers:', error));
+}
+
+// Panggil saat halaman dimuat, lalu ulangi tiap 15 detik
+loadActiveTeachers();
+setInterval(loadActiveTeachers, 15000);
+
 function openExternalModal() { document.getElementById('externalModal').style.display = 'flex'; }
 function closeExternalModal() { document.getElementById('externalModal').style.display = 'none'; }
 window.onclick = function(e) { 
@@ -2387,6 +2434,16 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Public Chat Widget -->
     <?php include 'public_chat_widget.php'; ?>
 
+    <?php if(!empty($upload_message)){ ?>
+        <script>
+            Swal.fire({
+                icon: '<?= ($upload_status == "success") ? "success" : "error"; ?>',
+                title: '<?= ($upload_status == "success") ? "Berhasil!" : "Gagal!"; ?>',
+                text: '<?= addslashes($upload_message); ?>',
+                confirmButtonColor: '<?= ($upload_status == "success") ? "#2ecc71" : "#e74c3c"; ?>'
+            });
+        </script>
+    <?php } ?>
 </body>
 </html>
 

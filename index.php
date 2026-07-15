@@ -220,6 +220,10 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         }
         .navbar .logo { 
             text-decoration: none; display: flex; align-items: center; gap: 15px; 
+            transition: all 0.3s ease; padding: 5px 15px; border-radius: 12px;
+        }
+        .navbar .logo:hover {
+            transform: translateX(5px); background: rgba(52, 152, 219, 0.1);
         }
         .logo-icon {
             background: var(--primary);
@@ -229,13 +233,27 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
             font-size: 20px; font-weight: bold; font-family: var(--font-heading);
             border-radius: 4px;
         }
-        .logo-text h2 { font-size: 22px; color: var(--primary); margin: 0; line-height: 1; }
+        .logo-text h2 { font-size: 22px; color: var(--primary); margin: 0; line-height: 1; transition: 0.3s; }
         .logo-text span { font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-body); }
         
-        .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 14px; transition: 0.3s; text-transform: uppercase; letter-spacing: 0.5px;}
-        .nav-links a:hover { color: var(--primary); }
-        .nav-links a.active { color: var(--primary); border-bottom: 2px solid var(--secondary); padding-bottom: 5px; }
+        .nav-links { display: flex; gap: 10px; align-items: center; }
+        .nav-links a { 
+            text-decoration: none; color: var(--text-dark); font-weight: 700; font-size: 14px; 
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 10px 18px; border-radius: 12px; background: transparent;
+        }
+        .nav-links a:hover { 
+            color: white !important; 
+            background: #3498db !important; 
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        .nav-links a.active { 
+            color: white !important; 
+            background: var(--primary) !important; 
+            border-bottom: none; 
+            box-shadow: 0 4px 15px rgba(0, 51, 102, 0.3);
+        }
         
         /* ========================
            SECTIONS UMUM
@@ -419,19 +437,35 @@ if($cek_landing && mysqli_num_rows($cek_landing) > 0){
         @media (max-width: 992px) {
             .about-wrapper { flex-direction: column; }
             .about-image::after { display: none; }
-            .features-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
             .footer-grid { grid-template-columns: 1fr; }
             #beranda { padding-top: 120px; }
-            #beranda h1 { font-size: 40px; }
+            #beranda h1 { font-size: 42px; }
             .top-bar { flex-direction: column; gap: 10px; text-align: center; }
-            .about-image img { height: 300px; }
+            .about-image img { height: 350px; }
         }
         @media (max-width: 768px) {
-        .navbar { flex-direction: column; gap: 15px; padding: 20px; align-items: center; text-align: center; }
-        .nav-links { flex-wrap: wrap; justify-content: center; gap: 15px; }
-            .btn-outline { margin-left: 0; margin-top: 15px; display: block; text-align: center; }
-            .btn-primary { display: block; text-align: center; }
-            .section-container { padding: 60px 5%; }
+            .navbar { flex-direction: column; gap: 12px; padding: 15px; align-items: center; text-align: center; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 8px; }
+            .nav-links a { padding: 8px 12px; font-size: 13px; }
+            #beranda { padding-top: 140px; padding-bottom: 60px; }
+            #beranda h1 { font-size: 32px; margin-bottom: 15px; }
+            #beranda p { font-size: 15px; margin-bottom: 25px; padding: 0 10px; }
+            .btn-primary, .btn-outline { display: block; text-align: center; width: 100%; max-width: 300px; margin: 10px auto; padding: 14px 20px; }
+            .btn-outline { margin-left: auto; margin-right: auto; }
+            .features-grid { grid-template-columns: 1fr; gap: 20px; }
+            .section-container { padding: 50px 5%; }
+            .section-title { font-size: 24px; }
+            .about-text .section-title { font-size: 26px; }
+            .about-image img { height: 250px; min-height: 250px; }
+            .login-form-container { padding: 30px 20px; }
+        }
+        @media (max-width: 480px) {
+            #beranda h1 { font-size: 28px; }
+            .nav-links { gap: 5px; }
+            .nav-links a { padding: 6px 10px; font-size: 12px; }
+            .logo-text h2 { font-size: 18px; }
+            .logo-icon { width: 35px; height: 35px; font-size: 16px; }
         }
     </style>
 </head>
