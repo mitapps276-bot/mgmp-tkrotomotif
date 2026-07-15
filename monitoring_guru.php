@@ -412,10 +412,13 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 
 <style>
 @media print {
-    .sidebar, .mobile-nav, .top-grid, .top-card, .empty-top, .formula-box, .search-box, .carousel-btn { display: none !important; }
+    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, .search-box, .carousel-btn { display: none !important; }
     .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
     .container { padding: 10px !important; }
     .accordion-card { box-shadow: none !important; border: none !important; }
+    /* Matikan flexbox carousel agar semua data ter-print ke bawah, bukan menyamping */
+    .table-carousel-list { display: block !important; overflow: visible !important; }
+    .table-carousel-item { flex: none !important; width: 100% !important; margin-bottom: 20px; page-break-inside: avoid; }
     /* Ensure background colors for badges print */
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     @page { margin: 1cm; size: landscape; }
