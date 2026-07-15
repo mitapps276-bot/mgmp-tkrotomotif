@@ -1514,7 +1514,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
                 <select name="target_audience" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px;">
                     <option value="all" <?= $current_target == 'all' ? 'selected' : ''; ?>>Semua Pengguna (Guru & Kontributor)</option>
                     <option value="guru" <?= $current_target == 'guru' ? 'selected' : ''; ?>>Hanya Guru</option>
-                    <option value="external" <?= $current_target == 'external' ? 'selected' : ''; ?>>Hanya Kontributor Eksternal</option>
+                    <option value="external" <?= $current_target == 'external' ? 'selected' : ''; ?>>Hanya Kolaborator Eksternal</option>
                 </select>
             </div>
 

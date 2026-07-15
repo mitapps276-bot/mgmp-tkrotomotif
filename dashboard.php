@@ -455,7 +455,7 @@ if(isset($_POST['submit_request'])){
                 $nama_folder = ($folder_query && mysqli_num_rows($folder_query) > 0) ? mysqli_fetch_assoc($folder_query)['folder_name'] : 'Materi';
                 $lokasi_teks = "berada di dalam folder \"$nama_folder\"";
             } else {
-                $lokasi_teks = "berada di dalam folder \"Kontributor External\"";
+                $lokasi_teks = "berada di dalam folder \"Kolaborator External\"";
             }
             
             $status_request = 'selesai';

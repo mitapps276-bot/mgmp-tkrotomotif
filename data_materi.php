@@ -986,7 +986,7 @@ while($folder = mysqli_fetch_assoc($folder_query)){
 <?php } ?>
 
 <!-- =====================================
-KONTRIBUTOR EXTERNAL
+Kolaborator External
 ===================================== -->
 
 <?php
@@ -1021,7 +1021,7 @@ if($show_external) {
 
     <div class="accordion-header">
 
-        <span>🌐 Kontributor External</span>
+        <span>🌐 Kolaborator External</span>
 
     </div>
 
@@ -1202,7 +1202,7 @@ if($show_external) {
 
                 <h3>
 
-                    Belum Ada Kontributor External
+                    Belum Ada Kolaborator External
 
                 </h3>
 

@@ -206,7 +206,7 @@ echo "
         </tr>
     </table>
 
-    <h2>MODUL 5: KONTRIBUTOR EKSTERNAL & VERIFIKASI ADMIN</h2>
+    <h2>MODUL 5: Kolaborator Eksternal & VERIFIKASI ADMIN</h2>
     
     <table>
         <tr>
@@ -227,7 +227,7 @@ echo "
             <td>EXT-02</td>
             <td>Verifikasi Admin (Approve)</td>
             <td>1. Login Admin > Review Contributor.<br>2. Klik 'Approve' pada materi di atas.</td>
-            <td>Status berubah menjadi 'Approved'. Materi kini muncul di folder 'Kontributor External' pada menu Data Materi publik.</td>
+            <td>Status berubah menjadi 'Approved'. Materi kini muncul di folder 'Kolaborator External' pada menu Data Materi publik.</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
         <tr>

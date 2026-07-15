@@ -66,7 +66,7 @@ if(isset($_GET['approve'])){
     if($cek_mat && mysqli_num_rows($cek_mat) > 0) {
         $mat = mysqli_fetch_assoc($cek_mat);
         
-        $admin_note = mysqli_real_escape_string($conn, "Materi dibantu upload oleh Kontributor External (" . $mat['contributor_name'] . ") melalui verifikasi Administrator. Silakan cek di menu Data Materi.");
+        $admin_note = mysqli_real_escape_string($conn, "Materi dibantu upload oleh Kolaborator External (" . $mat['contributor_name'] . ") melalui verifikasi Administrator. Silakan cek di menu Data Materi.");
         
         if (!empty($mat['fulfilled_request_ids'])) {
             $req_ids = mysqli_real_escape_string($conn, $mat['fulfilled_request_ids']);
@@ -81,7 +81,7 @@ if(isset($_GET['approve'])){
                         $pesan_tg = "🔔 <b>SI-LIAK Notifikasi</b>\n\n";
                         $pesan_tg .= "Halo! Kabar baik, request materi Anda telah dipenuhi!\n\n";
                         $pesan_tg .= "📚 <b>Judul Materi:</b> " . htmlspecialchars($mat['title']) . "\n";
-                        $pesan_tg .= "👤 <b>Dibantu Upload Oleh:</b> " . htmlspecialchars($mat['contributor_name']) . " (Kontributor External)\n\n";
+                        $pesan_tg .= "👤 <b>Dibantu Upload Oleh:</b> " . htmlspecialchars($mat['contributor_name']) . " (Kolaborator External)\n\n";
                         $pesan_tg .= "Silakan cek di menu <b>Data Materi</b> pada platform SI-LIAK.";
                         notifGuruRequestTelegram($conn, $req_id, $pesan_tg);
                     }
@@ -115,7 +115,7 @@ if(isset($_GET['approve'])){
     $asal_instansi = !empty($instansi) ? " dari " . $instansi : "";
     $tgl_sekarang = date('Y-m-d H:i:s');
 
-    $sql_announce = "INSERT INTO announcements (pesan, tanggal) VALUES (CONCAT('[INFO MATERI BARU]', CHAR(10), CHAR(10), 'Telah ditambahkan materi baru berjudul \'', '$judul_materi', '\' karya Bpk/Ibu ', '$kontributor', '$asal_instansi', ' (Kontributor Eksternal). Silakan cek dan unduh di menu Data Materi!'), '$tgl_sekarang')";
+    $sql_announce = "INSERT INTO announcements (pesan, tanggal) VALUES (CONCAT('[INFO MATERI BARU]', CHAR(10), CHAR(10), 'Telah ditambahkan materi baru berjudul \'', '$judul_materi', '\' karya Bpk/Ibu ', '$kontributor', '$asal_instansi', ' (Kolaborator Eksternal). Silakan cek dan unduh di menu Data Materi!'), '$tgl_sekarang')";
     mysqli_query($conn, $sql_announce);
 
     // Otomatis membersihkan teks \r\n dari pengumuman lama yang sempat error
@@ -538,9 +538,9 @@ unset($_SESSION['popup_type']);
 
 <div class="main-content">
     <div class="page-header" style="margin-bottom: 25px;">
-        <h1 style="margin: 0; font-size: 26px; color: #2c3e50;">Review Kontributor Eksternal</h1>
+        <h1 style="margin: 0; font-size: 26px; color: #2c3e50;">Review Kolaborator Eksternal</h1>
         <div style="color: #7f8c8d; font-size: 14px; margin-top: 5px;">
-            Verifikasi dan evaluasi materi yang dikirimkan oleh kontributor eksternal sebelum diterbitkan.
+            Verifikasi dan evaluasi materi yang dikirimkan oleh Kolaborator Eksternal sebelum diterbitkan.
         </div>
     </div>
 <div style="overflow-x:auto;">

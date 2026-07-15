@@ -747,7 +747,7 @@ if(isset($_POST['upload'])){
         // ✅ NOTIFIKASI TELEGRAM KE ADMIN (MATERI PENDING BARU)
         if (function_exists('notifAdminNewRequestTelegram')) {
             $pesan_admin = "📥 <b>MATERI BARU (PENDING REVIEW)</b>\n\n";
-            $pesan_admin .= "Halo Admin! Ada materi baru dari Kontributor Eksternal yang menunggu verifikasi Anda.\n\n";
+            $pesan_admin .= "Halo Admin! Ada materi baru dari Kolaborator Eksternal yang menunggu verifikasi Anda.\n\n";
             $pesan_admin .= "👤 <b>Pengunggah:</b> " . htmlspecialchars($name) . " (" . htmlspecialchars($institution) . ")\n";
             $pesan_admin .= "📚 <b>Judul:</b> " . htmlspecialchars($title) . "\n";
             $pesan_admin .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($category) . "\n\n";
@@ -1357,7 +1357,7 @@ if(isset($_POST['upload'])){
             <h1 style="margin:0; margin-bottom:15px; color: white;">OM SWASTYASTU 🙏</h1>
                 <p>Selamat datang, <strong><?= htmlspecialchars($nama_user); ?></strong></p>
                 <p style="font-size: 18px; font-weight: 500; margin-top: -10px; margin-bottom: 15px; color: #3498db; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">Sistem Informasi Learning Integration & Analitik Kinerja (SI-LIAK)</p>
-                <p style="text-align: justify; max-width: 600px;">Terima kasih telah bergabung sebagai Kontributor Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
+                <p style="text-align: justify; max-width: 600px;">Terima kasih telah bergabung sebagai Kolaborator Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
             
                 <div class="hero-badge-container" style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
                     <div class="badge" style="margin-top: 0;">External Contributor</div>
@@ -1541,8 +1541,8 @@ if(isset($_POST['upload'])){
 
     <div class="subtitle">
 
-       File Yang Dikirim Kontributor External
-       Akan Diseleksi Oleh Administrator Sebelum Diunggah Di Data Materi Dan Kontributor Eksternal Dapat Upload
+       File Yang Dikirim Kolaborator External
+       Akan Diseleksi Oleh Administrator Sebelum Diunggah Di Data Materi Dan Kolaborator Eksternal Dapat Upload
         Dan Download Materi MGMP.
 
     </div>
