@@ -46,7 +46,7 @@ echo "
             <td>AUTH-01</td>
             <td>Login Valid</td>
             <td>1. Akses halaman index.php<br>2. Masukkan Username dan Password valid<br>3. Klik Login</td>
-            <td>Sistem mengarahkan pengguna ke halaman Dashboard yang sesuai dengan Role-nya (Admin/Guru/Contributor).</td>
+            <td>Sistem mengarahkan pengguna ke halaman Dashboard yang sesuai dengan Role-nya (Admin/Guru/Kolaborator).</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
         <tr>
@@ -194,7 +194,7 @@ echo "
             <td>ANL-04</td>
             <td>Intelligent Analytics (Status Guru)</td>
             <td>1. Buka dashboard guru.<br>2. Cek kotak 'Intelligent Analytics' di bagian bawah.</td>
-            <td>Sistem memberikan diagnosis AI (cth: 'Mulai Berkembang' / 'Top Contributor') beserta rekomendasi teks yang sesuai dengan rasio poin guru tersebut.</td>
+            <td>Sistem memberikan diagnosis AI (cth: 'Mulai Berkembang' / 'Top Kolaborator') beserta rekomendasi teks yang sesuai dengan rasio poin guru tersebut.</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
         <tr>

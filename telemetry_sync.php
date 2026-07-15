@@ -93,7 +93,7 @@ $cs_query = mysqli_query($conn, "
         uploader_user.school_name AS uploader_school,
         CASE 
             WHEN downloader_user.id IS NULL THEN 'Guest/Sistem'
-            WHEN downloader_user.role_id = 4 THEN 'Contributor External'
+            WHEN downloader_user.role_id = 4 THEN 'Kolaborator Eksternal'
             ELSE COALESCE(NULLIF(downloader_user.school_name, ''), 'Sekolah belum diisi')
         END AS downloader_school,
         COUNT(downloads.id) AS total_interaction
@@ -114,7 +114,7 @@ if ($cs_query) {
         
         if ($d_school === $u_school) {
             $total_internal += $count;
-        } elseif ($d_school === 'Guest/Sistem' || $d_school === 'Contributor External') {
+        } elseif ($d_school === 'Guest/Sistem' || $d_school === 'Kolaborator Eksternal') {
             $total_ekspor += $count;
         } else {
             // Jika beda sekolah (A diunduh B -> A ekspor, B impor)

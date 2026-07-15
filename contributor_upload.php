@@ -1533,7 +1533,7 @@ if(isset($_POST['upload'])){
 <div class="container" id="form-upload-card" style="overflow:hidden;">
 
     <div class="form-accordion-header <?= ($message != '') ? 'active' : '' ?>" id="form-upload-header" onclick="toggleFormAccordion()">
-        <h2>Upload Materi Contributor</h2>
+        <h2>Upload Materi Kolaborator</h2>
         <span class="icon">▼</span>
     </div>
 

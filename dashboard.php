@@ -907,7 +907,7 @@ if($total_upload_guru == 0){
 
 }elseif($ranking_user <= 3){
 
-    $status_ai = "Top Contributor";
+    $status_ai = "Top Kolaborator";
     $warna_ai = "#27ae60";
 
     $rekomendasi = "
