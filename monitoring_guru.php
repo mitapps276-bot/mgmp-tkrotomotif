@@ -411,9 +411,12 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* Tabel khusus cetak disembunyikan di layar */
+.print-only-table { display: none; }
+
 @media print {
     /* Sembunyikan semua elemen UI */
-    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, form, .search-box, .carousel-btn, .accordion-header { 
+    .sidebar, .mobile-nav, .page-header, .subtitle, .top-grid, .info-card, .top-card, .empty-top, .formula-box, .system-status, form, .search-box, .carousel-btn, .accordion-header, .carousel-wrapper { 
         display: none !important; 
     }
     
@@ -445,7 +448,6 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     }
     
     /* Perbaikan Carousel dan Tabel */
-    .carousel-wrapper { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
     
