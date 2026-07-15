@@ -420,14 +420,19 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
         margin: 0 !important;
         padding: 0 !important;
         background: transparent !important;
+        display: block !important; /* Force block to fix flexbox pagination issue */
+        border: none !important;
+        border-radius: 0 !important;
     }
     
     .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #2c3e50; }
-    .accordion-card { box-shadow: none !important; border: none !important; }
+    .accordion-card { box-shadow: none !important; }
     
     /* Matikan flexbox carousel agar semua data ter-print ke bawah, bukan menyamping */
     .table-carousel-list { display: block !important; overflow: visible !important; }
-    .table-carousel-item { flex: none !important; width: 100% !important; margin-bottom: 20px; page-break-inside: avoid; }
+    .table-carousel-item { flex: none !important; width: 100% !important; margin-bottom: 0 !important; page-break-inside: auto !important; }
+    table { page-break-inside: auto !important; }
+    tr { page-break-inside: avoid !important; page-break-after: auto !important; }
     /* Ensure background colors for badges print */
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     @page { margin: 1cm; size: landscape; }
