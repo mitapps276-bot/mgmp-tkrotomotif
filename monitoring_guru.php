@@ -447,11 +447,12 @@ $top_guru_data = mysqli_fetch_assoc($top_guru);
     /* Perbaikan Carousel dan Tabel */
     .carousel-wrapper { display: block !important; overflow: visible !important; height: auto !important; }
     .table-carousel-list { display: block !important; overflow: visible !important; height: auto !important; }
-    .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 20px !important; page-break-inside: avoid !important; }
+    .table-carousel-item { flex: none !important; display: block !important; width: 100% !important; margin-bottom: 20px !important; page-break-inside: auto !important; }
     
     /* Perbaikan Kolom Tabel Terpotong dan Bug Header Ganda Chrome */
     .table-responsive { overflow: visible !important; display: block !important; }
     table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; page-break-inside: auto !important; }
+    table thead { display: table-row-group !important; } /* Mencegah Chrome menduplikasi thead */
     tr { page-break-inside: avoid !important; page-break-after: auto !important; }
     
     /* Pengecilan Font dan Padding agar muat 10 kolom di kertas A4 */
