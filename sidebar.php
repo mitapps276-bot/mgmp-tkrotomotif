@@ -7,7 +7,7 @@ $is_external = ($sidebar_role == 4);
 ?>
 <div class="sidebar">
     <div class="logo">
-        <?= ($is_admin) ? 'ADMIN PANEL' : (($is_external) ? 'External Contributor' : 'MGMP PLATFORM'); ?>
+        <?= ($is_admin) ? 'ADMIN PANEL' : (($is_external) ? 'External Kolaborator' : 'MGMP PLATFORM'); ?>
     </div>
     <div class="menu">
         <?php if($is_admin){ ?>
@@ -15,7 +15,7 @@ $is_external = ($sidebar_role == 4);
             <a href="monitoring_guru.php">Monitoring Guru</a>
             <a href="data_materi.php">Data Materi</a>
             <a href="upload_materi.php">Upload Materi</a>
-            <a href="review_materials.php">Review Contributor</a>
+            <a href="review_materials.php">Review Kolaborator</a>
             <a href="kelola_request.php">Request Materi Guru</a>
             <a href="analytics.php">Analytics</a>
             <a href="kelola_informasi.php">Kelola Informasi Umum</a>
@@ -55,7 +55,7 @@ $is_external = ($sidebar_role == 4);
             <p style="margin: 0; font-size: 11px; color: #7f8c8d;">Klik untuk melihat detail</p>
         </div>
         <div onclick="openExternalModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-            <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total External Contributor</h4>
+            <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total External Kolaborator</h4>
             <h2 style="margin: 0 0 5px 0; color: #f39c12; font-size: 28px;"><?= $te; ?></h2>
             <p style="margin: 0; font-size: 11px; color: #7f8c8d;">Klik untuk melihat detail</p>
         </div>

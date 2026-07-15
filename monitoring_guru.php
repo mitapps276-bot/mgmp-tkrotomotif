@@ -1062,7 +1062,7 @@ CAROUSEL TABLE
                 <a href="monitoring_guru.php">Monitoring Guru</a>
                 <a href="data_materi.php">Data Materi</a>
                 <a href="upload_materi.php">Upload Materi</a>
-                <a href="review_materials.php">Review Contributor</a>
+                <a href="review_materials.php">Review Kolaborator</a>
                 <a href="kelola_request.php">Request Materi</a>
                 <a href="analytics.php">Analytics</a>
                 <a href="kelola_user.php">Kelola Akun</a>
@@ -1424,7 +1424,7 @@ CAROUSEL TABLE
                     } elseif($dl <= 5){
                         $rekom = "Materi aktif diupload, tingkat download rendah.";
                     } elseif($no <= 3){ 
-                        $rekom = "Termasuk kontributor utama. Pertahankan kualitas.";
+                        $rekom = "Termasuk kolaborator utama. Pertahankan kualitas.";
                     } else {
                         $rekom = "Aktivitas sudah cukup baik. Pertahankan konsistensi.";
                     }

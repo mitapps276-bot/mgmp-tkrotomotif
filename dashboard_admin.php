@@ -491,7 +491,7 @@ $list_download_query = mysqli_query($conn, "
 ");
 
 // =====================================
-// DATA UNTUK MODAL EXTERNAL CONTRIBUTOR
+// DATA UNTUK MODAL External Kolaborator
 // =====================================
 $list_external_query = mysqli_query($conn, "
     SELECT full_name AS contributor_name, school_name AS contributor_institution
@@ -534,7 +534,7 @@ mysqli_fetch_assoc(
 )['total_download'];
 
 // =====================================
-// TOTAL EXTERNAL CONTRIBUTOR
+// TOTAL External Kolaborator
 // =====================================
 
 $total_contributor_query = mysqli_query($conn, "
@@ -1130,7 +1130,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
         </a>
 
         <a href="review_materials.php">
-            Review Contributor
+            Review Kolaborator
             <?php if($total_pending > 0){ ?>
                 <span style="background:#e74c3c; color:white; padding:3px 8px; border-radius:12px; font-size:12px; margin-left:5px; font-weight:bold; float:right;">
                     <?= $total_pending; ?>
@@ -1397,7 +1397,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
 
         <div class="card clickable-card" onclick="openPendingExtModal()">
 
-            <h3>Pending Review External Contributor</h3>
+            <h3>Pending Review External Kolaborator</h3>
 
             <h1>
 
@@ -1425,7 +1425,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
 
             <div class="card clickable-card" onclick="openExternalModal()">
 
-                <h3>Total External Contributor</h3>
+                <h3>Total External Kolaborator</h3>
 
                 <h1>
 
@@ -1512,7 +1512,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #2c3e50; font-weight: bold;">Target Pengumuman:</label>
                 <select name="target_audience" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px;">
-                    <option value="all" <?= $current_target == 'all' ? 'selected' : ''; ?>>Semua Pengguna (Guru & Kontributor)</option>
+                    <option value="all" <?= $current_target == 'all' ? 'selected' : ''; ?>>Semua Pengguna (Guru & Kolaborator)</option>
                     <option value="guru" <?= $current_target == 'guru' ? 'selected' : ''; ?>>Hanya Guru</option>
                     <option value="external" <?= $current_target == 'external' ? 'selected' : ''; ?>>Hanya Kolaborator Eksternal</option>
                 </select>
@@ -1713,18 +1713,18 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
     </div>
 </div>
 
-<!-- Modal External Contributor -->
+<!-- Modal External Kolaborator -->
 <div id="externalModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Daftar Akun External Contributor</h3>
+            <h3>Daftar Akun External Kolaborator</h3>
             <button class="close-btn" onclick="closeExternalModal()">&times;</button>
         </div>
         <div class="modal-body">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead style="position: sticky; top: 0; background: #ecf0f1; z-index: 1;">
                     <tr>
-                        <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kontributor</th>
+                        <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kolaborator</th>
                         <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Institusi</th>
                     </tr>
                 </thead>
@@ -1738,7 +1738,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
                     </tr>
                     <?php } } else { ?>
                     <tr>
-                        <td colspan="2" style="padding: 30px; text-align: center; color: #7f8c8d;">Belum ada akun external contributor terdaftar.</td>
+                        <td colspan="2" style="padding: 30px; text-align: center; color: #7f8c8d;">Belum ada akun External Kolaborator terdaftar.</td>
                     </tr>
                     <?php } ?>
                 </tbody>
@@ -1751,7 +1751,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
 <div id="pendingExtModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Pending Review External Contributor</h3>
+            <h3>Pending Review External Kolaborator</h3>
             <button class="close-btn" onclick="closePendingExtModal()">&times;</button>
         </div>
         <div class="modal-body">
@@ -1759,7 +1759,7 @@ if ($cek_pm_table && mysqli_num_rows($cek_pm_table) > 0) {
                 <thead style="position: sticky; top: 0; background: #ecf0f1; z-index: 1;">
                     <tr>
                         <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Tanggal</th>
-                        <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kontributor</th>
+                        <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kolaborator</th>
                         <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Materi</th>
                         <th style="padding: 12px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Aksi</th>
                     </tr>
@@ -1898,7 +1898,7 @@ function openEditModal(id, pesan, target, filePath) {
     // Set target audience
     document.getElementById('edit_target_audience_hidden').value = target; // Mengisi input tersembunyi
     const targetDisplay = document.getElementById('edit_target_audience_display');
-    targetDisplay.value = (target === 'guru') ? 'Hanya Guru' : 'Hanya Kontributor';
+    targetDisplay.value = (target === 'guru') ? 'Hanya Guru' : 'Hanya Kolaborator';
     
 
     const fileInfoDiv = document.getElementById('current_file_info');

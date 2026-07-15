@@ -563,7 +563,7 @@ $list_guru_query = mysqli_query($conn, "
 ");
 
 // =======================
-// TOTAL EXTERNAL CONTRIBUTOR
+// TOTAL External Kolaborator
 // =======================
 
 $total_external_query = mysqli_query($conn, "
@@ -575,7 +575,7 @@ $total_external_data = mysqli_fetch_assoc($total_external_query);
 $total_external = isset($total_external_data['total_contributor']) ? $total_external_data['total_contributor'] : 0;
 
 // =======================
-// DATA UNTUK MODAL EXTERNAL CONTRIBUTOR
+// DATA UNTUK MODAL External Kolaborator
 // =======================
 $list_external_query = mysqli_query($conn, "
     SELECT full_name AS contributor_name, school_name AS contributor_institution 
@@ -1865,7 +1865,7 @@ if($total_upload_guru == 0){
             </div>
             
             <div onclick="openExternalModal()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.3s; text-align: center;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
-                <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total External Contributor</h4>
+                <h4 style="margin: 0 0 5px 0; color: #bdc3c7; font-size: 13px; text-transform: uppercase;">Total External Kolaborator</h4>
                 <h2 style="margin: 0 0 5px 0; color: #f39c12; font-size: 28px;"><?= $total_external; ?></h2>
                 <p style="margin: 0; font-size: 11px; color: #7f8c8d;">Klik untuk melihat detail</p>
             </div>
@@ -2253,18 +2253,18 @@ if($total_upload_guru == 0){
     </div>
 </div>
 
-<!-- Modal External Contributor -->
+<!-- Modal External Kolaborator -->
 <div id="externalModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
     <div style="background: white; width: 90%; max-width: 800px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 85vh;">
         <div style="background: #2c3e50; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 18px;">Daftar Akun External Contributor</h3>
+            <h3 style="margin: 0; font-size: 18px;">Daftar Akun External Kolaborator</h3>
             <button onclick="closeExternalModal()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
         </div>
         <div style="padding: 0; overflow: auto; flex: 1;">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead style="position: sticky; top: 0; background: #ecf0f1; z-index: 1;">
                     <tr>
-                        <th style="padding: 15px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kontributor</th>
+                        <th style="padding: 15px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Nama Kolaborator</th>
                         <th style="padding: 15px; color: #2c3e50; border-bottom: 2px solid #bdc3c7;">Institusi</th>
                     </tr>
                 </thead>
@@ -2278,7 +2278,7 @@ if($total_upload_guru == 0){
                     </tr>
                     <?php } } else { ?>
                     <tr>
-                        <td colspan="2" style="padding: 30px; text-align: center; color: #7f8c8d;">Belum ada akun external contributor terdaftar.</td>
+                        <td colspan="2" style="padding: 30px; text-align: center; color: #7f8c8d;">Belum ada akun External Kolaborator terdaftar.</td>
                     </tr>
                     <?php } ?>
                 </tbody>

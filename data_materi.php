@@ -608,7 +608,7 @@ $folder_query = mysqli_query($conn, "
                 <a href="monitoring_guru.php">Monitoring Guru</a>
                 <a href="data_materi.php">Data Materi</a>
                 <a href="upload_materi.php">Upload Materi</a>
-                <a href="review_materials.php">Review Contributor</a>
+                <a href="review_materials.php">Review Kolaborator</a>
                 <a href="kelola_request.php">Request Materi</a>
                 <a href="analytics.php">Analytics</a>
                 <a href="kelola_user.php">Kelola Akun</a>
@@ -1036,7 +1036,7 @@ if($show_external) {
 
                 <th class="col-no">No</th>
                 <th class="col-materi">Materi</th>
-                <th class="col-upload">Nama Kontributor</th>
+                <th class="col-upload">Nama Kolaborator</th>
                 <th class="col-upload">Institusi</th>
                 <th class="col-file">File</th>
                 <th class="col-aksi">Aksi</th>

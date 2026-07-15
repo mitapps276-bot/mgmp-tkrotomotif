@@ -418,7 +418,7 @@ button:hover{
             <a href="monitoring_guru.php">Monitoring Guru</a>
             <a href="data_materi.php">Data Materi</a>
             <a href="upload_materi.php">Upload Materi</a>
-            <a href="review_materials.php">Review Contributor</a>
+            <a href="review_materials.php">Review Kolaborator</a>
             <a href="kelola_request.php">Request Materi</a>
             <a href="analytics.php">Analytics</a>
             <a href="kelola_informasi.php">Kelola Informasi Umum</a>
@@ -597,7 +597,7 @@ button:hover{
                     <?= ($user['role_id'] == 4) ? 'selected' : ''; ?>
                 >
 
-                    External Contributor
+                    External Kolaborator
 
                 </option>
 

@@ -40,7 +40,7 @@ if(mysqli_num_rows($cek_table_landing) == 0){
             login_desc TEXT
         )
     ");
-    $q_insert = "INSERT INTO landing_settings (id, hero_title, hero_subtitle, hero_image, about_title, about_desc1, about_desc2, about_image, analytic_title, analytic_subtitle, login_title, login_desc) VALUES (1, 'Membangun Sinergi<br><span>Pendidikan Berkualitas</span>', 'Wadah kolaborasi antar tenaga pendidik untuk menciptakan ekosistem pembelajaran yang inovatif, terstruktur, dan berbasis data Learning Analytics cerdas.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Patung_Catur_Muka%2C_Denpasar.jpg/1280px-Patung_Catur_Muka%2C_Denpasar.jpg', 'Ekosistem Terpadu Berbasis Kecerdasan Algoritmik', 'Sistem Informasi Musyawarah Guru Mata Pelajaran (MGMP) hadir sebagai inovasi akademik modern yang memadukan repositori perangkat ajar dengan komputasi cerdas. Platform ini dirancang untuk mendistribusikan materi pembelajaran secara merata, terstruktur, dan terbebas dari duplikasi data berkat fitur pemindaian sidik jari file (Hashing).', 'Lebih dari sekadar ruang penyimpanan <i>cloud</i>, platform ini dibekali fitur <strong>Smart Matching</strong> yang mampu mendeteksi ketersediaan request materi secara otomatis. Didukung oleh teknologi <strong>Learning Analytics</strong>, platform ini secara <i>real-time</i> menghasilkan evaluasi performa kolektif sekolah (SPI) dan sistem rekomendasi kolaborasi (KSI) guna mendorong interaksi aktif setiap tenaga pendidik.', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80', 'Infrastruktur Kolaborasi Akademik Digital', 'Platform terintegrasi yang dirancang secara spesifik untuk mengoptimalkan produktivitas pedagogis dan memfasilitasi sinergi strategis antar tenaga pendidik.', 'Portal Sistem Informasi Akademik', 'Akses khusus bagi administrator, tenaga pendidik, dan kontributor terdaftar untuk masuk ke dalam ruang kerja virtual MGMP.')";
+    $q_insert = "INSERT INTO landing_settings (id, hero_title, hero_subtitle, hero_image, about_title, about_desc1, about_desc2, about_image, analytic_title, analytic_subtitle, login_title, login_desc) VALUES (1, 'Membangun Sinergi<br><span>Pendidikan Berkualitas</span>', 'Wadah kolaborasi antar tenaga pendidik untuk menciptakan ekosistem pembelajaran yang inovatif, terstruktur, dan berbasis data Learning Analytics cerdas.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Patung_Catur_Muka%2C_Denpasar.jpg/1280px-Patung_Catur_Muka%2C_Denpasar.jpg', 'Ekosistem Terpadu Berbasis Kecerdasan Algoritmik', 'Sistem Informasi Musyawarah Guru Mata Pelajaran (MGMP) hadir sebagai inovasi akademik modern yang memadukan repositori perangkat ajar dengan komputasi cerdas. Platform ini dirancang untuk mendistribusikan materi pembelajaran secara merata, terstruktur, dan terbebas dari duplikasi data berkat fitur pemindaian sidik jari file (Hashing).', 'Lebih dari sekadar ruang penyimpanan <i>cloud</i>, platform ini dibekali fitur <strong>Smart Matching</strong> yang mampu mendeteksi ketersediaan request materi secara otomatis. Didukung oleh teknologi <strong>Learning Analytics</strong>, platform ini secara <i>real-time</i> menghasilkan evaluasi performa kolektif sekolah (SPI) dan sistem rekomendasi kolaborasi (KSI) guna mendorong interaksi aktif setiap tenaga pendidik.', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80', 'Infrastruktur Kolaborasi Akademik Digital', 'Platform terintegrasi yang dirancang secara spesifik untuk mengoptimalkan produktivitas pedagogis dan memfasilitasi sinergi strategis antar tenaga pendidik.', 'Portal Sistem Informasi Akademik', 'Akses khusus bagi administrator, tenaga pendidik, dan kolaborator terdaftar untuk masuk ke dalam ruang kerja virtual MGMP.')";
     mysqli_query($conn, $q_insert);
 }
 
@@ -189,7 +189,7 @@ if(isset($_POST['update_landing'])){
     }
     $footer_contact_1_url = mysqli_real_escape_string($conn, $url1_raw);
 
-    $footer_contact_2_text = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_2_text']) ? $_POST['footer_contact_2_text'] : 'Pendaftaran Kontributor'));
+    $footer_contact_2_text = mysqli_real_escape_string($conn, trim(isset($_POST['footer_contact_2_text']) ? $_POST['footer_contact_2_text'] : 'Pendaftaran Kolaborator'));
     $url2_raw = trim(isset($_POST['footer_contact_2_url']) ? $_POST['footer_contact_2_url'] : '#');
     if (!empty($url2_raw) && $url2_raw !== '#' && !preg_match('/^(https?|mailto|tel):/i', $url2_raw)) {
         $url2_raw = 'mailto:' . $url2_raw;
@@ -513,7 +513,7 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
             <a href="monitoring_guru.php">Monitoring Guru</a>
             <a href="data_materi.php">Data Materi</a>
             <a href="upload_materi.php">Upload Materi</a>
-            <a href="review_materials.php">Review Contributor</a>
+            <a href="review_materials.php">Review Kolaborator</a>
             <a href="kelola_request.php">Request Materi</a>
             <a href="analytics.php">Analytics</a>
             <a href="kelola_informasi.php" style="background:#34495e;">Kelola Informasi Umum</a>
@@ -742,7 +742,7 @@ $query_galeri = mysqli_query($conn, "SELECT * FROM gallery ORDER BY created_at D
                     <div style="margin-top:10px;">
                         <label style="color:#3498db; font-size:14px; margin-bottom:8px;">Tautan Kontak 2 (Opsional)</label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" name="footer_contact_2_text" value="<?= htmlspecialchars(isset($ls['footer_contact_2_text']) ? $ls['footer_contact_2_text'] : 'Pendaftaran Kontributor'); ?>" style="flex:1" placeholder="Teks Tautan">
+                            <input type="text" name="footer_contact_2_text" value="<?= htmlspecialchars(isset($ls['footer_contact_2_text']) ? $ls['footer_contact_2_text'] : 'Pendaftaran Kolaborator'); ?>" style="flex:1" placeholder="Teks Tautan">
                             <input type="text" name="footer_contact_2_url" value="<?= htmlspecialchars(isset($ls['footer_contact_2_url']) ? $ls['footer_contact_2_url'] : '#'); ?>" style="flex:1" placeholder="Cth: daftar@email.com" onblur="this.value = this.value.replace(/\s/g, ''); if(this.value.includes('@') && !this.value.startsWith('mailto:') && !this.value.startsWith('http')) this.value = 'mailto:' + this.value;">
                         </div>
                     </div>

@@ -96,7 +96,7 @@ if(isset($_GET['approve'])){
     $_SESSION['popup_type'] = 'success';
     $_SESSION['popup_msg'] = 'Materi berhasil disetujui (Approved).';
 
-    // ✅ NOTIFIKASI TELEGRAM ke kontributor
+    // ✅ NOTIFIKASI TELEGRAM ke Kolaborator
     if (function_exists('notifKontributorTelegram')) {
         $pesan_approve = "✅ <b>Materi Anda Disetujui!</b>\n\n";
         $pesan_approve .= "Halo! Materi yang Anda kirimkan ke SI-LIAK telah <b>disetujui</b> oleh Admin.\n\n";
@@ -153,7 +153,7 @@ if(isset($_GET['reject'])){
     ");
 
     $_SESSION['popup_type'] = 'reject';
-    $_SESSION['popup_msg'] = 'Materi telah ditolak (Rejected) dan dikembalikan ke kontributor.';
+    $_SESSION['popup_msg'] = 'Materi telah ditolak (Rejected) dan dikembalikan ke Kolaborator.';
 
     $cek_mat = mysqli_query($conn, "SELECT title FROM materials WHERE id = '$id'");
     $mat_title = "Materi";
@@ -162,7 +162,7 @@ if(isset($_GET['reject'])){
         $mat_title = htmlspecialchars($mat_data['title']);
     }
 
-    // ❌ NOTIFIKASI TELEGRAM ke kontributor
+    // ❌ NOTIFIKASI TELEGRAM ke Kolaborator
     if (function_exists('notifKontributorTelegram')) {
         $pesan_reject = "❌ <b>Materi Perlu Diperbaiki</b>\n\n";
         $pesan_reject .= "Halo! Materi yang Anda kirimkan ke SI-LIAK belum dapat disetujui.\n\n";
@@ -527,7 +527,7 @@ unset($_SESSION['popup_type']);
             <a href="monitoring_guru.php">Monitoring Guru</a>
             <a href="data_materi.php">Data Materi</a>
             <a href="upload_materi.php">Upload Materi</a>
-            <a href="review_materials.php">Review Contributor</a>
+            <a href="review_materials.php">Review Kolaborator</a>
             <a href="kelola_request.php">Request Materi</a>
             <a href="analytics.php">Analytics</a>
             <a href="kelola_informasi.php">Kelola Informasi Umum</a>
@@ -650,7 +650,7 @@ unset($_SESSION['popup_type']);
     <div class="modal-content" style="text-align: center;">
         <div style="font-size: 50px; margin-bottom: 10px; line-height: 1;">🛑</div>
         <h3 style="margin-top: 0; color: #e74c3c; font-size: 20px;">Tolak Materi?</h3>
-        <p style="color: #555; margin-bottom: 15px; font-size: 14px;">Materi yang ditolak akan dikembalikan ke Kontributor untuk diperbaiki.</p>
+        <p style="color: #555; margin-bottom: 15px; font-size: 14px;">Materi yang ditolak akan dikembalikan ke Kolaborator untuk diperbaiki.</p>
         <textarea id="rejectReason" placeholder="Tuliskan alasan penolakan di sini..." style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; min-height: 80px; margin-bottom: 20px; box-sizing: border-box; font-family: inherit; resize: vertical;"></textarea>
         <div class="modal-actions" style="justify-content: center;">
             <button class="btn-cancel" onclick="closeRejectModal()">Batal</button>

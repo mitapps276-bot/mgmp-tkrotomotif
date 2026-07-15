@@ -329,7 +329,7 @@ if($data){
         }
 
         // =====================================
-        // EXTERNAL CONTRIBUTOR
+        // External Kolaborator
         // =====================================
 
         elseif($role_id == 4){

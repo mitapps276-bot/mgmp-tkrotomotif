@@ -231,15 +231,15 @@ echo "
         </tr>
         <tr>
             <td>EXT-01</td>
-            <td>Upload oleh Kontributor</td>
-            <td>1. Login sebagai External Contributor.<br>2. Upload materi baru.</td>
+            <td>Upload oleh Kolaborator</td>
+            <td>1. Login sebagai External Kolaborator.<br>2. Upload materi baru.</td>
             <td>Materi masuk ke database dengan status 'Pending'. Kontributor tidak dapat melihat file tersebut di tabel publik.</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
         <tr>
             <td>EXT-02</td>
             <td>Verifikasi Admin (Approve)</td>
-            <td>1. Login Admin > Review Contributor.<br>2. Klik 'Approve' pada materi di atas.</td>
+            <td>1. Login Admin > Review Kolaborator.<br>2. Klik 'Approve' pada materi di atas.</td>
             <td>Status berubah menjadi 'Approved'. Materi kini muncul di folder 'Kolaborator External' pada menu Data Materi publik.</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
@@ -247,7 +247,7 @@ echo "
             <td>EXT-03</td>
             <td>Verifikasi Admin (Reject dengan Alasan)</td>
             <td>1. Admin melakukan 'Reject' pada materi lain dengan menyertakan teks alasan penolakan.</td>
-            <td>Pada Dashboard Kontributor, muncul kotak merah berisi notifikasi penolakan beserta alasan spesifik dari Admin.</td>
+            <td>Pada Dashboard Kolaborator, muncul kotak merah berisi notifikasi penolakan beserta alasan spesifik dari Admin.</td>
             <td>[  ] Pass<br>[  ] Fail<br>Catatan:</td>
         </tr>
     </table>

@@ -156,7 +156,7 @@ if (isset($_POST['save_telegram'])) {
     if (!empty($tg_id)) {
         require_once 'config/telegram.php';
         if (function_exists('kirimTelegram')) {
-            kirimTelegram($tg_id, "Halo " . $_SESSION['name'] . "! ID Telegram Anda berhasil dihubungkan ke akun SI-LIAK Anda sebagai Kontributor.");
+            kirimTelegram($tg_id, "Halo " . $_SESSION['name'] . "! ID Telegram Anda berhasil dihubungkan ke akun SI-LIAK Anda sebagai Kolaborator.");
         }
     }
     header("Location: contributor_upload.php");
@@ -498,7 +498,7 @@ if(isset($_POST['upload'])){
     // AUTO VALUE
     // =====================================
 
-    $category = !empty($_POST['bantu_kategori']) ? mysqli_real_escape_string($conn, trim($_POST['bantu_kategori'])) : (!empty($_POST['kategori_dropdown']) ? mysqli_real_escape_string($conn, trim($_POST['kategori_dropdown'])) : "External Contributor");
+    $category = !empty($_POST['bantu_kategori']) ? mysqli_real_escape_string($conn, trim($_POST['bantu_kategori'])) : (!empty($_POST['kategori_dropdown']) ? mysqli_real_escape_string($conn, trim($_POST['kategori_dropdown'])) : "External Kolaborator");
     $fulfilled_request_ids = !empty($_POST['bantu_request_ids']) ? mysqli_real_escape_string($conn, trim($_POST['bantu_request_ids'])) : "";
 
     $grade_level = !empty($_POST['bantu_kelas']) ? mysqli_real_escape_string($conn, trim($_POST['bantu_kelas'])) : (!empty($_POST['kelas_dropdown']) ? mysqli_real_escape_string($conn, trim($_POST['kelas_dropdown'])) : "-");
@@ -735,7 +735,7 @@ if(isset($_POST['upload'])){
     if($query){
         $new_mat_id = mysqli_insert_id($conn);
 
-        // ✅ NOTIFIKASI TELEGRAM KE KONTRIBUTOR (STATUS PENDING)
+        // ✅ NOTIFIKASI TELEGRAM ke Kolaborator (STATUS PENDING)
         if (function_exists('notifKontributorTelegram')) {
             $pesan_pending = "⏳ <b>Materi Berhasil Diunggah!</b>\n\n";
             $pesan_pending .= "Halo! Materi yang Anda kirimkan ke SI-LIAK telah kami terima dan saat ini berstatus <b>PENDING</b> menunggu verifikasi dari Admin.\n\n";
@@ -751,7 +751,7 @@ if(isset($_POST['upload'])){
             $pesan_admin .= "👤 <b>Pengunggah:</b> " . htmlspecialchars($name) . " (" . htmlspecialchars($institution) . ")\n";
             $pesan_admin .= "📚 <b>Judul:</b> " . htmlspecialchars($title) . "\n";
             $pesan_admin .= "🗂️ <b>Kategori:</b> " . htmlspecialchars($category) . "\n\n";
-            $pesan_admin .= "Silakan login ke SI-LIAK menu <b>Review Contributor</b> untuk menyetujui atau menolaknya.";
+            $pesan_admin .= "Silakan login ke SI-LIAK menu <b>Review Kolaborator</b> untuk menyetujui atau menolaknya.";
             notifAdminNewRequestTelegram($conn, $pesan_admin);
         }
 
@@ -779,7 +779,7 @@ if(isset($_POST['upload'])){
 <html>
 <head>
 
-    <title>External Contributor MGMP</title>
+    <title>External Kolaborator MGMP</title>
 
     <meta charset="UTF-8">
 
@@ -1306,7 +1306,7 @@ if(isset($_POST['upload'])){
 
     <div class="sidebar" id="sidebar-menu">
         <div class="logo">
-            External Contributor
+            External Kolaborator
         </div>
         <div class="menu">
             <a href="#" class="menu-disabled">Dashboard</a>
@@ -1360,7 +1360,7 @@ if(isset($_POST['upload'])){
                 <p style="text-align: justify; max-width: 600px;">Terima kasih telah bergabung sebagai Kolaborator Eksternal. Anda dapat membagikan materi dan perangkat pembelajaran yang akan ditinjau oleh Admin sebelum dipublikasikan ke platform.</p>
             
                 <div class="hero-badge-container" style="display: flex; align-items: center; gap: 15px; margin-top: 10px; position: relative; z-index: 50;">
-                    <div class="badge" style="margin-top: 0;">External Contributor</div>
+                    <div class="badge" style="margin-top: 0;">External Kolaborator</div>
                 </div>
                 <div class="hero-action-container" style="margin-top: 35px; position: relative; z-index: 50;">
                     <form method="POST" enctype="multipart/form-data">
