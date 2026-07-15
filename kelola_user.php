@@ -702,7 +702,7 @@ while($row = mysqli_fetch_assoc($query)){
 
         <span class="role <?= $class; ?>">
 
-            <?= htmlspecialchars($row['role_name']); ?>
+            <?= htmlspecialchars(str_ireplace('Contributor', 'Kolaborator', $row['role_name'])); ?>
 
         </span>
 
